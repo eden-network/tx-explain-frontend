@@ -46,17 +46,21 @@ npm run dev
 5. The frontend application will be accessible at http://localhost:3000.
 
 ## Folder Structure
-components/: Contains reusable components used in the application.
-
-pages/: Contains the pages of the application.
-
-store/: Contains the Zustand store for state management.
-
-styles/: Contains global styles and CSS files.
-
-types/: Contains TypeScript type definitions.
-
-utils/: Contains utility functions.
+```
+tx-explain-frontend/
+│
+├── components/: Contains reusable components used in the application.
+│
+├── pages/: Contains the pages of the application.
+│
+├── store/: Contains the Zustand store for state management.
+│
+├── styles/: Contains global styles and CSS files.
+│
+├── types/: Contains TypeScript type definitions.
+│
+└── utils/: Contains utility functions.
+```
 
 ## Mock Server
 The frontend application requires a backend server to fetch transaction data and explanation results. A mock server is provided in the root of this repository for testing purposes. To use the mock server, run:
