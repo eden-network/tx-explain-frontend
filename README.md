@@ -1,46 +1,69 @@
-# Getting Started with Create React App
+# TX Explain Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is the frontend codebase for the TX Explain application. It provides a user interface for selecting a network, entering a transaction hash, and displaying the simulation and explanation results for the transaction.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- Select a network (Ethereum, Arbitrum, Optimism, Avalanche)
+- Enter a transaction hash
+- Display transaction summary, token transfers, and function calls
+- Real-time streaming of explanation results
 
-### `npm start`
+## Technologies Used
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- Next.js
+- React
+- TypeScript
+- Mantine UI library
+- Tanstack Query (React Query)
+- Zustand (state management)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Getting Started
 
-### `npm test`
+1. Clone the repository:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+   git clone https://github.com/eden-network/tx-explain-frontend.git
+```
 
-### `npm run build`
+2. Install the dependencies:
+```bash
+cd tx-explain-frontend
+npm install
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. Set up the environment variables: Create a .env.local file in the root directory and provide the necessary environment variables:
+```
+NEXT_PUBLIC_SERVER_URL=http://localhost:3001
+```
+Replace http://localhost:3001 with the URL of your backend server.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+4. Start the development server:
+```bash
+npm run dev
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+5. The frontend application will be accessible at http://localhost:3000.
 
-### `npm run eject`
+## Folder Structure
+components/: Contains reusable components used in the application.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+pages/: Contains the pages of the application.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+store/: Contains the Zustand store for state management.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+styles/: Contains global styles and CSS files.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+types/: Contains TypeScript type definitions.
 
-## Learn More
+utils/: Contains utility functions.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Mock Server
+The frontend application requires a backend server to fetch transaction data and explanation results. A mock server is provided in the root of this repository for testing purposes. To use the mock server, run:
+    
+```bash
+npm run mock
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## License
+This project is licensed under the MIT License.
