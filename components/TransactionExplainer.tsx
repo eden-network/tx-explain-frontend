@@ -29,10 +29,11 @@ const TransactionExplainer: React.FC = () => {
     queryKey: ['explainTransaction', network, txHash],
     queryFn: async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/transaction`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
           },
           body: JSON.stringify({ network_id: network, tx_hash: txHash }),
         });
@@ -40,7 +41,8 @@ const TransactionExplainer: React.FC = () => {
           const errorResponse = await response.json();
           throw new Error(errorResponse.error || 'An unknown error occurred');
         }
-        return response.json();
+        const data = await response.json();
+        return data.result;
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -77,8 +79,8 @@ const TransactionExplainer: React.FC = () => {
               placeholder="Select a network"
               value={network}
               onChange={(value) => {
-                if(value !== null) {
-                  setNetwork(value)
+                if (value !== null) {
+                  setNetwork(value);
                 }
               }}
               data={[
