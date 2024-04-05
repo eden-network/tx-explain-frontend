@@ -1,42 +1,61 @@
 import React from 'react';
-import { Card, Title, Text, List, ThemeIcon, Group, Stack, Badge } from '@mantine/core';
-import { IconArrowRight, IconCurrencyDollar, IconCircleCheck } from '@tabler/icons-react';
-import { TokenTransfer } from '../types';
+import { Card, Title, Text, Grid, Badge, Divider, Box } from '@mantine/core';
+import { AssetChange } from '../types';
 
 interface TokenTransfersProps {
-  transfers: TokenTransfer[];
+  transfers: AssetChange[];
 }
 
 const TokenTransfers: React.FC<TokenTransfersProps> = ({ transfers }) => {
+  const renderTransferType = (type: string) => {
+    const color = type === 'Transfer' ? 'blue' : 'red';
+    return (
+      <Badge color={color} size="xs" radius="xs" mb="xs">
+        {type}
+      </Badge>
+    );
+  };
+
+  const renderTransferDirection = (from: string, to: string) => {
+    return (
+      <Box mb="sm">
+        <Text size="sm" c="dimmed">From:</Text>
+        <Text size="md">{from || '-'}</Text>
+        <Text size="sm" c="dimmed" mt="xs">To:</Text>
+        <Text size="md">{to || '-'}</Text>
+      </Box>
+    );
+  };
+
+  const renderTransferAmount = (amount: string, usdValue: string, symbol: string) => {
+    return (
+      <Box mb="sm">
+        <Text size="sm" c="dimmed">Amount:</Text>
+        <Text size="xl">{amount} {symbol.toUpperCase()}</Text>
+        <Text size="sm" c="dimmed" mt="xs">USD Value:</Text>
+        <Text size="md">${parseFloat(usdValue).toFixed(2)}</Text>
+      </Box>
+    );
+  };
+
   return (
-    <Card shadow="sm" p="lg" radius="md" withBorder>
-      <Title order={3} mb="lg">Token Transfers</Title>
+    <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
+      <Title order={3} mb="md">Token Transfers</Title>
       {transfers.map((transfer, index) => (
-        <Stack key={index} mb="md">
-          <Group>
-            <Text>
-              <Badge color="teal" variant="light">
-                {transfer.token_symbol}
-              </Badge>{' '}
-              <strong>{transfer.amount}</strong>
-            </Text>
-            <ThemeIcon color="green" size={30} radius="xl">
-              <IconCircleCheck size={20} />
-            </ThemeIcon>
-          </Group>
-          <Group >
-            <Text size="sm" c="dimmed">From:</Text>
-            <Text size="sm">{transfer.from}</Text>
-            <IconArrowRight size={16} />
-            <Text size="sm" c="dimmed">To:</Text>
-            <Text size="sm">{transfer.to}</Text>
-          </Group>
-          <Group>
-            <IconCurrencyDollar size={16} />
-            <Text size="sm">Value:</Text>
-            <Text size="sm">{transfer.usd_value} USD</Text>
-          </Group>
-        </Stack>
+        <div key={index}>
+          <Grid align="center" mb="md">
+            <Grid.Col span={2}>
+              {renderTransferType(transfer.type)}
+            </Grid.Col>
+            <Grid.Col span={3}>
+              {renderTransferAmount(transfer.amount, transfer.dollar_value, transfer.token_info.symbol)}
+            </Grid.Col>
+            <Grid.Col span={4}>
+              {renderTransferDirection(transfer.from, transfer.to)}
+            </Grid.Col>
+          </Grid>
+          {index !== transfers.length - 1 && <Divider my="sm" />}
+        </div>
       ))}
     </Card>
   );

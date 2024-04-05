@@ -1,44 +1,51 @@
-export interface TokenTransfer {
-    token_name: string;
-    token_symbol: string;
-    token_address: string;
-    token_standard: string;
-    amount: string;
-    usd_value: string;
+export interface TokenInfo {
+    standard: string;
+    type: string;
+    symbol: string;
+    name: string;
+    decimals: number;
+    contract_address: string;
+}
+
+export interface AssetChange {
+    type: string;
     from: string;
     to: string;
+    amount: string;
+    dollar_value: string;
+    token_info: TokenInfo;
 }
-  
-export interface SmartContract {
+
+export interface DecodedInput {
     name: string;
-    address: string;
-    summary: string;
+    type: string;
+    value: any;
 }
-  
-export interface FunctionInput {
-    param_name?: string;
-    param_type: string;
-    value: string | number | boolean;
+
+export interface DecodedOutput {
+    name: string;
+    type: string;
+    value: any;
 }
-  
-export interface FunctionOutput {
-    output_name?: string;
-    output_type: string;
-    value: string | number | boolean;
-}
-  
+
 export interface FunctionCall {
-    smart_contract: SmartContract;
-    function_name: string;
-    function_sig: string;
-    summary: string;
-    input?: FunctionInput[];
-    output?: FunctionOutput[];
+    contract_name: string;
+    function: string;
+    from: string;
+    from_balance: string | null;
+    to: string;
+    input: string;
+    output: string;
+    value: string | null;
+    caller: string | null;
+    caller_balance: string | null;
+    decoded_input: DecodedInput[];
+    decoded_output: DecodedOutput[] | null;
+    calls: FunctionCall[] | null;
 }
-  
-export interface TransactionExplanation {
-    summary: string;
-    token_transfers: TokenTransfer[];
-    calls: FunctionCall[];
-    tx_hash?: string;
+
+export interface TransactionSimulation {
+    hash: string;
+    call_trace: FunctionCall[];
+    asset_changes: AssetChange[];
 }

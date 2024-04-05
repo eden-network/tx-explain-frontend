@@ -1,61 +1,94 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Box,
-  Button,
-  Select,
-  TextInput,
-  Card,
-  Title,
-  Text,
-  Space,
-  Loader,
-  Alert,
-  Grid,
-  Divider,
-} from '@mantine/core';
+import { Box, Title, Space, Alert, Loader, Select, TextInput, Button } from '@mantine/core';
 import useStore from '../store';
-import { TransactionExplanation } from '../types';
 import { isValidTxHash, getNetworkName } from '../utils';
 import TokenTransfers from './TokenTransfers';
 import FunctionCalls from './FunctionCalls';
+import { TransactionSimulation } from '../types';
 
 const TransactionExplainer: React.FC = () => {
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
   const [txHash, setTxHash] = useStore((state) => [state.txHash, state.setTxHash]);
   const [error, setError] = useState('');
+  const [explanation, setExplanation] = useState('');
+  const [showHeader, setShowHeader] = useState(false);
 
-  const { data: transactionData, isLoading, isError, error: queryError, refetch } = useQuery<TransactionExplanation>({
-    queryKey: ['explainTransaction', network, txHash],
+  const { data: simulationData, isLoading: isSimulationLoading, isError: isSimulationError, error: simulationError, refetch: refetchSimulation } = useQuery<TransactionSimulation, Error>({
+    queryKey: ['simulateTransaction', network, txHash],
     queryFn: async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
-          },
-          body: JSON.stringify({ network_id: network, tx_hash: txHash }),
-        });
-        if (!response.ok) {
-          const errorResponse = await response.json();
-          throw new Error(errorResponse.error || 'An unknown error occurred');
-        }
-        const data = await response.json();
-        return data.result;
-      } catch (error) {
-        if (error instanceof Error) {
-          throw error;
-        } else {
-          throw new Error('Failed to fetch transaction data');
-        }
+      const body = JSON.stringify({ network_id: network, tx_hash: txHash });
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/fetch_and_simulate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+        },
+        body: body,
+      });
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        throw new Error(errorResponse.error || 'An unknown error occurred');
       }
+
+      const data = await response.json();
+      return data.result as TransactionSimulation;
     },
     enabled: false,
     retry: false,
   });
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const fetchExplanation = async () => {
+    if (!simulationData) return;
+
+    try {
+      const body = JSON.stringify({ transactions: [simulationData] });
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/explain`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+        },
+        body: body,
+      });
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        throw new Error(errorResponse.error || 'An unknown error occurred');
+      }
+
+      const reader = response.body?.getReader();
+      if (reader) {
+        const decoder = new TextDecoder('utf-8');
+        let explanationText = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          explanationText += decoder.decode(value);
+          setExplanation(explanationText);
+        }
+      } else {
+        throw new Error('Failed to read explanation stream');
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('Failed to fetch transaction explanation');
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (simulationData) {
+      fetchExplanation();
+    }
+  }, [simulationData]);
+
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValidTxHash(txHash)) {
       const networkName = getNetworkName(network);
@@ -63,7 +96,8 @@ const TransactionExplainer: React.FC = () => {
       return;
     }
     setError('');
-    refetch();
+    setShowHeader(true);
+    refetchSimulation();
   };
 
   return (
@@ -71,18 +105,14 @@ const TransactionExplainer: React.FC = () => {
       <Title style={{ fontSize: '2rem', fontWeight: 700, textAlign: 'center', marginBottom: '2rem' }}>
         TX Explain
       </Title>
-      <Card shadow="md" p="xl" radius="md" withBorder>
-        <Grid>
-          <Grid.Col span={12}>
+      {!showHeader && (
+        <Box mb="xl">
+          <form onSubmit={handleSearch}>
             <Select
               label="Network"
               placeholder="Select a network"
               value={network}
-              onChange={(value) => {
-                if (value !== null) {
-                  setNetwork(value);
-                }
-              }}
+              onChange={(value) => setNetwork(value || '1')}
               data={[
                 { value: '1', label: 'Ethereum' },
                 { value: '42161', label: 'Arbitrum' },
@@ -90,54 +120,76 @@ const TransactionExplainer: React.FC = () => {
                 { value: '43114', label: 'Avalanche' },
               ]}
               required
-              size="md"
+              mb="md"
             />
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <form onSubmit={handleFormSubmit}>
-              <TextInput
-                label="Transaction Hash"
-                placeholder="Enter transaction hash"
-                value={txHash}
-                onChange={(e) => setTxHash(e.target.value)}
-                error={error}
-                required
-                size="md"
-              />
-              <Button type="submit" fullWidth mt="md" size="md" loading={isLoading}>
-                {isLoading ? <Loader size="sm" /> : 'Explain Transaction'}
-              </Button>
-            </form>
-          </Grid.Col>
-        </Grid>
-      </Card>
-      <Space h="xl" />
-      {isError && (
+            <TextInput
+              label="Transaction Hash"
+              placeholder="Enter transaction hash"
+              value={txHash}
+              onChange={(e) => setTxHash(e.target.value)}
+              required
+              mb="md"
+            />
+            <Button type="submit" fullWidth mt="sm">
+              Explain Transaction
+            </Button>
+          </form>
+        </Box>
+      )}
+      {showHeader && (
+        <Box mb="xl">
+          <Select
+            label="Network"
+            placeholder="Select a network"
+            value={network}
+            onChange={(value) => setNetwork(value || '1')}
+            data={[
+              { value: '1', label: 'Ethereum' },
+              { value: '42161', label: 'Arbitrum' },
+              { value: '10', label: 'Optimism' },
+              { value: '43114', label: 'Avalanche' },
+            ]}
+            required
+            mb="md"
+          />
+          <TextInput
+            label="Transaction Hash"
+            placeholder="Enter transaction hash"
+            value={txHash}
+            onChange={(e) => setTxHash(e.target.value)}
+            required
+            mb="md"
+          />
+        </Box>
+      )}
+      {isSimulationLoading && (
+        <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+          <Loader size="lg" />
+        </Box>
+      )}
+      {error && (
         <Alert color="red" title="Error" mb="md">
-          {queryError instanceof Error ? queryError.message : 'Unknown error'}
+          {error}
         </Alert>
       )}
-      {transactionData && (
-        <Card shadow="md" p="xl" radius="md" withBorder>
+      {explanation && (
+        <Box mb="xl">
           <Title order={2} mb="md">
-            Transaction Summary
+            Summary
           </Title>
-          <Text size="md" mb="md">
-            {transactionData.summary}
-          </Text>
-          <Divider my="xl" />
-          <Grid>
-            <Grid.Col span={12}>
-              {transactionData.token_transfers && (
-                <TokenTransfers transfers={transactionData.token_transfers} />
-              )}
-            </Grid.Col>
-            <Grid.Col span={12}>
-              {transactionData.calls && <FunctionCalls calls={transactionData.calls} />}
-            </Grid.Col>
-          </Grid>
-        </Card>
+          <div>{explanation}</div>
+        </Box>
       )}
+      {simulationData && (
+        <>
+          <Title order={2} mb="md">
+            Details
+          </Title>
+          {simulationData.asset_changes && <TokenTransfers transfers={simulationData.asset_changes} />}
+          {simulationData.call_trace && <FunctionCalls calls={simulationData.call_trace} />}
+        </>
+      )}
+      <Space h="xl" />
     </Box>
   );
 };
