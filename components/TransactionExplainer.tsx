@@ -185,8 +185,8 @@ const TransactionExplainer: React.FC = () => {
           <Title order={2} mb="md">
             Details
           </Title>
-          {simulationData.asset_changes && <TokenTransfers transfers={simulationData.asset_changes} />}
-          {simulationData.call_trace && <FunctionCalls calls={simulationData.call_trace} />}
+          {simulationData.asset_changes && simulationData.asset_changes.length > 0 && <TokenTransfers transfers={simulationData.asset_changes} />}
+          {simulationData.call_trace && simulationData.call_trace.length > 0 && <FunctionCalls calls={simulationData.call_trace} />}
         </>
       )}
       <Space h="xl" />
