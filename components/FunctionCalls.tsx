@@ -81,7 +81,7 @@ const FunctionCalls: React.FC<FunctionCallsProps> = ({ calls }) => {
                     {call.calls.length > 3 && (
                       <Button
                         variant="subtle"
-                        compact-sm
+                        size="compact-sm"
                         onClick={() => toggleCall(callId)}
                         mt="xs"
                       >
@@ -99,10 +99,12 @@ const FunctionCalls: React.FC<FunctionCallsProps> = ({ calls }) => {
   };
 
   return (
-    <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
+    <Box mb="xl">
       <Title order={3} mb="md">Function Calls</Title>
-      {calls.map((call, index) => renderCallTree(call, 0))}
-    </Card>
+      <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
+        {calls.map((call, index) => renderCallTree(call, 0))}
+      </Card>
+    </Box>
   );
 };
 

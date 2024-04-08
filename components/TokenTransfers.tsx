@@ -31,7 +31,7 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ transfers }) => {
     return (
       <Box mb="sm">
         <Text size="sm" c="dimmed">Amount:</Text>
-        <Text size="xl">{amount} {symbol.toUpperCase()}</Text>
+        <Text size="xl">{parseFloat(amount).toFixed(6)} {symbol.toUpperCase()}</Text>
         <Text size="sm" c="dimmed" mt="xs">USD Value:</Text>
         <Text size="md">${parseFloat(usdValue).toFixed(2)}</Text>
       </Box>
