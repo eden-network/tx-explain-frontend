@@ -7,12 +7,26 @@ interface TokenTransfersProps {
 }
 
 const TokenTransfers: React.FC<TokenTransfersProps> = ({ transfers }) => {
-  const renderTransferType = (type: string) => {
-    const color = type === 'Transfer' ? 'blue' : 'red';
+  const renderTransferType = (standard: string, type: string) => {
+    const color = (() => {
+      switch(type) {
+        case 'Transfer':
+          return 'blue';
+        case 'Mint':
+          return 'green';
+        case 'Burn':
+          return 'red';
+        default:
+          return 'gray';
+      }
+    })();
     return (
-      <Badge color={color} size="xs" radius="xs" mb="xs">
-        {type}
-      </Badge>
+      <Box mb="sm">
+        <Text size="sm" c="dimmed" mb="xs">{standard}</Text>
+        <Badge color={color} size="xs" radius="xs" mb="xs">
+          {type}
+        </Badge>
+      </Box>
     );
   };
 
@@ -45,7 +59,7 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ transfers }) => {
         <div key={index}>
           <Grid align="center" mb="md">
             <Grid.Col span={2}>
-              {renderTransferType(transfer.type)}
+              {renderTransferType(transfer.token_info.standard, transfer.type)}
             </Grid.Col>
             <Grid.Col span={3}>
               {renderTransferAmount(transfer.amount, transfer.dollar_value, transfer.token_info.symbol)}

@@ -95,13 +95,7 @@ const TransactionExplainer: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (simulationData) {
-      fetchExplanation();
-    }
-  }, [simulationData]);
-
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValidTxHash(txHash)) {
       const networkName = getNetworkName(network);
@@ -110,12 +104,19 @@ const TransactionExplainer: React.FC = () => {
     }
     setError('');
     setShowButton(false);
-    refetchSimulation();
+    await refetchSimulation();
+    if (simulationData) {
+      await fetchExplanation();
+    }
   };
 
   const handleTxHashChange = (txHash: string) => {
     setTxHash(txHash);
-    setExplanation('');
+    setShowButton(true);
+  }
+
+  const handleNetworkChange = (network: string) => {
+    setNetwork(network);
     setShowButton(true);
   }
 
@@ -130,7 +131,7 @@ const TransactionExplainer: React.FC = () => {
             label="Network"
             placeholder="Select a network"
             value={network}
-            onChange={(value) => setNetwork(value || '1')}
+            onChange={(value) => handleNetworkChange(value || '1')}
             data={[
               { value: '1', label: 'Ethereum' },
               { value: '42161', label: 'Arbitrum' },
