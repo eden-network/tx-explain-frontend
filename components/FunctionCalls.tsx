@@ -100,8 +100,8 @@ const FunctionCalls: React.FC<FunctionCallsProps> = ({ calls }) => {
 
   return (
     <Box mb="xl">
-      <Title order={3} mb="md">Function Calls</Title>
       <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
+        <Title order={3} mb="md">Function Calls</Title>
         {calls.map((call, index) => renderCallTree(call, 0))}
       </Card>
     </Box>

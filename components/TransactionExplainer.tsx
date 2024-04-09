@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Card, Title, Space, Alert, Loader, Select, TextInput, Button } from '@mantine/core';
+import { Box, Card, Title, Space, Alert, Loader, Select, TextInput, Button, Skeleton } from '@mantine/core';
 import useStore from '../store';
 import { isValidTxHash, getNetworkName } from '../utils';
 import TokenTransfers from './TokenTransfers';
@@ -12,7 +12,8 @@ const TransactionExplainer: React.FC = () => {
   const [txHash, setTxHash] = useStore((state) => [state.txHash, state.setTxHash]);
   const [error, setError] = useState('');
   const [explanation, setExplanation] = useState('');
-  const [showButton, setShowButton] = useState(true);
+  const [isExplanationLoading, setIsExplanationLoading] = useState(false);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
 
   const { data: simulationData, isLoading: isSimulationLoading, isError: isSimulationError, error: simulationError, refetch: refetchSimulation } = useQuery<TransactionSimulation, Error>({
     queryKey: ['simulateTransaction', network, txHash],
@@ -40,9 +41,13 @@ const TransactionExplainer: React.FC = () => {
   });
 
   const fetchExplanation = async () => {
-    if (!simulationData) return;
+    if (!simulationData) {
+      setError('Missing simulation data');
+      return;
+    }
 
     try {
+      setIsExplanationLoading(true)
       const body = JSON.stringify({ transactions: [simulationData] });
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/explain`, {
         method: 'POST',
@@ -82,7 +87,7 @@ const TransactionExplainer: React.FC = () => {
         // Append any remaining content in the buffer
         if (buffer) {
           setExplanation((prevExplanation) => prevExplanation + buffer);
-        }       
+        }
       } else {
         throw new Error('Failed to read explanation stream');
       }
@@ -93,37 +98,51 @@ const TransactionExplainer: React.FC = () => {
         setError('Failed to fetch transaction explanation');
       }
     }
+    setIsExplanationLoading(false)
   };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isValidTxHash(txHash)) {
-      const networkName = getNetworkName(network);
-      setError(`Please enter a valid ${networkName} transaction hash`);
-      return;
-    }
+    // if (!isValidTxHash(txHash)) {
+    //   const networkName = getNetworkName(network);
+    //   setError(`Please enter a valid ${networkName} transaction hash`);
+    //   return;
+    // }
     setError('');
-    setShowButton(false);
+    setIsButtonDisabled(true);
+    // setExplanation('');
+    setIsExplanationLoading(true);
     await refetchSimulation();
     if (simulationData) {
       await fetchExplanation();
+    } else {
+      setError('Failed to fetch simulation data');
+      setIsButtonDisabled(false);
     }
   };
 
   const handleTxHashChange = (txHash: string) => {
     setTxHash(txHash);
-    setShowButton(true);
+    if (!isValidTxHash(txHash)) {
+      const networkName = getNetworkName(network);
+      setError(`Please enter a valid ${networkName} transaction hash`);
+      setIsButtonDisabled(true);
+      return;
+    }
+    setExplanation('');
+    setError('');
+    setIsButtonDisabled(false);
   }
 
   const handleNetworkChange = (network: string) => {
     setNetwork(network);
-    setShowButton(true);
+    setIsButtonDisabled(false);
   }
 
   return (
     <Box style={{ maxWidth: 800, margin: 'auto', padding: '2rem' }}>
       <Title style={{ fontSize: '2rem', fontWeight: 700, textAlign: 'center', marginBottom: '2rem' }}>
-        TX Explain
+        TX Expl<span style={{ textDecoration: 'underline' }}>ai</span>n
       </Title>
       <Box mb="xl">
         <form onSubmit={handleSearch}>
@@ -149,40 +168,63 @@ const TransactionExplainer: React.FC = () => {
             required
             mb="md"
           />
-          {showButton && (
-            <Button type="submit" fullWidth mt="sm">
-              Explain Transaction
-            </Button>
-          )}
+          <Button type="submit" fullWidth mt="sm" disabled={isButtonDisabled}>
+            Explain Transaction
+          </Button>
         </form>
       </Box>
-      {isSimulationLoading && (
-        <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-          <Loader size="lg" />
-        </Box>
-      )}
       {error && (
         <Alert color="red" title="Error" mb="md">
           {error}
         </Alert>
       )}
-      {explanation && (
+      {!error && (
         <Box mb="xl">
           <Title order={2} mb="md">
-            Overview
+            Summary
+            {isExplanationLoading && <Loader size="sm" ml="sm" />}
           </Title>
-          <Card shadow="sm" p="lg" radius="md" withBorder mb="xl"> 
-            <pre style={{ whiteSpace: 'pre-wrap' }}>{explanation}</pre>
-          </Card>
+          {(explanation || isExplanationLoading) && (
+            <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
+              {explanation && <pre style={{ whiteSpace: 'pre-wrap' }}>{explanation}</pre>}
+              {isExplanationLoading && (
+                <pre style={{ whiteSpace: 'pre-wrap' }}>
+                  <Skeleton height={16} mt={12} radius="xl" />
+                  <Skeleton height={16} mt={12} width="70%" radius="xl" />
+                </pre>
+              )}
+            </Card>
+          )}
         </Box>
       )}
-      {simulationData && (
+      {!error && (
         <Box mb="xl">
           <Title order={2} mb="md">
             Details
+            {isSimulationLoading && <Loader size="sm" ml="sm" />}
           </Title>
-          {simulationData.asset_changes && simulationData.asset_changes.length > 0 && <TokenTransfers transfers={simulationData.asset_changes} />}
-          {simulationData.call_trace && simulationData.call_trace.length > 0 && <FunctionCalls calls={simulationData.call_trace} />}
+          {isSimulationLoading && (
+            <>
+              <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
+                <Title order={3} mb="md">Token Transfers</Title>
+                <Skeleton height={16} radius="xl" />
+                <Skeleton height={16} mt={12} radius="xl" />
+                <Skeleton height={16} mt={12} width="70%" radius="xl" />
+              </Card>
+              <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
+                <Title order={3} mb="md">Function Calls</Title>
+                <Skeleton height={16} radius="xl" />
+                <Skeleton height={16} mt={12} radius="xl" />
+                <Skeleton height={16} mt={12} width="70%" radius="xl" />
+              </Card>
+            </>
+          )}
+          {simulationData && (
+            <div>
+              {simulationData.asset_changes && simulationData.asset_changes.length > 0 && <TokenTransfers transfers={simulationData.asset_changes} />}
+              {simulationData.call_trace && simulationData.call_trace.length > 0 && <FunctionCalls calls={simulationData.call_trace} />}
+            </div>
+          )}
         </Box>
       )}
       <Space h="xl" />
