@@ -9,7 +9,7 @@ import { createTheme, MantineProvider } from '@mantine/core';
 const queryClient = new QueryClient();
 
 const theme = createTheme({
-    /** Put your mantine theme override here */
+    cursorType: 'pointer',
   });
 
 const App: React.FC<AppProps> = ({ Component, pageProps }) => {
