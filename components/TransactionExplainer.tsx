@@ -90,29 +90,16 @@ const TransactionExplainer: React.FC = () => {
         const decoder = new TextDecoder('utf-8');
         let explanation = '';
 
-        let buffer = '';
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
           const chunk = decoder.decode(value);
-          buffer += chunk;
-          // Check for newline characters and update the explanation state
-          const newlineIndex = buffer.indexOf('\n');
-          if (newlineIndex !== -1) {
-            const line = buffer.slice(0, newlineIndex);
-            explanation += line + '\n';
-            buffer = buffer.slice(newlineIndex + 1);
-          }
+          explanation += chunk;
           setExplanationCache((prevCache) => ({
             ...prevCache,
             [network + ":" + txHash]: explanation,
           }));
-        }
-
-        // Append any remaining content in the buffer
-        if (buffer) {
-          explanation += buffer;
         }
 
         setExplanationCache((prevCache) => ({
