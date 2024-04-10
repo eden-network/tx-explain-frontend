@@ -273,7 +273,7 @@ const TransactionExplainer: React.FC = () => {
             Details
           </Title>
           {simulationDataCache[network + ":" + txHash].asset_changes && simulationDataCache[network + ":" + txHash].asset_changes.length > 0 && (
-            <TokenTransfers transfers={simulationDataCache[network + ":" + txHash].asset_changes} />
+            <TokenTransfers network={network} transfers={simulationDataCache[network + ":" + txHash].asset_changes} />
           )}
           {simulationDataCache[network + ":" + txHash].call_trace && simulationDataCache[network + ":" + txHash].call_trace.length > 0 && (
             <FunctionCalls calls={simulationDataCache[network + ":" + txHash].call_trace} />
