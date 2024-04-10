@@ -45,11 +45,11 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ opened, onClose, onSubmit
           label="Comments:"
           size="md"
           styles={{ 
-            input: { minHeight: 700 },
             label: { marginBottom: 10 }, 
           }}
           {...feedbackForm.getInputProps('comments')}
-          minRows={40}
+          autosize
+          minRows={10}
           mt="md"
         />
         <Button type="submit" fullWidth mt="md">

@@ -141,13 +141,13 @@ const TransactionExplainer: React.FC = () => {
     setError('');
     setShowButton(false);
 
-    await refetchSimulation();
+    const simulation = await refetchSimulation();
 
     const cacheKey = network + ":" + txHash;
     const cachedExplanation = explanationCache[cacheKey];
 
     if (!cachedExplanation || forceRefresh) {
-      await fetchExplanation(simulationData!);
+      await fetchExplanation(simulation.data!);
     }
   };
 
