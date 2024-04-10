@@ -36,6 +36,7 @@ const TransactionExplainer: React.FC = () => {
   const [systemPrompt, setSystemPrompt] = useState(DEFAULT_SYSTEM_PROMPT);
   const [systemPromptModalOpen, setSystemPromptModalOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [isExplanationLoading, setIsExplanationLoading] = useState(false);
 
   const { data: simulationData, isLoading: isSimulationLoading, isError: isSimulationError, error: simulationError, refetch: refetchSimulation } = useQuery<TransactionSimulation, Error>({
     queryKey: ['simulateTransaction', network, txHash],
@@ -70,6 +71,12 @@ const TransactionExplainer: React.FC = () => {
     if (!simulationData) return;
 
     try {
+      setIsExplanationLoading(true);
+      setExplanationCache((prevCache) => ({
+        ...prevCache,
+        [network + ":" + txHash]: '',
+      }));
+
       const body = JSON.stringify({ transactions: [simulationData], model, system: systemPrompt, force_refresh: forceRefresh });
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/explain`, {
         method: 'POST',
@@ -101,11 +108,6 @@ const TransactionExplainer: React.FC = () => {
             [network + ":" + txHash]: explanation,
           }));
         }
-
-        setExplanationCache((prevCache) => ({
-          ...prevCache,
-          [network + ":" + txHash]: explanation,
-        }));
       } else {
         throw new Error('Failed to read explanation stream');
       }
@@ -115,6 +117,8 @@ const TransactionExplainer: React.FC = () => {
       } else {
         setError('Failed to fetch transaction explanation');
       }
+    } finally {
+      setIsExplanationLoading(false);
     }
   };
 
@@ -129,9 +133,7 @@ const TransactionExplainer: React.FC = () => {
     setShowButton(false);
 
     const simulation = await refetchSimulation();
-
-    const cacheKey = network + ":" + txHash;
-    const cachedExplanation = explanationCache[cacheKey];
+    const cachedExplanation = explanationCache[network + ":" + txHash];
 
     if (!cachedExplanation || forceRefresh) {
       await fetchExplanation(simulation.data!);
@@ -235,22 +237,25 @@ const TransactionExplainer: React.FC = () => {
           {error}
         </Alert>
       )}
-      {explanationCache[network + ":" + txHash] && (
+      {(explanationCache[network + ":" + txHash] || isExplanationLoading) && (
         <Box mb="xl">
           <Group align="center">
             <Title order={2} mb="md">
               Overview
             </Title>
+            {isExplanationLoading && <Loader size="sm" />}
           </Group>
           <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
-            <pre style={{ whiteSpace: 'pre-wrap' }}>{explanationCache[network + ":" + txHash]}</pre>
-            <Button
-              size="compact-sm"
-              onClick={() => setFeedbackModalOpen(true)}
-              leftSection={<IconSend size={16} />}
-            >
-              Submit Feedback
-            </Button>
+            <pre style={{ whiteSpace: 'pre-wrap' }}>{explanationCache[network + ":" + txHash] || 'Loading...'}</pre>
+            {explanationCache[network + ":" + txHash] && (
+              <Button
+                size="compact-sm"
+                onClick={() => setFeedbackModalOpen(true)}
+                leftSection={<IconSend size={16} />}
+              >
+                Submit Feedback
+              </Button>
+            )}
           </Card>
         </Box>
       )}
