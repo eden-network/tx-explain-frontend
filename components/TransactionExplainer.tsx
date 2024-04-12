@@ -173,6 +173,14 @@ const TransactionExplainer: React.FC = () => {
     }
   };
 
+  const tmp = () => {
+    showNotification({
+      title: 'Feedback submitted',
+      message: 'Thank you for your feedback!',
+      color: 'green',
+    });
+  }
+
   return (
     <Wrapper>
       <InputForm 
@@ -185,6 +193,9 @@ const TransactionExplainer: React.FC = () => {
         forceRefresh={forceRefresh}
         setForceRefresh={setForceRefresh}
       />
+      {isDevEnvironment && (
+        <Button onClick={tmp}>Debug: showNotification</Button>
+      )}
       {isSimulationLoading && (
         <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
           <Loader size="lg" />
