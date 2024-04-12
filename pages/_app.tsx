@@ -6,6 +6,8 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import '@mantine/core/styles.css';
 import { createTheme, MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
+import { WagmiProvider } from 'wagmi' 
+import { config } from '../config' 
 
 const queryClient = new QueryClient();
 
@@ -15,6 +17,7 @@ const theme = createTheme({
 
 const App: React.FC<AppProps> = ({ Component, pageProps }) => {
   return (
+    <WagmiProvider config={config}> 
     <QueryClientProvider client={queryClient}>
       <MantineProvider theme={theme}>
         <Head>
@@ -33,6 +36,7 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
         />
       </MantineProvider>
     </QueryClientProvider>
+    </WagmiProvider> 
   );
 };
 

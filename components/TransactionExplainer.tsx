@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Box, Space, Alert, Loader, Button } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
@@ -16,6 +16,7 @@ import InputForm from './InputForm';
 import Overview from './Overview';
 import Details from './Details';
 import Fundamentals from './Fundamentals';
+import { useTransaction, useTransactionReceipt } from 'wagmi';
 
 const TransactionExplainer: React.FC = () => {
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
@@ -182,6 +183,13 @@ const TransactionExplainer: React.FC = () => {
       });
     }
   };
+  
+  const {
+    data: transactionReceipt,
+    isFetching: isTransactionReceiptLoading
+  } = useTransactionReceipt({
+    hash: txHash as `0x${string}`,
+  })
 
   const tmp = () => {
     showNotification({
@@ -223,7 +231,10 @@ const TransactionExplainer: React.FC = () => {
           setFeedbackModalOpen={setFeedbackModalOpen}
         />
       )}
-      <Fundamentals />
+      <Fundamentals
+        transactionReceipt={transactionReceipt}
+        isTransactionReceiptLoading={isTransactionReceiptLoading}
+      />
       {simulationDataCache[network + ":" + txHash] && (
         <Details
           network={network}
