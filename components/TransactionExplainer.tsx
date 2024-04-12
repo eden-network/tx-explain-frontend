@@ -18,6 +18,7 @@ import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import InputForm from './InputForm';
 import Overview from './Overview';
 import Details from './Details';
+import Fundamentals from './Fundamentals';
 
 const TransactionExplainer: React.FC = () => {
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
@@ -225,6 +226,7 @@ const TransactionExplainer: React.FC = () => {
           setFeedbackModalOpen={setFeedbackModalOpen}
         />
       )}
+      <Fundamentals />
       {simulationDataCache[network + ":" + txHash] && (
         <Details
           network={network}
