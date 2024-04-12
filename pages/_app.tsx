@@ -22,7 +22,6 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
           name="viewport"
           content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
         />
-        <link rel="shortcut icon" href="/favicon.svg" />
       </Head>
         <Component {...pageProps} />
         <ReactQueryDevtools initialIsOpen={false} />
