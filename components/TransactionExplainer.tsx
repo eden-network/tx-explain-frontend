@@ -5,7 +5,7 @@ import { showNotification } from '@mantine/notifications';
 import { IconSend } from '@tabler/icons-react';
 import axios from 'axios';
 import useStore from '../store';
-import { isValidTxHash, getNetworkName } from '../utils';
+import { isValidTxHash, getNetworkName } from '../lib/utils';
 import TokenTransfers from './TokenTransfers';
 import FunctionCalls from './FunctionCalls';
 import ModelEditor from './ModelEditor';
@@ -13,17 +13,9 @@ import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
 import { TransactionSimulation } from '../types';
 import Wrapper from './Wrapper';
-
-const isDevEnvironment = process.env.NEXT_PUBLIC_ENV === 'test' || process.env.NEXT_PUBLIC_ENV === 'local';
-const DEFAULT_SYSTEM_PROMPT = `You are an Ethereum blockchain researcher tasked with concisely summarizing the key steps of transactions. For the given transaction data, your summary should adhere to the following guidelines:
-
-- Provide a detailed but concise summary of the transaction overall. This summary should be no longer than 3 sentences.
-- Provide a bulleted list of the critical steps in the transaction, focusing on the core actions taken and the key entities involved (contracts, addresses, tokens, etc.). IMPORTANT: Each step should be listed in the same order as it is found in the call trace.
-- Each bullet should be 1-2 concise sentences 
-- Include specific and accurate details like token amounts, contract names, function names, and relevant addresses
-- Avoid speculation, commentary, or extraneous details not directly related to the transaction steps
-- Carefully review your summary to ensure factual accuracy and precision
-`
+import { isDevEnvironment } from '../lib/dev';
+import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
+import InputForm from './InputForm';
 
 const TransactionExplainer: React.FC = () => {
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
@@ -183,48 +175,16 @@ const TransactionExplainer: React.FC = () => {
 
   return (
     <Wrapper>
-      <Box mb="xl">
-        <form onSubmit={handleSearch}>
-          <Select
-            label="Network"
-            placeholder="Select a network"
-            value={network}
-            onChange={(value) => handleNetworkChange(value || '1')}
-            data={[
-              { value: '1', label: 'Ethereum' },
-              { value: '42161', label: 'Arbitrum' },
-              { value: '10', label: 'Optimism' },
-              { value: '43114', label: 'Avalanche' },
-            ]}
-            required
-            mb="md"
-          />
-          <TextInput
-            label="Transaction Hash"
-            placeholder="Enter transaction hash"
-            value={txHash}
-            onChange={(e) => handleTxHashChange(e.target.value)}
-            required
-            mb="md"
-          />
-          {showButton && (
-            <Box>
-              {isDevEnvironment && (
-                <Checkbox
-                  id="force-refresh"
-                  label="Force Refresh"
-                  mb="md"
-                  checked={forceRefresh}
-                  onChange={(event) => setForceRefresh(event.currentTarget.checked)}
-                />
-              )}
-              <Button type="submit" fullWidth mt="sm">
-                Explain Transaction
-              </Button>
-            </Box>
-          )}
-        </form>
-      </Box>
+      <InputForm 
+        handleSubmit={handleSearch} 
+        network={network}
+        handleNetworkChange={handleNetworkChange}
+        txHash={txHash}
+        handleTxHashChange={handleTxHashChange}
+        showButton={showButton}
+        forceRefresh={forceRefresh}
+        setForceRefresh={setForceRefresh}
+      />
       {isSimulationLoading && (
         <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
           <Loader size="lg" />
