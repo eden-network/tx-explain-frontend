@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Box, Card, Title, Space, Alert, Loader, Select, TextInput, Button, Checkbox, Group } from '@mantine/core';
-import { showNotification } from '@mantine/notifications';
+import { showNotification, updateNotification } from '@mantine/notifications';
 import { IconSend } from '@tabler/icons-react';
 import axios from 'axios';
 import useStore from '../store';
@@ -155,20 +155,30 @@ const TransactionExplainer: React.FC = () => {
       ...values,
     };
 
+    const id = showNotification({
+      title: 'Sending feedback...',
+      message: 'Sending feedback...!',
+      color: 'green',
+      loading: true
+    })
     try {
       await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/feedback`, feedbackData);
-      showNotification({
-        title: 'Feedback submitted',
+      updateNotification({
+        id,
+        title: 'Success! Feedback sent',
         message: 'Thank you for your feedback!',
         color: 'green',
+        loading: false
       });
       setFeedbackModalOpen(false);
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      showNotification({
+      updateNotification({
+        id,
         title: 'Error submitting feedback',
         message: 'An error occurred while submitting your feedback. Please try again later.',
         color: 'red',
+        loading: false
       });
     }
   };
@@ -218,11 +228,11 @@ const TransactionExplainer: React.FC = () => {
             <pre style={{ whiteSpace: 'pre-wrap' }}>{explanationCache[network + ":" + txHash] || 'Loading...'}</pre>
             {explanationCache[network + ":" + txHash] && (
               <Button
-                size="compact-sm"
+                // size="compact-sm"
                 onClick={() => setFeedbackModalOpen(true)}
                 leftSection={<IconSend size={16} />}
               >
-                Submit Feedback
+                Feedback
               </Button>
             )}
           </Card>
