@@ -27,11 +27,9 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
         <Component {...pageProps} />
         <ReactQueryDevtools initialIsOpen={false} />
         <Notifications
-          position="top-right"
-          pos="absolute"
-          right={0}
-          top={0}
-          p={16}
+          pos="fixed"
+          right={'1rem'}
+          top={'1rem'}
         />
       </MantineProvider>
     </QueryClientProvider>
