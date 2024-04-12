@@ -8,6 +8,8 @@ export function ColorSchemeToggle() {
   return (
     <Flex
       mih={50}
+      maw={800}
+      mx="auto"
       justify="flex-end"
       align="center"
       direction="row"
