@@ -155,6 +155,7 @@ const TransactionExplainer: React.FC = () => {
       ...values,
     };
 
+    setFeedbackModalOpen(false);
     const id = showNotification({
       title: 'Sending feedback...',
       message: 'Sending feedback...!',
@@ -170,7 +171,6 @@ const TransactionExplainer: React.FC = () => {
         color: 'green',
         loading: false
       });
-      setFeedbackModalOpen(false);
     } catch (error) {
       console.error('Error submitting feedback:', error);
       updateNotification({
