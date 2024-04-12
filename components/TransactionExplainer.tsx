@@ -12,6 +12,7 @@ import ModelEditor from './ModelEditor';
 import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
 import { TransactionSimulation } from '../types';
+import Wrapper from './Wrapper';
 
 const isDevEnvironment = process.env.NEXT_PUBLIC_ENV === 'test' || process.env.NEXT_PUBLIC_ENV === 'local';
 const DEFAULT_SYSTEM_PROMPT = `You are an Ethereum blockchain researcher tasked with concisely summarizing the key steps of transactions. For the given transaction data, your summary should adhere to the following guidelines:
@@ -181,10 +182,7 @@ const TransactionExplainer: React.FC = () => {
   };
 
   return (
-    <Box style={{ maxWidth: 800, margin: 'auto', padding: '2rem' }}>
-      <Title style={{ fontSize: '2rem', fontWeight: 700, textAlign: 'center', marginBottom: '2rem' }}>
-        TX Explain
-      </Title>
+    <Wrapper>
       <Box mb="xl">
         <form onSubmit={handleSearch}>
           <Select
@@ -287,7 +285,7 @@ const TransactionExplainer: React.FC = () => {
         onClose={() => setFeedbackModalOpen(false)}
         onSubmit={handleSubmitFeedback}
       />
-    </Box>
+    </Wrapper>
   );
 };
 
