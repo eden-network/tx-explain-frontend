@@ -16,6 +16,7 @@ import Wrapper from './Wrapper';
 import { isDevEnvironment } from '../lib/dev';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import InputForm from './InputForm';
+import Overview from './Overview';
 
 const TransactionExplainer: React.FC = () => {
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
@@ -193,8 +194,8 @@ const TransactionExplainer: React.FC = () => {
 
   return (
     <Wrapper>
-      <InputForm 
-        handleSubmit={handleSearch} 
+      <InputForm
+        handleSubmit={handleSearch}
         network={network}
         handleNetworkChange={handleNetworkChange}
         txHash={txHash}
@@ -217,26 +218,11 @@ const TransactionExplainer: React.FC = () => {
         </Alert>
       )}
       {(explanationCache[network + ":" + txHash] || isExplanationLoading) && (
-        <Box mb="xl">
-          <Group align="center">
-            <Title order={2} mb="md">
-              Overview
-            </Title>
-            {isExplanationLoading && <Loader size="sm" />}
-          </Group>
-          <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
-            <pre style={{ whiteSpace: 'pre-wrap' }}>{explanationCache[network + ":" + txHash] || 'Loading...'}</pre>
-            {explanationCache[network + ":" + txHash] && (
-              <Button
-                // size="compact-sm"
-                onClick={() => setFeedbackModalOpen(true)}
-                leftSection={<IconSend size={16} />}
-              >
-                Feedback
-              </Button>
-            )}
-          </Card>
-        </Box>
+        <Overview
+          explanation={explanationCache[network + ":" + txHash]}
+          isExplanationLoading={isExplanationLoading}
+          setFeedbackModalOpen={setFeedbackModalOpen}
+        />
       )}
       {simulationDataCache[network + ":" + txHash] && (
         <Box mb="xl">
