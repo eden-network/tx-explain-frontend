@@ -82,7 +82,8 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ network, transfers }) =
     let [integerPart, decimalPart] = amount.split('.');
     const formattedIntegerPart = BigInt(integerPart).toString();
     let formattedAmount = `${formattedIntegerPart}`
-    if (decimalPart && decimalPart.length > 6) {
+    if (decimalPart) {
+      // Limit precision to six decimal places
       decimalPart = decimalPart.slice(0, 6);
       formattedAmount = `${formattedAmount}.${decimalPart}`;
     }
