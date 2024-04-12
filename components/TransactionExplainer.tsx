@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Card, Title, Space, Alert, Loader, Select, TextInput, Button, Checkbox, Group } from '@mantine/core';
+import { Box, Space, Alert, Loader, Button } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
-import { IconSend } from '@tabler/icons-react';
 import axios from 'axios';
 import useStore from '../store';
 import { isValidTxHash, getNetworkName } from '../lib/utils';
-import TokenTransfers from './TokenTransfers';
-import FunctionCalls from './FunctionCalls';
 import ModelEditor from './ModelEditor';
 import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
