@@ -17,6 +17,7 @@ import { isDevEnvironment } from '../lib/dev';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import InputForm from './InputForm';
 import Overview from './Overview';
+import Details from './Details';
 
 const TransactionExplainer: React.FC = () => {
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
@@ -225,17 +226,10 @@ const TransactionExplainer: React.FC = () => {
         />
       )}
       {simulationDataCache[network + ":" + txHash] && (
-        <Box mb="xl">
-          <Title order={2} mb="md">
-            Details
-          </Title>
-          {simulationDataCache[network + ":" + txHash].asset_changes && simulationDataCache[network + ":" + txHash].asset_changes.length > 0 && (
-            <TokenTransfers network={network} transfers={simulationDataCache[network + ":" + txHash].asset_changes} />
-          )}
-          {simulationDataCache[network + ":" + txHash].call_trace && simulationDataCache[network + ":" + txHash].call_trace.length > 0 && (
-            <FunctionCalls calls={simulationDataCache[network + ":" + txHash].call_trace} />
-          )}
-        </Box>
+        <Details
+          network={network}
+          simulation={simulationDataCache[network + ":" + txHash]}
+        />
       )}
       <Space h="xl" />
       {isDevEnvironment && (
