@@ -15,8 +15,9 @@ import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import InputForm from './InputForm';
 import Overview from './Overview';
 import Details from './Details';
-import Fundamentals from './Fundamentals';
+// import Fundamentals from './Fundamentals';
 import { useTransaction, useTransactionReceipt } from 'wagmi';
+import Transaction from './Transaction';
 
 const TransactionExplainer: React.FC = () => {
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
@@ -183,7 +184,7 @@ const TransactionExplainer: React.FC = () => {
       });
     }
   };
-  
+
   const {
     data: transactionReceipt,
     isFetching: isTransactionReceiptLoading
@@ -198,6 +199,9 @@ const TransactionExplainer: React.FC = () => {
       color: 'green',
     });
   }
+
+  console.log(transactionReceipt);
+
 
   return (
     <Wrapper>
@@ -231,10 +235,11 @@ const TransactionExplainer: React.FC = () => {
           setFeedbackModalOpen={setFeedbackModalOpen}
         />
       )}
-      <Fundamentals
+      {/* <Fundamentals
         transactionReceipt={transactionReceipt}
         isTransactionReceiptLoading={isTransactionReceiptLoading}
-      />
+      /> */}
+      <Transaction transactionHash={transactionReceipt?.transactionHash} />
       {simulationDataCache[network + ":" + txHash] && (
         <Details
           network={network}
