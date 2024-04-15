@@ -15,9 +15,8 @@ import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import InputForm from './InputForm';
 import Overview from './Overview';
 import Details from './Details';
-// import Fundamentals from './Fundamentals';
 import { useTransaction, useTransactionReceipt } from 'wagmi';
-import Transaction from './Transaction';
+import TxDetails from './TxDetails';
 
 const TransactionExplainer: React.FC = () => {
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
@@ -239,7 +238,8 @@ const TransactionExplainer: React.FC = () => {
         transactionReceipt={transactionReceipt}
         isTransactionReceiptLoading={isTransactionReceiptLoading}
       /> */}
-      <Transaction transactionHash={transactionReceipt?.transactionHash} />
+      {txHash && <TxDetails transactionHash={transactionReceipt?.transactionHash} />}
+
       {simulationDataCache[network + ":" + txHash] && (
         <Details
           network={network}
