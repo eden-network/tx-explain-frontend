@@ -82,8 +82,8 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ network, transfers }) =
     let [integerPart, decimalPart] = amount.split('.');
     const formattedIntegerPart = BigInt(integerPart).toString();
     let formattedAmount = `${formattedIntegerPart}`
-    if(decimalPart && decimalPart.length > 6) {
-      decimalPart = decimalPart.slice(0, 6);
+    if(decimalPart) {
+      decimalPart = decimalPart.length > 6 ? decimalPart.slice(0, 6) : decimalPart;
       formattedAmount = `${formattedAmount}.${decimalPart}`;
     }
     const formattedUsdValue = parseFloat(usdValue).toFixed(2);
