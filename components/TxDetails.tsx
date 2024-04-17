@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Card, Title, Text, Button } from "@mantine/core";
+import { Box, Card, Title, Text, Button, Space } from "@mantine/core";
 import { formatUnits } from "viem";
 import { useTransaction, useBlock } from 'wagmi';
 
@@ -29,25 +29,30 @@ const TxDetails = ({
         includeTransactions: true
     });
 
+    console.log(transactionReceipt?.transactionIndex)
+
     // State to keep track of the current transaction index
-    const [currentTxIndex, setCurrentTxIndex] = useState<number>(0);
+    const [currentTxIndex, setCurrentTxIndex] = useState<number | null>(null);
+
 
     // Function to navigate to the previous or next transaction in a block
     const handleNavigateTx = (direction: 'next' | 'prev') => {
         setCurrentTxIndex((prevIndex) => {
             const transactionsLength = block.data?.transactions?.length ?? 0;
             if (direction === 'next') {
-                return prevIndex === transactionsLength - 1 ? 0 : prevIndex + 1;
+                return prevIndex === transactionsLength - 1 ? 0 : (prevIndex ?? 0) + 1;
             } else {
-                return prevIndex === 0 ? transactionsLength - 1 : prevIndex - 1;
+                return prevIndex === 0 ? transactionsLength - 1 : (prevIndex ?? 0) - 1;
             }
         });
     };
 
+
     if (isTransactionReceiptLoading) return <Text>Loading transaction details...</Text>;
     if (!transactionReceipt) return <Text>Transaction hash invalid or transaction not found.</Text>;
 
-    const currentTx = block.data?.transactions[currentTxIndex];
+    const currentTx = block.data?.transactions[currentTxIndex === null ? transactionReceipt?.transactionIndex : currentTxIndex];
+    console.log("BLOCK TXS:", block.data?.transactions)
     console.log("CURRENT TX:", currentTx);
 
     // Format current transaction details
@@ -69,14 +74,14 @@ const TxDetails = ({
                 {txDetailRow("Block Number:", currentTx?.blockNumber.toString())}
                 {txDetailRow("Tx Hash:", currentTx?.hash)}
                 {txDetailRow("Position In Block:", txIndex)}
-                <Box mb="xs"></Box>
+                <Space h="sm" />
                 {txDetailRow("From:", currentTx?.from)}
                 {txDetailRow("To:", currentTx?.to)}
                 {txDetailRow("Value:", value === undefined ? 0 + " ETH" : value)}
-                <Box mb="xs"></Box>
+                <Space h="sm" />
                 {txDetailRow("Nonce:", currentTx?.nonce)}
                 {txDetailRow("Input Data:", currentTx?.input)}
-                <Box mb="xs"></Box>
+                <Space h="sm" />
                 {txDetailRow("Gas Used:", gasUsed)}
                 {txDetailRow("TypeHex:", currentTx?.typeHex)}
                 {txDetailRow("Type:", currentTx?.type)}
