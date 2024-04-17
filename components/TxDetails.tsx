@@ -1,4 +1,5 @@
 import { Box, Card, Title, Text } from "@mantine/core"
+import { formatUnits } from "viem";
 import { useTransaction, useBlock } from 'wagmi';
 
 const TxDetails = (
@@ -14,18 +15,18 @@ const TxDetails = (
         blockHash: transactionReceipt?.blockHash
     })
 
-    const gasUsed = transactionReceipt?.gas ? Number(transactionReceipt.gas) : undefined;
-    const baseFee = block.data?.baseFeePerGas ? Number(block.data.baseFeePerGas) / 1e9 : undefined;
-    const gasPrice = transactionReceipt?.gasPrice ? Number(transactionReceipt.gasPrice) / 1e9 : undefined;
-    const maxFee = transactionReceipt?.maxFeePerGas ? Number(transactionReceipt.maxFeePerGas) / 1e9 : undefined;
-    const maxPriorityFee = transactionReceipt?.maxPriorityFeePerGas ? Number(transactionReceipt.maxPriorityFeePerGas) / 1e9 : undefined;
-    const gasUsedInEth = transactionReceipt?.gas && gasPrice ? (Number(transactionReceipt.gas) * gasPrice) / 1e9 : undefined;
+    const gasUsed = transactionReceipt?.gas ? transactionReceipt.gas.toString() : undefined;
+    const baseFee = block.data?.baseFeePerGas ? `${formatUnits(block.data.baseFeePerGas, 9)} gwei` : undefined;
+    const gasPrice = transactionReceipt?.gasPrice ? `${formatUnits(transactionReceipt.gasPrice, 9)} gwei` : undefined;
+    const maxFee = transactionReceipt?.maxFeePerGas ? `${formatUnits(transactionReceipt.maxFeePerGas, 9)} gwei` : undefined;
+    const maxPriorityFee = transactionReceipt?.maxPriorityFeePerGas ? `${formatUnits(transactionReceipt.maxPriorityFeePerGas, 9)} gwei` : undefined;
+    const gasUsedInEth = transactionReceipt?.gas && transactionReceipt?.gasPrice ? `${formatUnits(transactionReceipt.gas * transactionReceipt.gasPrice, 9)} ETH` : undefined;
 
-    const txDetailRow = (label: string, value: string | undefined | `0x${string}` | null | number, isMb?: boolean) => {
+    const txDetailRow = (label: string, value: string | undefined | `0x${string}` | null | number) => {
         return (
-            <Box display="flex" mb={isMb ? "xs" : ""}>
+            <Box display="flex">
                 <Text style={{ whiteSpace: "nowrap" }} w="25%" size="xs" c="dimmed">{label}</Text>
-                <Text w="75%" size="xs">{value}</Text>
+                {value !== undefined && <Text w="75%" size="xs">{value}</Text>}
             </Box>
         )
     }
@@ -36,22 +37,26 @@ const TxDetails = (
                 Transaction Details
             </Title>
             <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
-                {txDetailRow("Block Number:", transactionReceipt?.blockNumber.toString())}
-                {txDetailRow("Block Hash:", transactionReceipt?.blockHash.toString(), true)}
-                {txDetailRow("From:", transactionReceipt?.from)}
-                {txDetailRow("To:", transactionReceipt?.to, true)}
-                {txDetailRow("Transaction Fee:", gasUsedInEth + " ETH")}
-                {txDetailRow("Gas Used:", gasUsed + " Gwei")}
-                {/* {txDetailRow("Gas Limit:", gasUsed + " Gwei")} */}
-                {txDetailRow("Base:", (baseFee + ' Gwei'))}
-                {txDetailRow("Max:", (maxFee?.toString() + ' Gwei'))}
-                {txDetailRow("Max Priority:", (maxPriorityFee?.toString() + ' Gwei'), true)}
                 {txDetailRow("Chain ID:", transactionReceipt?.chainId)}
+                {txDetailRow("Block Number:", transactionReceipt?.blockNumber.toString())}
+                {txDetailRow("Tx Hash:", transactionReceipt?.hash)}
+                {txDetailRow("Position In Block:", transactionReceipt?.transactionIndex)}
+                {/* {txDetailRow("Block Hash:", transactionReceipt?.blockHash)} */}
+                <Box mb="xs"></Box>
+                {txDetailRow("From:", transactionReceipt?.from)}
+                {txDetailRow("To:", transactionReceipt?.to)}
+                <Box mb="xs"></Box>
                 {txDetailRow("Nonce:", transactionReceipt?.nonce)}
                 {txDetailRow("Input Data:", transactionReceipt?.input)}
+                <Box mb="xs"></Box>
+                {txDetailRow("Gas Used:", gasUsed)}
                 {txDetailRow("TypeHex:", transactionReceipt?.typeHex)}
                 {txDetailRow("Type:", transactionReceipt?.type)}
-                {txDetailRow("Position In Block:", transactionReceipt?.transactionIndex)}
+                {txDetailRow("Transaction Fee:", gasUsedInEth)}
+                {txDetailRow("Gas Price:", gasPrice)}
+                {txDetailRow("Base:", baseFee)}
+                {txDetailRow("Max:", maxFee)}
+                {txDetailRow("Max Priority:", maxPriorityFee)}
             </Card>
         </Box >
     );

@@ -203,9 +203,6 @@ const TransactionExplainer: React.FC = () => {
     });
   }
 
-  console.log(transactionReceipt);
-
-
   return (
     <Wrapper>
       <InputForm
@@ -238,10 +235,6 @@ const TransactionExplainer: React.FC = () => {
           setFeedbackModalOpen={setFeedbackModalOpen}
         />
       )}
-      {/* <Fundamentals
-        transactionReceipt={transactionReceipt}
-        isTransactionReceiptLoading={isTransactionReceiptLoading}
-      /> */}
       {txHash && <TxDetails transactionHash={transactionReceipt?.transactionHash} />}
 
       {simulationDataCache[network + ":" + txHash] && (
