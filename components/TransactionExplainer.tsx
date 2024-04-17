@@ -47,7 +47,9 @@ const TransactionExplainer: React.FC = () => {
 
       if (!response.ok) {
         const errorResponse = await response.json();
-        throw new Error(errorResponse.error || 'An unknown error occurred');
+        const errorMessage = errorResponse.error || 'An unknown error occurred'
+        setError(errorMessage);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -135,11 +137,13 @@ const TransactionExplainer: React.FC = () => {
   };
 
   const handleTxHashChange = (newTxHash: string) => {
+    setError('')
     setTxHash(newTxHash);
     setShowButton(true);
   };
 
   const handleNetworkChange = (network: string) => {
+    setError('')
     setNetwork(network);
     setShowButton(true);
   };
