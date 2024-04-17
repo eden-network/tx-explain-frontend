@@ -1,28 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Card, Title, Space, Alert, Loader, Select, TextInput, Button, Checkbox, Group } from '@mantine/core';
-import { showNotification } from '@mantine/notifications';
-import { IconSend } from '@tabler/icons-react';
+import { Box, Space, Alert, Loader, Button } from '@mantine/core';
+import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
-import { isValidTxHash, getNetworkName } from '../utils';
-import TokenTransfers from './TokenTransfers';
-import FunctionCalls from './FunctionCalls';
+import { isValidTxHash, getNetworkName } from '../lib/utils';
 import ModelEditor from './ModelEditor';
 import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
 import { TransactionSimulation } from '../types';
-
-const isDevEnvironment = process.env.NEXT_PUBLIC_ENV === 'test' || process.env.NEXT_PUBLIC_ENV === 'local';
-const DEFAULT_SYSTEM_PROMPT = `You are an Ethereum blockchain researcher tasked with concisely summarizing the key steps of transactions. For the given transaction data, your summary should adhere to the following guidelines:
-
-- Provide a detailed but concise summary of the transaction overall. This summary should be no longer than 3 sentences.
-- Provide a bulleted list of the critical steps in the transaction, focusing on the core actions taken and the key entities involved (contracts, addresses, tokens, etc.). IMPORTANT: Each step should be listed in the same order as it is found in the call trace.
-- Each bullet should be 1-2 concise sentences 
-- Include specific and accurate details like token amounts, contract names, function names, and relevant addresses
-- Avoid speculation, commentary, or extraneous details not directly related to the transaction steps
-- Carefully review your summary to ensure factual accuracy and precision
-`
+import Wrapper from './Wrapper';
+import { isDevEnvironment } from '../lib/dev';
+import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
+import InputForm from './InputForm';
+import Overview from './Overview';
+import Details from './Details';
+import { useTransaction, useTransactionReceipt } from 'wagmi';
+import TxDetails from './TxDetails';
 
 const TransactionExplainer: React.FC = () => {
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
@@ -162,71 +156,67 @@ const TransactionExplainer: React.FC = () => {
       ...values,
     };
 
+    setFeedbackModalOpen(false);
+    const id = showNotification({
+      title: 'Sending feedback...',
+      message: 'Sending feedback...!',
+      color: 'green',
+      loading: true
+    })
     try {
       await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/feedback`, feedbackData);
-      showNotification({
-        title: 'Feedback submitted',
+      updateNotification({
+        id,
+        title: 'Success! Feedback sent',
         message: 'Thank you for your feedback!',
         color: 'green',
+        loading: false
       });
-      setFeedbackModalOpen(false);
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      showNotification({
+      updateNotification({
+        id,
         title: 'Error submitting feedback',
         message: 'An error occurred while submitting your feedback. Please try again later.',
         color: 'red',
+        loading: false
       });
     }
   };
 
+  const {
+    data: transactionReceipt,
+    isFetching: isTransactionReceiptLoading
+  } = useTransactionReceipt({
+    hash: txHash as `0x${string}`,
+  })
+
+  const tmp = () => {
+    showNotification({
+      title: 'Feedback submitted',
+      message: 'Thank you for your feedback!',
+      color: 'green',
+    });
+  }
+
+  console.log(transactionReceipt);
+
+
   return (
-    <Box style={{ maxWidth: 800, margin: 'auto', padding: '2rem' }}>
-      <Title style={{ fontSize: '2rem', fontWeight: 700, textAlign: 'center', marginBottom: '2rem' }}>
-        TX Explain
-      </Title>
-      <Box mb="xl">
-        <form onSubmit={handleSearch}>
-          <Select
-            label="Network"
-            placeholder="Select a network"
-            value={network}
-            onChange={(value) => handleNetworkChange(value || '1')}
-            data={[
-              { value: '1', label: 'Ethereum' },
-              { value: '42161', label: 'Arbitrum' },
-              { value: '10', label: 'Optimism' },
-              { value: '43114', label: 'Avalanche' },
-            ]}
-            required
-            mb="md"
-          />
-          <TextInput
-            label="Transaction Hash"
-            placeholder="Enter transaction hash"
-            value={txHash}
-            onChange={(e) => handleTxHashChange(e.target.value)}
-            required
-            mb="md"
-          />
-          {showButton && (
-            <Box>
-              {isDevEnvironment && (
-                <Checkbox
-                  id="force-refresh"
-                  label="Force Refresh"
-                  mb="md"
-                  checked={forceRefresh}
-                  onChange={(event) => setForceRefresh(event.currentTarget.checked)}
-                />
-              )}
-              <Button type="submit" fullWidth mt="sm">
-                Explain Transaction
-              </Button>
-            </Box>
-          )}
-        </form>
-      </Box>
+    <Wrapper>
+      <InputForm
+        handleSubmit={handleSearch}
+        network={network}
+        handleNetworkChange={handleNetworkChange}
+        txHash={txHash}
+        handleTxHashChange={handleTxHashChange}
+        showButton={showButton}
+        forceRefresh={forceRefresh}
+        setForceRefresh={setForceRefresh}
+      />
+      {isDevEnvironment && (
+        <Button onClick={tmp}>Debug: showNotification</Button>
+      )}
       {isSimulationLoading && (
         <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
           <Loader size="lg" />
@@ -238,39 +228,23 @@ const TransactionExplainer: React.FC = () => {
         </Alert>
       )}
       {(explanationCache[network + ":" + txHash] || isExplanationLoading) && (
-        <Box mb="xl">
-          <Group align="center">
-            <Title order={2} mb="md">
-              Overview
-            </Title>
-            {isExplanationLoading && <Loader size="sm" />}
-          </Group>
-          <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
-            <pre style={{ whiteSpace: 'pre-wrap' }}>{explanationCache[network + ":" + txHash] || 'Loading...'}</pre>
-            {explanationCache[network + ":" + txHash] && (
-              <Button
-                size="compact-sm"
-                onClick={() => setFeedbackModalOpen(true)}
-                leftSection={<IconSend size={16} />}
-              >
-                Submit Feedback
-              </Button>
-            )}
-          </Card>
-        </Box>
+        <Overview
+          explanation={explanationCache[network + ":" + txHash]}
+          isExplanationLoading={isExplanationLoading}
+          setFeedbackModalOpen={setFeedbackModalOpen}
+        />
       )}
+      {/* <Fundamentals
+        transactionReceipt={transactionReceipt}
+        isTransactionReceiptLoading={isTransactionReceiptLoading}
+      /> */}
+      {txHash && <TxDetails transactionHash={transactionReceipt?.transactionHash} />}
+
       {simulationDataCache[network + ":" + txHash] && (
-        <Box mb="xl">
-          <Title order={2} mb="md">
-            Details
-          </Title>
-          {simulationDataCache[network + ":" + txHash].asset_changes && simulationDataCache[network + ":" + txHash].asset_changes.length > 0 && (
-            <TokenTransfers network={network} transfers={simulationDataCache[network + ":" + txHash].asset_changes} />
-          )}
-          {simulationDataCache[network + ":" + txHash].call_trace && simulationDataCache[network + ":" + txHash].call_trace.length > 0 && (
-            <FunctionCalls calls={simulationDataCache[network + ":" + txHash].call_trace} />
-          )}
-        </Box>
+        <Details
+          network={network}
+          simulation={simulationDataCache[network + ":" + txHash]}
+        />
       )}
       <Space h="xl" />
       {isDevEnvironment && (
@@ -287,7 +261,7 @@ const TransactionExplainer: React.FC = () => {
         onClose={() => setFeedbackModalOpen(false)}
         onSubmit={handleSubmitFeedback}
       />
-    </Box>
+    </Wrapper>
   );
 };
 

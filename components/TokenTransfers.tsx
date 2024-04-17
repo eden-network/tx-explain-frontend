@@ -10,9 +10,9 @@ interface TokenTransfersProps {
 const TokenTransfers: React.FC<TokenTransfersProps> = ({ network, transfers }) => {
   const renderTransferType = (standard: string, type: string) => {
     const displayStandard = (() => {
-      switch(standard) {
+      switch (standard) {
         case 'NativeCurrency':
-          switch(network) {
+          switch (network) {
             case '1':
               return 'ETH';
             case '42161':
@@ -29,9 +29,9 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ network, transfers }) =
       }
     })();
 
-    
+
     const color = (() => {
-      switch(type) {
+      switch (type) {
         case 'Transfer':
           return 'blue';
         case 'Mint':
@@ -78,7 +78,7 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ network, transfers }) =
         </Box>
       );
     }
-  
+
     let [integerPart, decimalPart] = amount.split('.');
     const formattedIntegerPart = BigInt(integerPart).toString();
     let formattedAmount = `${formattedIntegerPart}`
@@ -87,7 +87,7 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ network, transfers }) =
       formattedAmount = `${formattedAmount}.${decimalPart}`;
     }
     const formattedUsdValue = parseFloat(usdValue).toFixed(2);
-  
+
     return (
       <Box mb="sm">
         <Text size="sm" c="dimmed">
@@ -105,25 +105,27 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ network, transfers }) =
   };
 
   return (
-    <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
+    <Box mb="xl">
       <Title order={3} mb="md">Token Transfers</Title>
-      {transfers.map((transfer, index) => (
-        <div key={index}>
-          <Grid align="center" mb="md">
-            <Grid.Col span={2}>
-              {renderTransferType(transfer.token_info.standard, transfer.type)}
-            </Grid.Col>
-            <Grid.Col span={3}>
-              {renderTransferAmount(transfer.amount, transfer.dollar_value, transfer.token_info.symbol)}
-            </Grid.Col>
-            <Grid.Col span={4}>
-              {renderTransferDirection(transfer.from, transfer.to)}
-            </Grid.Col>
-          </Grid>
-          {index !== transfers.length - 1 && <Divider my="sm" />}
-        </div>
-      ))}
-    </Card>
+      <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
+        {transfers.map((transfer, index) => (
+          <div key={index}>
+            <Grid align="center" mb="md">
+              <Grid.Col span={2}>
+                {renderTransferType(transfer.token_info.standard, transfer.type)}
+              </Grid.Col>
+              <Grid.Col span={3}>
+                {renderTransferAmount(transfer.amount, transfer.dollar_value, transfer.token_info.symbol)}
+              </Grid.Col>
+              <Grid.Col span={4}>
+                {renderTransferDirection(transfer.from, transfer.to)}
+              </Grid.Col>
+            </Grid>
+            {index !== transfers.length - 1 && <Divider my="sm" />}
+          </div>
+        ))}
+      </Card>
+    </Box>
   );
 };
 
