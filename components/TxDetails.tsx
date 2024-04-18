@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Card, Title, Text, Button, Space } from "@mantine/core";
 import { formatUnits } from "viem";
 import { useTransaction, useBlock } from 'wagmi';
@@ -29,31 +29,32 @@ const TxDetails = ({
         includeTransactions: true
     });
 
-    console.log(transactionReceipt?.transactionIndex)
-
     // State to keep track of the current transaction index
-    const [currentTxIndex, setCurrentTxIndex] = useState<number | null>(null);
+    const [currentTxIndex, setCurrentTxIndex] = useState(transactionReceipt?.transactionIndex ?? null);;
 
-
-    // Function to navigate to the previous or next transaction in a block
-    const handleNavigateTx = (direction: 'next' | 'prev') => {
-        setCurrentTxIndex((prevIndex) => {
-            const transactionsLength = block.data?.transactions?.length ?? 0;
-            if (direction === 'next') {
-                return prevIndex === transactionsLength - 1 ? 0 : (prevIndex ?? 0) + 1;
-            } else {
-                return prevIndex === 0 ? transactionsLength - 1 : (prevIndex ?? 0) - 1;
-            }
-        });
-    };
-
+    // Effect to update index if the transactionReceipt changes
+    useEffect(() => {
+        setCurrentTxIndex(transactionReceipt?.transactionIndex ?? null);
+    }, [transactionReceipt]);
 
     if (isTransactionReceiptLoading) return <Text>Loading transaction details...</Text>;
     if (!transactionReceipt) return <Text>Transaction hash invalid or transaction not found.</Text>;
 
-    const currentTx = block.data?.transactions[currentTxIndex === null ? transactionReceipt?.transactionIndex : currentTxIndex];
-    console.log("BLOCK TXS:", block.data?.transactions)
-    console.log("CURRENT TX:", currentTx);
+    const currentTx = typeof currentTxIndex === 'number' && block.data?.transactions ? block.data.transactions[currentTxIndex] : null;
+
+    // Function to navigate to the previous or next transaction in a block
+    const handleNavigateTx = (direction: 'next' | 'prev') => {
+        setCurrentTxIndex((prevIndex: number | null) => {
+            const transactionsLength = block.data?.transactions?.length ?? 0;
+            if (transactionsLength === 0) return prevIndex;
+            const index = prevIndex !== null ? prevIndex : (transactionReceipt?.transactionIndex ?? 0);
+            if (direction === 'next') {
+                return (index + 1) % transactionsLength;
+            } else {
+                return (index - 1 + transactionsLength) % transactionsLength;
+            }
+        });
+    };
 
     // Format current transaction details
     const value: string | undefined = currentTx?.value ? `${formatUnits(currentTx.value, 18)} ETH` : undefined;
