@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import { Box, Space, Alert, Loader, Button } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
@@ -19,6 +20,7 @@ import { useTransaction, useTransactionReceipt } from 'wagmi';
 import TxDetails from './TxDetails';
 
 const TransactionExplainer: React.FC = () => {
+  const router = useRouter();
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
   const [txHash, setTxHash] = useStore((state) => [state.txHash, state.setTxHash]);
   const [error, setError] = useState('');
@@ -140,13 +142,43 @@ const TransactionExplainer: React.FC = () => {
     setError('')
     setTxHash(newTxHash);
     setShowButton(true);
+    updateUrlParams({ network, txHash: newTxHash });
   };
 
   const handleNetworkChange = (network: string) => {
     setError('')
     setNetwork(network);
     setShowButton(true);
+    updateUrlParams({ network: network, txHash });
   };
+
+  // Function to update URL params
+  const updateUrlParams = (params: { [key: string]: string }) => {
+    const query = { ...router.query, ...params };
+    const url = {
+      pathname: router.pathname,
+      query,
+    };
+    router.replace(url, undefined, { shallow: true });
+  };
+
+  // useEffect to parse query params and update state variables on mount
+  useEffect(() => {
+    // Parse the query parameters from the URL
+    const { network: queryNetwork, txHash: queryTxHash } = router.query;
+
+    // Update state variables based on the parsed query parameters
+    if (queryNetwork && typeof queryNetwork === 'string') {
+      setNetwork(queryNetwork);
+    }
+    if (queryTxHash && typeof queryTxHash === 'string') {
+      setTxHash(queryTxHash);
+    }
+    // Update URL params if state variables are not matching with URL params
+    if (network !== queryNetwork || txHash !== queryTxHash) {
+      updateUrlParams({ network, txHash });
+    }
+  }, [router.query]); // Empty dependency array ensures useEffect runs only once on mount
 
   const handleSubmitFeedback = async (values: any) => {
     const feedbackData = {
@@ -203,9 +235,6 @@ const TransactionExplainer: React.FC = () => {
     });
   }
 
-  console.log(transactionReceipt);
-
-
   return (
     <Wrapper>
       <InputForm
@@ -238,12 +267,9 @@ const TransactionExplainer: React.FC = () => {
           setFeedbackModalOpen={setFeedbackModalOpen}
         />
       )}
-      {/* <Fundamentals
-        transactionReceipt={transactionReceipt}
-        isTransactionReceiptLoading={isTransactionReceiptLoading}
-      /> */}
-      {txHash && <TxDetails transactionHash={transactionReceipt?.transactionHash} />}
-
+      {txHash && (
+        <TxDetails transactionHash={transactionReceipt?.transactionHash} />
+      )}
       {simulationDataCache[network + ":" + txHash] && (
         <Details
           network={network}
