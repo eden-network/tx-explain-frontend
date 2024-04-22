@@ -13,9 +13,6 @@ const Details = ({
 }) => {
     return (
         <Box mb="xl">
-            <Title order={2} mb="md">
-                Details
-            </Title>
             {simulation.asset_changes && simulation.asset_changes.length > 0 && (
                 <TokenTransfers network={network} transfers={simulation.asset_changes} />
             )}

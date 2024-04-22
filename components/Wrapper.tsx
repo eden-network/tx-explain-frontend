@@ -3,10 +3,10 @@ import React, { ReactNode } from 'react';
 
 const Wrapper = ({ children }: { children: ReactNode }) => {
     return (
-        <Box style={{ maxWidth: 800, margin: 'auto', padding: '2rem' }}>
-            <Title style={{ fontSize: '2rem', fontWeight: 700, textAlign: 'center', marginBottom: '2rem' }}>
+        <Box style={{ maxWidth: 1440, margin: 'auto', padding: '2rem' }}>
+            {/* <Title style={{ fontSize: '2rem', fontWeight: 700, textAlign: 'center', marginBottom: '2rem' }}>
                 TX Explain
-            </Title>
+            </Title> */}
             {children}
         </Box>
     )

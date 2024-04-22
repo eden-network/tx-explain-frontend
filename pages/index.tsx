@@ -5,7 +5,6 @@ import TransactionExplainer from '../components/TransactionExplainer';
 const HomePage: React.FC = () => {
   return (
     <>
-      <ColorSchemeToggle />
       <TransactionExplainer />
     </>
   );

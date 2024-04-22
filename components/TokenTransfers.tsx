@@ -82,7 +82,7 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ network, transfers }) =
     let [integerPart, decimalPart] = amount.split('.');
     const formattedIntegerPart = BigInt(integerPart).toString();
     let formattedAmount = `${formattedIntegerPart}`
-    if(decimalPart) {
+    if (decimalPart) {
       decimalPart = decimalPart.length > 6 ? decimalPart.slice(0, 6) : decimalPart;
       formattedAmount = `${formattedAmount}.${decimalPart}`;
     }
@@ -106,7 +106,7 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ network, transfers }) =
 
   return (
     <Box mb="xl">
-      <Title order={3} mb="md">Token Transfers</Title>
+      <Title size="xs" order={3} mb="md">Token Transfers</Title>
       <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
         {transfers.map((transfer, index) => (
           <div key={index}>

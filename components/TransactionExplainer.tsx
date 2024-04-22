@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Space, Alert, Loader, Button } from '@mantine/core';
+import { Box, Space, Alert, Loader, Button, Flex, Tabs } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
@@ -18,6 +18,7 @@ import Overview from './Overview';
 import Details from './Details';
 import { useTransaction, useTransactionReceipt } from 'wagmi';
 import TxDetails from './TxDetails';
+import TxNav from './TxNav';
 
 const TransactionExplainer: React.FC = () => {
   const router = useRouter();
@@ -128,7 +129,7 @@ const TransactionExplainer: React.FC = () => {
       return;
     }
     setError('');
-    setShowButton(false);
+    setShowButton(true);
 
     const simulation = await refetchSimulation();
     const cachedExplanation = explanationCache[network + ":" + txHash];
@@ -247,9 +248,10 @@ const TransactionExplainer: React.FC = () => {
         forceRefresh={forceRefresh}
         setForceRefresh={setForceRefresh}
       />
-      {isDevEnvironment && (
+      {/* <TxNav txHash={txHash} /> */}
+      {/* {isDevEnvironment && (
         <Button onClick={tmp}>Debug: showNotification</Button>
-      )}
+      )} */}
       {isSimulationLoading && (
         <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
           <Loader size="lg" />
@@ -260,22 +262,47 @@ const TransactionExplainer: React.FC = () => {
           {error}
         </Alert>
       )}
-      {(explanationCache[network + ":" + txHash] || isExplanationLoading) && (
-        <Overview
-          explanation={explanationCache[network + ":" + txHash]}
-          isExplanationLoading={isExplanationLoading}
-          setFeedbackModalOpen={setFeedbackModalOpen}
-        />
-      )}
-      {txHash && (
-        <TxDetails transactionHash={transactionReceipt?.transactionHash} />
-      )}
-      {simulationDataCache[network + ":" + txHash] && (
-        <Details
-          network={network}
-          simulation={simulationDataCache[network + ":" + txHash]}
-        />
-      )}
+      <Flex mt={20} gap="xl">
+        <Flex w="50%" direction="column">
+          <Tabs defaultValue="overview" variant="outline">
+            <Tabs.List mb={20}>
+              <Tabs.Tab value="overview">
+                Overview
+              </Tabs.Tab>
+              <Tabs.Tab value="details" >
+                Details
+              </Tabs.Tab>
+              <Tabs.Tab value="function-calls">
+                Function Calls
+              </Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="overview">
+              {txHash && (
+                <TxDetails transactionHash={transactionReceipt?.transactionHash} />
+              )}
+            </Tabs.Panel>
+            <Tabs.Panel value="details">
+              {simulationDataCache[network + ":" + txHash] && (
+                <Details
+                  network={network}
+                  simulation={simulationDataCache[network + ":" + txHash]}
+                />
+              )}
+            </Tabs.Panel>
+
+            <Tabs.Panel value="function-calls">
+              Settings tab content
+            </Tabs.Panel>
+          </Tabs>
+        </Flex>
+        {(explanationCache[network + ":" + txHash] || isExplanationLoading) && (
+          <Overview
+            explanation={explanationCache[network + ":" + txHash]}
+            isExplanationLoading={isExplanationLoading}
+            setFeedbackModalOpen={setFeedbackModalOpen}
+          />
+        )}
+      </Flex>
       <Space h="xl" />
       {isDevEnvironment && (
         <ModelEditor model={model} onModelChange={setModel} systemPromptModalOpen={systemPromptModalOpen} setSystemPromptModalOpen={setSystemPromptModalOpen} />

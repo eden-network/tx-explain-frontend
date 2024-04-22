@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Card, Title, Text, Button, Space } from "@mantine/core";
+import { Box, Card, Title, Text, Button, Space, Flex, Textarea } from "@mantine/core";
 import { formatUnits } from "viem";
 import { useTransaction, useBlock } from 'wagmi';
 
@@ -7,8 +7,8 @@ import { useTransaction, useBlock } from 'wagmi';
 const txDetailRow = (label: string, value: any) => {
     return (
         <Box display="flex">
-            <Text style={{ whiteSpace: "nowrap" }} w="25%" size="xs" color="dimmed">{label}</Text>
-            <Text w="75%" size="xs">{value ?? 'N/A'}</Text>
+            <Text style={{ whiteSpace: "nowrap" }} w="25%" size="xs">{label}</Text>
+            <Text pl={10} w="75%" size="xs">{value ?? 'N/A'}</Text>
         </Box>
     );
 }
@@ -67,35 +67,48 @@ const TxDetails = ({
     const txIndex: number | undefined = currentTx?.transactionIndex;
 
     return (
-        <Box mb="xl">
-            <Title order={2} mb="md">Transaction Details</Title>
-            <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
-                {txDetailRow("Status:", status)}
-                {txDetailRow("Chain ID:", currentTx?.chainId)}
-                {txDetailRow("Block Number:", currentTx?.blockNumber.toString())}
-                {txDetailRow("Tx Hash:", currentTx?.hash)}
-                {txDetailRow("Position In Block:", txIndex)}
-                <Space h="sm" />
-                {txDetailRow("From:", currentTx?.from)}
-                {txDetailRow("To:", currentTx?.to)}
-                {txDetailRow("Value:", value === undefined ? 0 + " ETH" : value)}
-                <Space h="sm" />
-                {txDetailRow("Nonce:", currentTx?.nonce)}
-                {txDetailRow("Input Data:", currentTx?.input)}
-                <Space h="sm" />
-                {txDetailRow("Gas Used:", gasUsed)}
-                {txDetailRow("TypeHex:", currentTx?.typeHex)}
-                {txDetailRow("Type:", currentTx?.type)}
-                {txDetailRow("Transaction Fee:", gasUsedInEth)}
-                {txDetailRow("Gas Price:", gasPrice)}
-                {txDetailRow("Base:", baseFee)}
-                {txDetailRow("Max:", maxFee)}
-                {txDetailRow("Max Priority:", maxPriorityFee)}
-            </Card>
+        <Box>
+            <Flex justify="space-between">
+                {/* <Title size="xs" order={2} mb="md">Transaction Details</Title> */}
+                <Box display="flex">
+                    <Button variant='outline' size='compact-xs' onClick={() => handleNavigateTx('prev')} mr="xs">-</Button>
+                    <Button variant='outline' size='compact-xs' onClick={() => handleNavigateTx('next')}>+</Button>
+                </Box>
+            </Flex>
+            {/* <Card shadow="sm" p="lg" radius="md" withBorder mb="xl"> */}
+            {txDetailRow("Status:", status)}
+            {txDetailRow("Chain ID:", currentTx?.chainId)}
+            {txDetailRow("Block Number:", currentTx?.blockNumber.toString())}
+            {txDetailRow("Tx Hash:", currentTx?.hash)}
+            {txDetailRow("Position In Block:", txIndex)}
+            <Space h="sm" />
+            {txDetailRow("From:", currentTx?.from)}
+            {txDetailRow("To:", currentTx?.to)}
+            {txDetailRow("Value:", value === undefined ? 0 + " ETH" : value)}
+            <Space h="sm" />
+            {txDetailRow("Nonce:", currentTx?.nonce)}
+            <Space h="sm" />
+            {txDetailRow("Gas Used:", gasUsed)}
+            {txDetailRow("TypeHex:", currentTx?.typeHex)}
+            {txDetailRow("Type:", currentTx?.type)}
+            {txDetailRow("Transaction Fee:", gasUsedInEth)}
+            {txDetailRow("Gas Price:", gasPrice)}
+            {txDetailRow("Base:", baseFee)}
+            {txDetailRow("Max:", maxFee)}
+            {txDetailRow("Max Priority:", maxPriorityFee)}
             <Box display="flex">
-                <Button onClick={() => handleNavigateTx('prev')} style={{ marginRight: '10px' }}>Previous Transaction</Button>
-                <Button onClick={() => handleNavigateTx('next')}>Next Transaction</Button>
+                <Text style={{ whiteSpace: "nowrap" }} w="25%" size="xs" color="dimmed">Input Data:</Text>
+                <Textarea
+                    autosize
+                    minRows={2}
+                    maxRows={4}
+                    w="75%"
+                    size="xs"
+                >
+                    {currentTx?.input}
+                </Textarea>
             </Box>
+            {/* </Card> */}
         </Box>
     );
 };

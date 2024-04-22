@@ -1,4 +1,4 @@
-import { Box, Button, Card, Group, Loader, Title } from "@mantine/core"
+import { Box, Button, Card, Group, Loader, Title, Center } from "@mantine/core"
 import { IconSend } from "@tabler/icons-react"
 import React from "react"
 
@@ -12,10 +12,10 @@ const Overview = ({
     setFeedbackModalOpen: (v: React.SetStateAction<boolean>) => void
 }) => {
     return (
-        <Box mb="xl">
-            <Group align="center">
-                <Title order={2} mb="md">
-                    Overview
+        <Box w="50%" mb="xl">
+            <Group justify="center" align="center">
+                <Title size="xs" order={2} mb="md">
+                    Analysis
                     {isExplanationLoading && <Loader ml={8} size="sm" />}
                 </Title>
             </Group>

@@ -1,6 +1,7 @@
-import { Box, Button, Checkbox, Select, TextInput } from "@mantine/core"
+import { Center, Title, Box, Button, Checkbox, Select, TextInput } from "@mantine/core"
 import React from "react"
 import { isDevEnvironment } from "../lib/dev"
+import { ColorSchemeToggle } from "./ColorSchemeToggle"
 
 const InputForm = ({
     handleSubmit,
@@ -11,7 +12,7 @@ const InputForm = ({
     showButton,
     forceRefresh,
     setForceRefresh
- }: {
+}: {
     handleSubmit: (e: React.FormEvent) => Promise<void>,
     network: string,
     handleNetworkChange: (s: string) => void,
@@ -20,12 +21,16 @@ const InputForm = ({
     showButton: boolean,
     forceRefresh: boolean,
     setForceRefresh: React.Dispatch<React.SetStateAction<boolean>>
- }) => {
+}) => {
     return (
         <Box mb="xl">
-            <form onSubmit={handleSubmit}>
+            {/* <Title style={{ fontSize: '2rem', fontWeight: 700, textAlign: 'center', marginBottom: '2rem' }}>
+                TX Explain
+            </Title> */}
+            <form style={{ display: 'flex', gap: '1rem' }} onSubmit={handleSubmit}>
                 <Select
-                    label="Network"
+                    w="10%"
+                    // label="Network"
                     placeholder="Select a network"
                     value={network}
                     onChange={(value) => handleNetworkChange(value || '1')}
@@ -36,19 +41,21 @@ const InputForm = ({
                         { value: '43114', label: 'Avalanche' },
                     ]}
                     required
-                    mb="md"
                 />
                 <TextInput
-                    label="Transaction Hash"
+                    w="60%"
+                    // label="Transaction Hash"
                     placeholder="Enter transaction hash"
                     value={txHash}
                     onChange={(e) => handleTxHashChange(e.target.value)}
                     required
-                    mb="md"
                 />
                 {showButton && (
-                    <Box>
-                        {isDevEnvironment && (
+                    <Box w="30%" display="flex">
+                        <Button type="submit" fullWidth>
+                            Explain Transaction
+                        </Button>
+                        {/* {isDevEnvironment && (
                             <Checkbox
                                 id="force-refresh"
                                 label="Force Refresh"
@@ -56,12 +63,10 @@ const InputForm = ({
                                 checked={forceRefresh}
                                 onChange={(event) => setForceRefresh(event.currentTarget.checked)}
                             />
-                        )}
-                        <Button type="submit" fullWidth mt="sm">
-                            Explain Transaction
-                        </Button>
+                        )} */}
                     </Box>
                 )}
+                {/* <ColorSchemeToggle /> */}
             </form>
         </Box>
     )
