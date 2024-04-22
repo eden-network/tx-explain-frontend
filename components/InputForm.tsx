@@ -1,6 +1,7 @@
 import { Box, Button, Checkbox, Select, TextInput } from "@mantine/core"
 import React from "react"
-import { isDevEnvironment } from "../lib/dev"
+import { isDevEnvironment, isLocalEnvironment } from "../lib/env"
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 const InputForm = ({
     handleSubmit,
@@ -12,7 +13,7 @@ const InputForm = ({
     forceRefresh,
     setForceRefresh
  }: {
-    handleSubmit: (e: React.FormEvent) => Promise<void>,
+    handleSubmit: (e: React.FormEvent, token?: string) => Promise<void>,
     network: string,
     handleNetworkChange: (s: string) => void,
     txHash: string,
@@ -21,9 +22,19 @@ const InputForm = ({
     forceRefresh: boolean,
     setForceRefresh: React.Dispatch<React.SetStateAction<boolean>>
  }) => {
+    const { executeRecaptcha } = useGoogleReCaptcha();
+
+    const handleFormSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!isLocalEnvironment && (!executeRecaptcha || typeof executeRecaptcha !== 'function')) return;
+
+        const token = !isLocalEnvironment && executeRecaptcha ? await executeRecaptcha('inputForm') : undefined;
+        await handleSubmit(e, token);
+    };
+
     return (
         <Box mb="xl">
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleFormSubmit}>
                 <Select
                     label="Network"
                     placeholder="Select a network"

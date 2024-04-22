@@ -10,7 +10,7 @@ import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
 import { TransactionSimulation } from '../types';
 import Wrapper from './Wrapper';
-import { isDevEnvironment } from '../lib/dev';
+import { isDevEnvironment, isLocalEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import InputForm from './InputForm';
 import Overview from './Overview';
@@ -63,7 +63,7 @@ const TransactionExplainer: React.FC = () => {
     retry: false,
   });
 
-  const fetchExplanation = async (simulationData: TransactionSimulation) => {
+  const fetchExplanation = async (simulationData: TransactionSimulation, token?: string) => {
     if (!simulationData) return;
 
     try {
@@ -73,7 +73,14 @@ const TransactionExplainer: React.FC = () => {
         [network + ":" + txHash]: '',
       }));
 
-      const body = JSON.stringify({ transactions: [simulationData], model, system: systemPrompt, force_refresh: forceRefresh });
+      const body = JSON.stringify({
+        transactions: [simulationData],
+        model,
+        system: systemPrompt,
+        force_refresh: forceRefresh,
+        recaptcha_token: isLocalEnvironment ? undefined : token,
+      });
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/explain`, {
         method: 'POST',
         headers: {
@@ -118,7 +125,7 @@ const TransactionExplainer: React.FC = () => {
     }
   };
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent, token?: string) => {
     e.preventDefault();
     if (!isValidTxHash(txHash)) {
       const networkName = getNetworkName(network);
@@ -129,10 +136,11 @@ const TransactionExplainer: React.FC = () => {
     setShowButton(false);
 
     const simulation = await refetchSimulation();
+
     const cachedExplanation = explanationCache[network + ":" + txHash];
 
     if (!cachedExplanation || forceRefresh) {
-      await fetchExplanation(simulation.data!);
+      await fetchExplanation(simulation.data!, token);
     }
   };
 
@@ -148,7 +156,7 @@ const TransactionExplainer: React.FC = () => {
     setShowButton(true);
   };
 
-  const handleSubmitFeedback = async (values: any) => {
+  const handleSubmitFeedback = async (values: any, token?: string) => {
     const feedbackData = {
       date: new Date().toISOString(),
       network: getNetworkName(network),
@@ -158,6 +166,7 @@ const TransactionExplainer: React.FC = () => {
       systemPrompt,
       simulationData: JSON.stringify(simulationDataCache[network + ":" + txHash]),
       ...values,
+      recaptcha_token: isLocalEnvironment ? undefined : token,
     };
 
     setFeedbackModalOpen(false);
@@ -205,7 +214,6 @@ const TransactionExplainer: React.FC = () => {
 
   console.log(transactionReceipt);
 
-
   return (
     <Wrapper>
       <InputForm
@@ -238,12 +246,7 @@ const TransactionExplainer: React.FC = () => {
           setFeedbackModalOpen={setFeedbackModalOpen}
         />
       )}
-      {/* <Fundamentals
-        transactionReceipt={transactionReceipt}
-        isTransactionReceiptLoading={isTransactionReceiptLoading}
-      /> */}
       {txHash && <TxDetails transactionHash={transactionReceipt?.transactionHash} />}
-
       {simulationDataCache[network + ":" + txHash] && (
         <Details
           network={network}
