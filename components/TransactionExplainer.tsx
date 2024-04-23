@@ -219,8 +219,6 @@ const TransactionExplainer: React.FC = () => {
     });
   }
 
-  console.log(transactionReceipt);
-
   return (
     <Wrapper>
       <InputForm
