@@ -18,9 +18,13 @@ import Overview from './Overview';
 import Details from './Details';
 import { useTransaction, useTransactionReceipt } from 'wagmi';
 import TxDetails from './TxDetails';
-import TxNav from './TxNav';
+import FunctionCalls from './FunctionCalls';
 
-const TransactionExplainer: React.FC = () => {
+
+const TransactionExplainer: React.FC = ({
+}: {
+
+  }) => {
   const router = useRouter();
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
   const [txHash, setTxHash] = useStore((state) => [state.txHash, state.setTxHash]);
@@ -249,9 +253,9 @@ const TransactionExplainer: React.FC = () => {
         setForceRefresh={setForceRefresh}
       />
       {/* <TxNav txHash={txHash} /> */}
-      {/* {isDevEnvironment && (
+      {isDevEnvironment && (
         <Button onClick={tmp}>Debug: showNotification</Button>
-      )} */}
+      )}
       {isSimulationLoading && (
         <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
           <Loader size="lg" />
@@ -263,38 +267,40 @@ const TransactionExplainer: React.FC = () => {
         </Alert>
       )}
       <Flex mt={20} gap="xl">
-        <Flex w="50%" direction="column">
-          <Tabs defaultValue="overview" variant="outline">
-            <Tabs.List mb={20}>
-              <Tabs.Tab value="overview">
-                Overview
-              </Tabs.Tab>
-              <Tabs.Tab value="details" >
-                Details
-              </Tabs.Tab>
-              <Tabs.Tab value="function-calls">
-                Function Calls
-              </Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="overview">
-              {txHash && (
-                <TxDetails transactionHash={transactionReceipt?.transactionHash} />
-              )}
-            </Tabs.Panel>
-            <Tabs.Panel value="details">
-              {simulationDataCache[network + ":" + txHash] && (
-                <Details
-                  network={network}
-                  simulation={simulationDataCache[network + ":" + txHash]}
-                />
-              )}
-            </Tabs.Panel>
+        {txHash && (
+          <Flex w="50%" direction="column">
+            <Tabs defaultValue="overview">
+              <Tabs.List mb={20}>
+                <Tabs.Tab value="overview">
+                  Overview
+                </Tabs.Tab>
+                <Tabs.Tab value="details" >
+                  Details
+                </Tabs.Tab>
+                <Tabs.Tab value="function-calls">
+                  Function Calls
+                </Tabs.Tab>
+              </Tabs.List>
+              <Tabs.Panel value="overview">
+                {txHash && (
+                  <TxDetails transactionHash={transactionReceipt?.transactionHash} />
+                )}
+              </Tabs.Panel>
+              <Tabs.Panel value="details">
+                {simulationDataCache[network + ":" + txHash] && (
+                  <Details
+                    network={network}
+                    simulation={simulationDataCache[network + ":" + txHash]}
+                  />
+                )}
+              </Tabs.Panel>
+              <Tabs.Panel value="function-calls">
+                function calls
+              </Tabs.Panel>
+            </Tabs>
+          </Flex>
+        )}
 
-            <Tabs.Panel value="function-calls">
-              Settings tab content
-            </Tabs.Panel>
-          </Tabs>
-        </Flex>
         {(explanationCache[network + ":" + txHash] || isExplanationLoading) && (
           <Overview
             explanation={explanationCache[network + ":" + txHash]}

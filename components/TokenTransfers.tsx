@@ -70,7 +70,7 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ network, transfers }) =
           <Text size="sm" c="dimmed">
             Amount:
           </Text>
-          <Text size="xl">-</Text>
+          <Text size="md">-</Text>
           <Text size="sm" c="dimmed" mt="xs">
             USD Value:
           </Text>
@@ -93,7 +93,7 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ network, transfers }) =
         <Text size="sm" c="dimmed">
           Amount:
         </Text>
-        <Text size="xl">
+        <Text size="md">
           {formattedAmount} {symbol.toUpperCase()}
         </Text>
         <Text size="sm" c="dimmed" mt="xs">
@@ -106,8 +106,8 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ network, transfers }) =
 
   return (
     <Box mb="xl">
-      <Title size="xs" order={3} mb="md">Token Transfers</Title>
-      <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
+      {/* <Title size="xs" order={3} mb="md">Token Transfers</Title> */}
+      <Box p="lg" mb="xl">
         {transfers.map((transfer, index) => (
           <div key={index}>
             <Grid align="center" mb="md">
@@ -124,7 +124,7 @@ const TokenTransfers: React.FC<TokenTransfersProps> = ({ network, transfers }) =
             {index !== transfers.length - 1 && <Divider my="sm" />}
           </div>
         ))}
-      </Card>
+      </Box>
     </Box>
   );
 };

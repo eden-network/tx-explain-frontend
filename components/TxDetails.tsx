@@ -1,15 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Card, Title, Text, Button, Space, Flex, Textarea } from "@mantine/core";
+import { Box, Button, Flex, Space, Text, Textarea } from "@mantine/core";
 import { formatUnits } from "viem";
 import { useTransaction, useBlock } from 'wagmi';
+import { CheckIcon } from '@modulz/radix-icons';
 
 // Function to render a row of transaction details
-const txDetailRow = (label: string, value: any) => {
+const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom }: { label: string, value: any, border?: string, isStatus?: boolean, color?: string, borderBottom?: string }) => {
     return (
-        <Box display="flex">
-            <Text style={{ whiteSpace: "nowrap" }} w="25%" size="xs">{label}</Text>
-            <Text pl={10} w="75%" size="xs">{value ?? 'N/A'}</Text>
-        </Box>
+        <Box display="flex" mb="12px" style={{ borderBottom: borderBottom }}>
+            <Box w="20%">
+                <Text style={{ whiteSpace: "nowrap", color: "gray" }} size="sm">{label}</Text>
+            </Box>
+            <Box w="80%">
+                <Flex
+                    px={isStatus ? 5 : 0}
+                    style={{ width: 'fit-content', border: border, borderRadius: '4px', alignItems: 'center', color: color }}
+                >
+                    {isStatus && <CheckIcon color='#B0FF09' />}
+                    <Text
+                        px={3}
+                        style={{ width: 'fit-content', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                        size={isStatus ? "xs" : "sm"}
+                        c={color}
+                    >
+                        {value ?? 'N/A'}
+                    </Text>
+                </Flex>
+            </Box>
+        </Box >
     );
 }
 
@@ -30,7 +48,7 @@ const TxDetails = ({
     });
 
     // State to keep track of the current transaction index
-    const [currentTxIndex, setCurrentTxIndex] = useState(transactionReceipt?.transactionIndex ?? null);;
+    const [currentTxIndex, setCurrentTxIndex] = useState<number | null>(transactionReceipt?.transactionIndex ?? null);
 
     // Effect to update index if the transactionReceipt changes
     useEffect(() => {
@@ -56,7 +74,11 @@ const TxDetails = ({
         });
     };
 
+    console.log(block?.data);
+
+
     // Format current transaction details
+    // const timestamp = formatUnits(block?.data?.timestamp, 18)
     const value: string | undefined = currentTx?.value ? `${formatUnits(currentTx.value, 18)} ETH` : undefined;
     const gasUsed: string | undefined = currentTx?.gas ? currentTx.gas.toString() : undefined;
     const baseFee: string | undefined = block.data?.baseFeePerGas ? `${formatUnits(block.data.baseFeePerGas, 9)} gwei` : undefined;
@@ -66,49 +88,51 @@ const TxDetails = ({
     const gasUsedInEth: string | undefined = currentTx?.gas && currentTx?.gasPrice ? `${formatUnits(currentTx.gas * currentTx.gasPrice, 18)} ETH` : undefined;
     const txIndex: number | undefined = currentTx?.transactionIndex;
 
+    // Define an array of objects for the transaction details
+    const transactionDetails = [
+        { label: "Status:", value: status, border: "1px solid #B0FF09", isStatus: true, color: "eden" },
+        { label: "Block Number:", value: currentTx?.blockNumber.toString() },
+        // { label: "Timestamp:", value: timestamp },
+        { label: "Chain ID:", value: currentTx?.chainId },
+        { label: "Tx Hash:", value: currentTx?.hash },
+        { label: "Position In Block:", value: txIndex },
+        { label: "From:", value: currentTx?.from },
+        { label: "To:", value: currentTx?.to },
+        { label: "Value:", value: value === undefined ? "0 ETH" : value },
+        { label: "Nonce:", value: currentTx?.nonce },
+        { label: "Gas Used:", value: gasUsed },
+        { label: "TypeHex:", value: currentTx?.typeHex },
+        { label: "Type:", value: currentTx?.type },
+        { label: "Transaction Fee:", value: gasUsedInEth },
+        { label: "Gas Price:", value: gasPrice },
+        { label: "Base:", value: baseFee },
+        { label: "Max:", value: maxFee },
+        { label: "Max Priority:", value: maxPriorityFee },
+    ];
+
     return (
         <Box>
             <Flex justify="space-between">
-                {/* <Title size="xs" order={2} mb="md">Transaction Details</Title> */}
                 <Box display="flex">
                     <Button variant='outline' size='compact-xs' onClick={() => handleNavigateTx('prev')} mr="xs">-</Button>
                     <Button variant='outline' size='compact-xs' onClick={() => handleNavigateTx('next')}>+</Button>
                 </Box>
             </Flex>
-            {/* <Card shadow="sm" p="lg" radius="md" withBorder mb="xl"> */}
-            {txDetailRow("Status:", status)}
-            {txDetailRow("Chain ID:", currentTx?.chainId)}
-            {txDetailRow("Block Number:", currentTx?.blockNumber.toString())}
-            {txDetailRow("Tx Hash:", currentTx?.hash)}
-            {txDetailRow("Position In Block:", txIndex)}
-            <Space h="sm" />
-            {txDetailRow("From:", currentTx?.from)}
-            {txDetailRow("To:", currentTx?.to)}
-            {txDetailRow("Value:", value === undefined ? 0 + " ETH" : value)}
-            <Space h="sm" />
-            {txDetailRow("Nonce:", currentTx?.nonce)}
-            <Space h="sm" />
-            {txDetailRow("Gas Used:", gasUsed)}
-            {txDetailRow("TypeHex:", currentTx?.typeHex)}
-            {txDetailRow("Type:", currentTx?.type)}
-            {txDetailRow("Transaction Fee:", gasUsedInEth)}
-            {txDetailRow("Gas Price:", gasPrice)}
-            {txDetailRow("Base:", baseFee)}
-            {txDetailRow("Max:", maxFee)}
-            {txDetailRow("Max Priority:", maxPriorityFee)}
+            {transactionDetails.map((detail, index) => (
+                <TxDetailRow
+                    key={index}
+                    label={detail.label}
+                    value={detail.value}
+                    border={detail.border}
+                    color={detail.color}
+                    isStatus={detail.isStatus}
+                />
+            ))}
             <Box display="flex">
-                <Text style={{ whiteSpace: "nowrap" }} w="25%" size="xs" color="dimmed">Input Data:</Text>
-                <Textarea
-                    autosize
-                    minRows={2}
-                    maxRows={4}
-                    w="75%"
-                    size="xs"
-                >
-                    {currentTx?.input}
+                <Text style={{ color: 'gray' }} w="20%" size="sm">Input Data:</Text>
+                <Textarea w="80%" resize='vertical' readOnly name='input' value={currentTx?.input}>
                 </Textarea>
             </Box>
-            {/* </Card> */}
         </Box>
     );
 };

@@ -23,7 +23,7 @@ const InputForm = ({
     setForceRefresh: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
     return (
-        <Box mb="xl">
+        <Box maw={1200} mx="auto" mb="xl">
             {/* <Title style={{ fontSize: '2rem', fontWeight: 700, textAlign: 'center', marginBottom: '2rem' }}>
                 TX Explain
             </Title> */}
@@ -51,8 +51,8 @@ const InputForm = ({
                     required
                 />
                 {showButton && (
-                    <Box w="30%" display="flex">
-                        <Button type="submit" fullWidth>
+                    <Box w="20%" display="flex">
+                        <Button autoContrast type="submit" fullWidth>
                             Explain Transaction
                         </Button>
                         {/* {isDevEnvironment && (

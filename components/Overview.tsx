@@ -23,6 +23,7 @@ const Overview = ({
                 <pre style={{ whiteSpace: 'pre-wrap' }}>{explanation || 'Loading...'}</pre>
                 {explanation && (
                     <Button
+                        autoContrast
                         // size="compact-sm"
                         onClick={() => setFeedbackModalOpen(true)}
                         leftSection={<IconSend size={16} />}

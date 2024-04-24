@@ -3,11 +3,11 @@ import { ColorSchemeScript } from '@mantine/core';
 
 export default function Document() {
   return (
-    <Html lang="en">
+    <Html lang="en" style={{ background: "#121525" }}>
       <Head>
-        <ColorSchemeScript defaultColorScheme="auto" />
+        <ColorSchemeScript defaultColorScheme="dark" />
       </Head>
-      <body>
+      <body style={{ background: "#121525" }}>
         <Main />
         <NextScript />
       </body>
