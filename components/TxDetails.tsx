@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Flex, Space, Text, Textarea } from "@mantine/core";
 import { formatUnits } from "viem";
-import { useTransaction, useBlock } from 'wagmi';
+import { useTransaction, useBlock, useTransactionReceipt } from 'wagmi';
 import { CheckIcon } from '@modulz/radix-icons';
 
 // Function to render a row of transaction details
@@ -32,31 +32,43 @@ const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom }: { 
 }
 
 const TxDetails = ({
-    transactionHash
+    transactionHash,
+    chainId
 }: {
     transactionHash: `0x${string}` | undefined;
+    chainId: number
 }) => {
+    const [currentTransactionHash, setCurrentTransactionHash] = useState<string | undefined>(transactionHash);
+
     // Fetch transaction details based on the provided hash
-    const { data: transactionReceipt, isLoading: isTransactionReceiptLoading, status } = useTransaction({
+    const { data: transaction, isLoading: isTransactionLoading, status } = useTransaction({
         hash: transactionHash,
+        chainId: chainId
+    });
+
+    // Fetch transaction receipt details based on the provided hash 
+    const { data: transactionReceipt } = useTransactionReceipt({
+        hash: transactionHash,
+        chainId: chainId
     });
 
     // Fetch block details related to the transaction
     const block = useBlock({
-        blockHash: transactionReceipt?.blockHash,
-        includeTransactions: true
+        blockHash: transaction?.blockHash,
+        includeTransactions: true,
+        chainId: chainId
     });
 
     // State to keep track of the current transaction index
-    const [currentTxIndex, setCurrentTxIndex] = useState<number | null>(transactionReceipt?.transactionIndex ?? null);
+    const [currentTxIndex, setCurrentTxIndex] = useState<number | null>(transaction?.transactionIndex ?? null);
 
-    // Effect to update index if the transactionReceipt changes
+    // Effect to update index if the transaction changes
     useEffect(() => {
-        setCurrentTxIndex(transactionReceipt?.transactionIndex ?? null);
-    }, [transactionReceipt]);
+        setCurrentTxIndex(transaction?.transactionIndex ?? null);
+    }, [transaction]);
 
-    if (isTransactionReceiptLoading) return <Text>Loading transaction details...</Text>;
-    if (!transactionReceipt) return <Text>Transaction hash invalid or transaction not found.</Text>;
+    if (isTransactionLoading) return <Text>Loading transaction details...</Text>;
+    if (!transaction) return <Text>Transaction hash invalid or transaction not found.</Text>;
 
     const currentTx = typeof currentTxIndex === 'number' && block.data?.transactions ? block.data.transactions[currentTxIndex] : null;
 
@@ -65,7 +77,7 @@ const TxDetails = ({
         setCurrentTxIndex((prevIndex: number | null) => {
             const transactionsLength = block.data?.transactions?.length ?? 0;
             if (transactionsLength === 0) return prevIndex;
-            const index = prevIndex !== null ? prevIndex : (transactionReceipt?.transactionIndex ?? 0);
+            const index = prevIndex !== null ? prevIndex : (transaction?.transactionIndex ?? 0);
             if (direction === 'next') {
                 return (index + 1) % transactionsLength;
             } else {
@@ -73,9 +85,6 @@ const TxDetails = ({
             }
         });
     };
-
-    console.log(block?.data);
-
 
     // Format current transaction details
     // const timestamp = formatUnits(block?.data?.timestamp, 18)

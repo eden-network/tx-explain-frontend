@@ -19,7 +19,7 @@ const Overview = ({
                     {isExplanationLoading && <Loader ml={8} size="sm" />}
                 </Title>
             </Group>
-            <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
+            <Card style={{ boxShadow: '1px 1px 8px 0px #00000054' }} p="lg" radius="md" withBorder mb="xl">
                 <pre style={{ whiteSpace: 'pre-wrap' }}>{explanation || 'Loading...'}</pre>
                 {explanation && (
                     <Button

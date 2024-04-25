@@ -4,7 +4,7 @@ const Header = () => {
 
     const anchorData = [
         { text: "Discord", href: "https://discord.com", target: "_blank" },
-        { text: "Twitter", href: "https://twitter.com", target: "_blank" },
+        { text: "Twitt", href: "https://twitter.com", target: "_blank" },
         { text: "Blog", href: "https://example.com/blog", target: "_blank" },
     ];
 

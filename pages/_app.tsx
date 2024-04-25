@@ -26,6 +26,18 @@ const theme = createTheme({
       "#99e300",
       "#87c900",
       "#72ae00"
+    ],
+    dark: [
+      "#ffffff",
+      "#1B1F32",
+      "#878787",
+      "#878787",
+      "#1B1F32",
+      "#1B1F32",
+      "#1B1F32",
+      "#1B1F32",
+      "#1B1F32",
+      "#1B1F32"
     ]
   },
   primaryColor: "eden"

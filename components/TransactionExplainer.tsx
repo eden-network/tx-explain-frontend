@@ -21,10 +21,7 @@ import TxDetails from './TxDetails';
 import FunctionCalls from './FunctionCalls';
 
 
-const TransactionExplainer: React.FC = ({
-}: {
-
-  }) => {
+const TransactionExplainer: React.FC = () => {
   const router = useRouter();
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
   const [txHash, setTxHash] = useStore((state) => [state.txHash, state.setTxHash]);
@@ -240,6 +237,8 @@ const TransactionExplainer: React.FC = ({
     });
   }
 
+  const chainId: number = parseFloat(network)
+
   return (
     <Wrapper>
       <InputForm
@@ -283,7 +282,9 @@ const TransactionExplainer: React.FC = ({
               </Tabs.List>
               <Tabs.Panel value="overview">
                 {txHash && (
-                  <TxDetails transactionHash={transactionReceipt?.transactionHash} />
+                  <TxDetails
+                    chainId={chainId}
+                    transactionHash={txHash as `0x${string}`} />
                 )}
               </Tabs.Panel>
               <Tabs.Panel value="details">
