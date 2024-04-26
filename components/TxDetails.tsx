@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Flex, Space, Text, Textarea } from "@mantine/core";
+import { Box, Button, Flex, Space, Text, Textarea, Loader } from "@mantine/core";
 import { formatUnits } from "viem";
-import { useTransaction, useBlock, useTransactionReceipt } from 'wagmi';
+import { useTransaction, useBlock, useTransactionReceipt, useTransactionCount, useCall } from 'wagmi';
 import { CheckIcon } from '@modulz/radix-icons';
 
 // Function to render a row of transaction details
@@ -33,24 +33,25 @@ const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom }: { 
 
 const TxDetails = ({
     transactionHash,
-    chainId
+    chainId,
+    currentTxIndex,
+    transactions,
+    setTransactions
 }: {
     transactionHash: `0x${string}` | undefined;
-    chainId: number
+    chainId: number;
+    currentTxIndex: number | null
+    transactions: any
+    setTransactions?: any
 }) => {
-    const [currentTransactionHash, setCurrentTransactionHash] = useState<string | undefined>(transactionHash);
-
     // Fetch transaction details based on the provided hash
-    const { data: transaction, isLoading: isTransactionLoading, status } = useTransaction({
+    const { data: transaction, isLoading: isTransactionLoading, status, error: error } = useTransaction({
         hash: transactionHash,
         chainId: chainId
     });
 
-    // Fetch transaction receipt details based on the provided hash 
-    const { data: transactionReceipt } = useTransactionReceipt({
-        hash: transactionHash,
-        chainId: chainId
-    });
+    console.log(error);
+
 
     // Fetch block details related to the transaction
     const block = useBlock({
@@ -59,43 +60,47 @@ const TxDetails = ({
         chainId: chainId
     });
 
-    // State to keep track of the current transaction index
-    const [currentTxIndex, setCurrentTxIndex] = useState<number | null>(transaction?.transactionIndex ?? null);
-
-    // Effect to update index if the transaction changes
     useEffect(() => {
-        setCurrentTxIndex(transaction?.transactionIndex ?? null);
-    }, [transaction]);
+        if (block.data?.transactions) {
+            setTransactions(block.data.transactions);
+        }
+    }, [block.data, setTransactions]);
 
-    if (isTransactionLoading) return <Text>Loading transaction details...</Text>;
+    const currentTx = typeof currentTxIndex === 'number' && block.data?.transactions ? block.data.transactions[currentTxIndex] : transaction;
+
+    // Fetch transaction receipt details based on the currentTx hash 
+    const { data: transactionReceipt } = useTransactionReceipt({
+        hash: currentTx?.hash,
+        chainId: chainId
+    });
+
+    const { data: nonce } = useTransactionCount({
+        address: currentTx?.from
+    })
+
+    // Construct the previous nonce transaction
+    const previousNonceTransaction = useCall({
+        account: transaction?.from,
+        nonce: nonce ? nonce - 1 : undefined
+    });
+
+
+    console.log(previousNonceTransaction);
+
+
+    if (isTransactionLoading) return <Loader size="xl" display="flex" style={{ margin: 'auto' }} />
     if (!transaction) return <Text>Transaction hash invalid or transaction not found.</Text>;
 
-    const currentTx = typeof currentTxIndex === 'number' && block.data?.transactions ? block.data.transactions[currentTxIndex] : null;
-
-    // Function to navigate to the previous or next transaction in a block
-    const handleNavigateTx = (direction: 'next' | 'prev') => {
-        setCurrentTxIndex((prevIndex: number | null) => {
-            const transactionsLength = block.data?.transactions?.length ?? 0;
-            if (transactionsLength === 0) return prevIndex;
-            const index = prevIndex !== null ? prevIndex : (transaction?.transactionIndex ?? 0);
-            if (direction === 'next') {
-                return (index + 1) % transactionsLength;
-            } else {
-                return (index - 1 + transactionsLength) % transactionsLength;
-            }
-        });
-    };
-
     // Format current transaction details
-    // const timestamp = formatUnits(block?.data?.timestamp, 18)
     const value: string | undefined = currentTx?.value ? `${formatUnits(currentTx.value, 18)} ETH` : undefined;
-    const gasUsed: string | undefined = currentTx?.gas ? currentTx.gas.toString() : undefined;
+    const gasUsed: string | undefined = transactionReceipt?.gasUsed ? `${formatUnits(transactionReceipt.gasUsed, 9)} gwei` : undefined;
     const baseFee: string | undefined = block.data?.baseFeePerGas ? `${formatUnits(block.data.baseFeePerGas, 9)} gwei` : undefined;
     const gasPrice: string | undefined = currentTx?.gasPrice ? `${formatUnits(currentTx.gasPrice, 9)} gwei` : undefined;
     const maxFee: string | undefined = currentTx?.maxFeePerGas ? `${formatUnits(currentTx.maxFeePerGas, 9)} gwei` : undefined;
     const maxPriorityFee: string | undefined = currentTx?.maxPriorityFeePerGas ? `${formatUnits(currentTx.maxPriorityFeePerGas, 9)} gwei` : undefined;
-    const gasUsedInEth: string | undefined = currentTx?.gas && currentTx?.gasPrice ? `${formatUnits(currentTx.gas * currentTx.gasPrice, 18)} ETH` : undefined;
+    const gasUsedInEth: string | undefined = transactionReceipt?.gasUsed && currentTx?.gasPrice ? `${formatUnits(transactionReceipt?.gasUsed * currentTx.gasPrice, 18)} ETH` : undefined;
     const txIndex: number | undefined = currentTx?.transactionIndex;
+    // const timestamp = formatUnits(block?.data?.timestamp, 18)
 
     // Define an array of objects for the transaction details
     const transactionDetails = [
@@ -121,12 +126,6 @@ const TxDetails = ({
 
     return (
         <Box>
-            <Flex justify="space-between">
-                <Box display="flex">
-                    <Button variant='outline' size='compact-xs' onClick={() => handleNavigateTx('prev')} mr="xs">-</Button>
-                    <Button variant='outline' size='compact-xs' onClick={() => handleNavigateTx('next')}>+</Button>
-                </Box>
-            </Flex>
             {transactionDetails.map((detail, index) => (
                 <TxDetailRow
                     key={index}
@@ -139,7 +138,7 @@ const TxDetails = ({
             ))}
             <Box display="flex">
                 <Text style={{ color: 'gray' }} w="20%" size="sm">Input Data:</Text>
-                <Textarea w="80%" resize='vertical' readOnly name='input' value={currentTx?.input}>
+                <Textarea maxRows={1} w="80%" resize='vertical' readOnly name='input' value={currentTx?.input}>
                 </Textarea>
             </Box>
         </Box>

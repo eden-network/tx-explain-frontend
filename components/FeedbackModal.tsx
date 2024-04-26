@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { Modal, Rating, Textarea, Text, Button, Loader, Group } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { isLocalEnvironment } from '../lib/env';
 
 interface FeedbackModalProps {
   opened: boolean;
   onClose: () => void;
-  onSubmit: (values: any) => void;
+  onSubmit: (values: any, token?: string) => void;
 }
 
 const FeedbackModal: React.FC<FeedbackModalProps> = ({ opened, onClose, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const feedbackForm = useForm({
     initialValues: {
@@ -24,8 +27,11 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ opened, onClose, onSubmit
   });
 
   const handleSubmit = async (values: any) => {
+    if (!isLocalEnvironment && (!executeRecaptcha || typeof executeRecaptcha !== 'function')) return;
+
+    const token = !isLocalEnvironment && executeRecaptcha ? await executeRecaptcha('feedbackForm') : undefined;
     setIsSubmitting(true);
-    await onSubmit(values);
+    await onSubmit(values, token);
     setIsSubmitting(false);
     feedbackForm.reset();
   };
