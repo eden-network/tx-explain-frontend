@@ -53,7 +53,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ opened, onClose, onSubmit
           mt="md"
         />
         <Group mt="md">
-          <Button type="submit" fullWidth disabled={isSubmitting}>
+          <Button autoContrast type="submit" fullWidth disabled={isSubmitting}>
             {isSubmitting ? <Loader size="sm" /> : 'Submit Feedback'}
           </Button>
         </Group>
