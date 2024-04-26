@@ -11,15 +11,15 @@ import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
 import { TransactionSimulation } from '../types';
 import Wrapper from './Wrapper';
-import { isDevEnvironment, isLocalEnvironment } from '../lib/env';
+import { isDevEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import InputForm from './InputForm';
 import Overview from './Overview';
 import Details from './Details';
-import { useTransaction, useBlock, useTransactionReceipt } from 'wagmi';
+import { useTransaction, useBlock } from 'wagmi';
 import TxDetails from './TxDetails';
-import FunctionCalls from './FunctionCalls';
 
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 const TransactionExplainer: React.FC = () => {
   const router = useRouter();
@@ -36,11 +36,17 @@ const TransactionExplainer: React.FC = () => {
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [isExplanationLoading, setIsExplanationLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const { data: simulationData, isLoading: isSimulationLoading, isError: isSimulationError, error: simulationError, refetch: refetchSimulation } = useQuery<TransactionSimulation, Error>({
     queryKey: ['simulateTransaction', network, txHash],
-    queryFn: async () => {
-      const body = JSON.stringify({ network_id: network, tx_hash: txHash });
+    queryFn: async ({ queryKey: [_, network, txHash] }) => {
+      if (!executeRecaptcha || typeof executeRecaptcha !== 'function') {
+        throw new Error('reCAPTCHA verification failed');
+      }
+
+      const recaptchaToken = await executeRecaptcha('fetchSimulation');
+      const body = JSON.stringify({ network_id: network, tx_hash: txHash, recaptcha_token: recaptchaToken });
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/fetch_and_simulate`, {
         method: 'POST',
         headers: {
@@ -83,7 +89,7 @@ const TransactionExplainer: React.FC = () => {
         model,
         system: systemPrompt,
         force_refresh: forceRefresh,
-        recaptcha_token: isLocalEnvironment ? undefined : token,
+        recaptcha_token: token,
       });
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/explain`, {
@@ -141,10 +147,11 @@ const TransactionExplainer: React.FC = () => {
     setShowButton(true);
 
     const simulation = await refetchSimulation();
+  
     const cachedExplanation = explanationCache[network + ":" + txHash];
-
+  
     if (!cachedExplanation || forceRefresh) {
-      await fetchExplanation(simulation.data!, token);
+      await fetchExplanation(simulation.data!, token || '');
     }
   };
 
@@ -200,7 +207,7 @@ const TransactionExplainer: React.FC = () => {
       systemPrompt,
       simulationData: JSON.stringify(simulationDataCache[network + ":" + txHash]),
       ...values,
-      recaptcha_token: isLocalEnvironment ? undefined : token,
+      recaptcha_token: token || '',
     };
 
     setFeedbackModalOpen(false);
