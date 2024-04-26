@@ -35,13 +35,12 @@ const TxDetails = ({
     transactionHash,
     chainId,
     currentTxIndex,
-    transactions,
     setTransactions
 }: {
     transactionHash: `0x${string}` | undefined;
     chainId: number;
     currentTxIndex: number | null
-    transactions: any
+
     setTransactions?: any
 }) => {
     // Fetch transaction details based on the provided hash
@@ -49,9 +48,6 @@ const TxDetails = ({
         hash: transactionHash,
         chainId: chainId
     });
-
-    console.log(error);
-
 
     // Fetch block details related to the transaction
     const block = useBlock({
@@ -83,10 +79,6 @@ const TxDetails = ({
         account: transaction?.from,
         nonce: nonce ? nonce - 1 : undefined
     });
-
-
-    console.log(previousNonceTransaction);
-
 
     if (isTransactionLoading) return <Loader size="xl" display="flex" style={{ margin: 'auto' }} />
     if (!transaction) return <Text>Transaction hash invalid or transaction not found.</Text>;

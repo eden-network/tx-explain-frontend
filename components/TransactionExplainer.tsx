@@ -19,7 +19,6 @@ import Details from './Details';
 import { useTransaction, useBlock, useTransactionReceipt } from 'wagmi';
 import TxDetails from './TxDetails';
 import FunctionCalls from './FunctionCalls';
-import { log } from 'console';
 
 
 const TransactionExplainer: React.FC = () => {
@@ -338,7 +337,6 @@ const TransactionExplainer: React.FC = () => {
                     chainId={chainId}
                     transactionHash={txHash as `0x${string}`}
                     currentTxIndex={currentTxIndex}
-                    transactions={transactions}
                     setTransactions={setTransactions}
                   />
                 )}
