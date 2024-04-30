@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Space, Alert, Loader, Button, Flex, Tabs, Text, Image } from '@mantine/core';
+import { Box, Space, Alert, Loader, Button, Flex, Tabs, Text, Image, Center } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
@@ -18,6 +18,8 @@ import Overview from './Overview';
 import Details from './Details';
 import { useTransaction, useBlock } from 'wagmi';
 import TxDetails from './TxDetails';
+import OnBoarding from './OnBoarding';
+import NavigateTx from './NavigateTx';
 
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
@@ -35,8 +37,8 @@ const TransactionExplainer: React.FC = () => {
   const [systemPromptModalOpen, setSystemPromptModalOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [isExplanationLoading, setIsExplanationLoading] = useState(false);
-  const [transactions, setTransactions] = useState([]);
   const { executeRecaptcha } = useGoogleReCaptcha();
+  const [showOnboarding, setShowOnboarding] = useState(true);
 
   const { data: simulationData, isLoading: isSimulationLoading, isError: isSimulationError, error: simulationError, refetch: refetchSimulation } = useQuery<TransactionSimulation, Error>({
     queryKey: ['simulateTransaction', network, txHash],
@@ -147,9 +149,9 @@ const TransactionExplainer: React.FC = () => {
     setShowButton(true);
 
     const simulation = await refetchSimulation();
-  
+
     const cachedExplanation = explanationCache[network + ":" + txHash];
-  
+
     if (!cachedExplanation || forceRefresh) {
       await fetchExplanation(simulation.data!, token || '');
     }
@@ -291,6 +293,13 @@ const TransactionExplainer: React.FC = () => {
     });
   };
 
+  // useEffect to update showOnboarding state
+  useEffect(() => {
+    if (txHash && showOnboarding) {
+      setShowOnboarding(false);
+    }
+  }, [txHash, showOnboarding]);
+
   return (
     <Wrapper>
       <InputForm
@@ -303,90 +312,89 @@ const TransactionExplainer: React.FC = () => {
         forceRefresh={forceRefresh}
         setForceRefresh={setForceRefresh}
       />
-      <Flex gap={10} mb={20}>
-        <Text>Navigate block: </Text>
-        <Image style={{ cursor: 'pointer' }} onClick={() => handleNavigateTx('prev')} src="/blockminus.svg" height={30} />
-        <Image style={{ cursor: 'pointer' }} onClick={() => handleNavigateTx('next')} src="/blockplus.svg" height={30} />
-      </Flex>
-
-      {/* <TxNav txHash={txHash} /> */}
-      {isDevEnvironment && (
-        <Button onClick={tmp}>Debug: showNotification</Button>
-      )}
-      {isSimulationLoading && (
-        <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-          <Loader size="lg" />
-        </Box>
-      )}
-      {error && (
-        <Alert color="red" title="Error" mb="md">
-          {error}
-        </Alert>
-      )}
-      <Flex mt={20} gap="xl">
-        {txHash && (
-          <Flex w="50%" direction="column">
-            <Tabs defaultValue="overview">
-              <Tabs.List mb={20}>
-                <Tabs.Tab value="overview">
-                  Overview
-                </Tabs.Tab>
-                <Tabs.Tab value="details" >
-                  Details
-                </Tabs.Tab>
-                <Tabs.Tab value="function-calls">
-                  Function Calls
-                </Tabs.Tab>
-              </Tabs.List>
-              <Tabs.Panel value="overview">
-                {txHash && (
-                  <TxDetails
-                    chainId={chainId}
-                    transactionHash={txHash as `0x${string}`}
-                    currentTxIndex={currentTxIndex}
-                    setTransactions={setTransactions}
-                  />
-                )}
-              </Tabs.Panel>
-              <Tabs.Panel value="details">
-                {simulationDataCache[network + ":" + txHash] && (
-                  <Details
-                    network={network}
-                    simulation={simulationDataCache[network + ":" + txHash]}
-                  />
-                )}
-              </Tabs.Panel>
-              <Tabs.Panel value="function-calls">
-                function calls
-              </Tabs.Panel>
-            </Tabs>
+      {showOnboarding ? <OnBoarding /> :
+        <Box>
+          <Center>
+            <Flex gap={10} mb={20}>
+              <Image style={{ cursor: 'pointer' }} onClick={() => handleNavigateTx('prev')} src="/blockminus.svg" height={30} />
+              <Image style={{ cursor: 'pointer' }} onClick={() => handleNavigateTx('next')} src="/blockplus.svg" height={30} />
+            </Flex>
+          </Center>
+          {isDevEnvironment && (
+            <Button onClick={tmp}>Debug: showNotification</Button>
+          )}
+          {isSimulationLoading && (
+            <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+              <Loader size="lg" />
+            </Box>
+          )}
+          {error && (
+            <Alert color="red" title="Error" mb="md">
+              {error}
+            </Alert>
+          )}
+          <Flex mt={20} gap="xl">
+            {txHash && (
+              <Flex w="50%" direction="column">
+                <Tabs defaultValue="overview">
+                  <Tabs.List mb={20}>
+                    <Tabs.Tab value="overview">
+                      Overview
+                    </Tabs.Tab>
+                    <Tabs.Tab value="details" >
+                      Details
+                    </Tabs.Tab>
+                    <Tabs.Tab value="function-calls">
+                      Function Calls
+                    </Tabs.Tab>
+                  </Tabs.List>
+                  <Tabs.Panel value="overview">
+                    {txHash && (
+                      <TxDetails
+                        chainId={chainId}
+                        transactionHash={txHash as `0x${string}`}
+                        currentTxIndex={currentTxIndex}
+                      />
+                    )}
+                  </Tabs.Panel>
+                  <Tabs.Panel value="details">
+                    {simulationDataCache[network + ":" + txHash] && (
+                      <Details
+                        network={network}
+                        simulation={simulationDataCache[network + ":" + txHash]}
+                      />
+                    )}
+                  </Tabs.Panel>
+                  <Tabs.Panel value="function-calls">
+                    function calls
+                  </Tabs.Panel>
+                </Tabs>
+              </Flex>
+            )}
+            <Overview
+              explanation={explanationCache[network + ":" + txHash]}
+              isExplanationLoading={isExplanationLoading}
+              setFeedbackModalOpen={setFeedbackModalOpen}
+            />
           </Flex>
-        )}
-
-        {(explanationCache[network + ":" + txHash] || isExplanationLoading) && (
-          <Overview
-            explanation={explanationCache[network + ":" + txHash]}
-            isExplanationLoading={isExplanationLoading}
-            setFeedbackModalOpen={setFeedbackModalOpen}
+          <Space h="xl" />
+          {isDevEnvironment && (
+            <ModelEditor model={model} onModelChange={setModel} systemPromptModalOpen={systemPromptModalOpen} setSystemPromptModalOpen={setSystemPromptModalOpen} />
+          )}
+          <SystemPromptModal
+            opened={systemPromptModalOpen}
+            onClose={() => setSystemPromptModalOpen(false)}
+            systemPrompt={systemPrompt}
+            onSystemPromptChange={setSystemPrompt}
           />
-        )}
-      </Flex>
-      <Space h="xl" />
-      {isDevEnvironment && (
-        <ModelEditor model={model} onModelChange={setModel} systemPromptModalOpen={systemPromptModalOpen} setSystemPromptModalOpen={setSystemPromptModalOpen} />
-      )}
-      <SystemPromptModal
-        opened={systemPromptModalOpen}
-        onClose={() => setSystemPromptModalOpen(false)}
-        systemPrompt={systemPrompt}
-        onSystemPromptChange={setSystemPrompt}
-      />
-      <FeedbackModal
-        opened={feedbackModalOpen}
-        onClose={() => setFeedbackModalOpen(false)}
-        onSubmit={handleSubmitFeedback}
-      />
-    </Wrapper>
+          <FeedbackModal
+            opened={feedbackModalOpen}
+            onClose={() => setFeedbackModalOpen(false)}
+            onSubmit={handleSubmitFeedback}
+          />
+        </Box>
+      }
+    </Wrapper >
   );
 };
 

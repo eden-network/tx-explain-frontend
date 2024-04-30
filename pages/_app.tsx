@@ -51,7 +51,7 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
         <MantineProvider theme={theme}>
           <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}>
             <Head>
-              <title>TX Explain</title>
+              <title>Agent</title>
               <meta name="description" content="Transaction explainer" />
               <meta
                 name="viewport"

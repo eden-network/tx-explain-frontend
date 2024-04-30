@@ -35,16 +35,13 @@ const TxDetails = ({
     transactionHash,
     chainId,
     currentTxIndex,
-    setTransactions
 }: {
     transactionHash: `0x${string}` | undefined;
     chainId: number;
     currentTxIndex: number | null
-
-    setTransactions?: any
 }) => {
     // Fetch transaction details based on the provided hash
-    const { data: transaction, isLoading: isTransactionLoading, status, error: error } = useTransaction({
+    const { data: transaction, isLoading: isTransactionLoading, error: error } = useTransaction({
         hash: transactionHash,
         chainId: chainId
     });
@@ -56,12 +53,6 @@ const TxDetails = ({
         chainId: chainId
     });
 
-    useEffect(() => {
-        if (block.data?.transactions) {
-            setTransactions(block.data.transactions);
-        }
-    }, [block.data, setTransactions]);
-
     const currentTx = typeof currentTxIndex === 'number' && block.data?.transactions ? block.data.transactions[currentTxIndex] : transaction;
 
     // Fetch transaction receipt details based on the currentTx hash 
@@ -71,14 +62,23 @@ const TxDetails = ({
     });
 
     const { data: nonce } = useTransactionCount({
-        address: currentTx?.from
+        address: currentTx?.from,
+        chainId: chainId,
+        blockTag: "latest",
     })
 
     // Construct the previous nonce transaction
-    const previousNonceTransaction = useCall({
-        account: transaction?.from,
-        nonce: nonce ? nonce - 1 : undefined
-    });
+    // const previousNonceTransaction = useCall({
+    //     account: transaction?.from,
+    //     nonce: 0
+    // });
+
+    // Log the transaction details if the conditions are met
+    // useEffect(() => {
+    //     if (currentTx?.from === currentTx?.from && currentTx?.nonce === -1) {
+    //         console.log("Transaction details:", transactionDetails);
+    //     }
+    // }, [currentTx, nonce]);
 
     if (isTransactionLoading) return <Loader size="xl" display="flex" style={{ margin: 'auto' }} />
     if (!transaction) return <Text>Transaction hash invalid or transaction not found.</Text>;
@@ -96,7 +96,7 @@ const TxDetails = ({
 
     // Define an array of objects for the transaction details
     const transactionDetails = [
-        { label: "Status:", value: status, border: "1px solid #B0FF09", isStatus: true, color: "eden" },
+        { label: "Status:", value: transactionReceipt?.status, border: "1px solid #B0FF09", isStatus: true, color: "eden" },
         { label: "Block Number:", value: currentTx?.blockNumber.toString() },
         // { label: "Timestamp:", value: timestamp },
         { label: "Chain ID:", value: currentTx?.chainId },
