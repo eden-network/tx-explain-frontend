@@ -61,30 +61,29 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <ColorSchemeScript forceColorScheme={"dark"} defaultColorScheme='dark'>
-          <MantineProvider forceColorScheme={"dark"} defaultColorScheme='dark' theme={theme}>
-            <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}>
-              <Head>
-                <title>Agent</title>
-                <meta name="description" content="Transaction explainer" />
-                <meta
-                  name="viewport"
-                  content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
-                />
-                <link rel='icon' href='/favicon.png' />
-              </Head>
-              <Component {...pageProps} />
-              <ReactQueryDevtools initialIsOpen={false} />
-              <Notifications
-                pos="fixed"
-                right={'1rem'}
-                top={'1rem'}
+        <MantineProvider forceColorScheme={"dark"} defaultColorScheme='dark' theme={theme}>
+          <ColorSchemeScript forceColorScheme={"dark"} defaultColorScheme='dark' />
+          <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}>
+            <Head>
+              <title>Agent</title>
+              <meta name="description" content="Transaction explainer" />
+              <meta
+                name="viewport"
+                content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
               />
-            </GoogleReCaptchaProvider>
-          </MantineProvider>
-        </ColorSchemeScript>
+              <link rel='icon' href='/favicon.png' />
+            </Head>
+            <Component {...pageProps} />
+            <ReactQueryDevtools initialIsOpen={false} />
+            <Notifications
+              pos="fixed"
+              right={'1rem'}
+              top={'1rem'}
+            />
+          </GoogleReCaptchaProvider>
+        </MantineProvider>
       </QueryClientProvider>
-    </WagmiProvider>
+    </WagmiProvider >
   );
 };
 
