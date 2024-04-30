@@ -5,7 +5,7 @@ export default function Document() {
   return (
     <Html lang="en" style={{ background: "#121525" }}>
       <Head>
-        <ColorSchemeScript forceColorScheme="dark" />
+        <ColorSchemeScript forceColorScheme="dark" defaultColorScheme='dark' />
       </Head>
       <body style={{ background: "#121525" }}>
         <Main />

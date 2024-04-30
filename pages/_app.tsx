@@ -39,7 +39,19 @@ const theme = createTheme({
       "#1B1F32",
       "#1B1F32",
       "#1B1F32"
-    ]
+    ],
+    black: [
+      "#ffffff",
+      "#1B1F32",
+      "#878787",
+      "#878787",
+      "#1B1F32",
+      "#1B1F32",
+      "#1B1F32",
+      "#1B1F32",
+      "#1B1F32",
+      "#1B1F32"
+    ],
   },
   primaryColor: "eden"
 });
