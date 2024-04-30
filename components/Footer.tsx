@@ -1,6 +1,7 @@
 import { Flex, Image, Text, Anchor } from "@mantine/core";
 
 const Footer = () => {
+    const currentYear = new Date().getFullYear();
 
     return (
         <Flex px="2rem" py="1rem" align="center" justify="space-between" mt="auto">
@@ -12,7 +13,7 @@ const Footer = () => {
                     fit="contain"
                     src="/eden-logo.svg"
                 />
-                <Text style={{ display: 'flex', marginTop: 'auto' }} ml={20} size="sm">© Goe Network Ltd 2023</Text>
+                <Text style={{ display: 'flex', marginTop: 'auto' }} ml={20} size="sm">© Goe Network Ltd {currentYear}</Text>
             </Flex>
             <Flex gap={10} style={{ alignItems: 'center' }}>
                 <Text size="xs">Explore the technology — our code is open-source on</Text>

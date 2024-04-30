@@ -58,7 +58,7 @@ const InputForm = ({
     };
 
     return (
-        <Box maw={1200} mx="auto" mb="xl">
+        <Box maw={1200} mx="auto" mb="sm">
             <form style={{ display: 'flex', gap: '1rem' }} onSubmit={handleFormSubmit}>
                 <Select
                     w="15%"
