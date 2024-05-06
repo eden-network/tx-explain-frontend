@@ -11,7 +11,7 @@ import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
 import { TransactionSimulation } from '../types';
 import Wrapper from './Wrapper';
-import { isDevEnvironment } from '../lib/env';
+import { isDevEnvironment, isLocalEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import InputForm from './InputForm';
 import Overview from './Overview';
@@ -19,8 +19,7 @@ import Details from './Details';
 import { useTransaction, useBlock } from 'wagmi';
 import TxDetails from './TxDetails';
 import OnBoarding from './OnBoarding';
-import NavigateTx from './NavigateTx';
-
+import FunctionCalls from './FunctionCalls';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 const TransactionExplainer: React.FC = () => {
@@ -39,6 +38,7 @@ const TransactionExplainer: React.FC = () => {
   const [isExplanationLoading, setIsExplanationLoading] = useState(false);
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const [activeTab, setActiveTab] = useState<string | null>('overview');
 
   const { data: simulationData, isLoading: isSimulationLoading, isError: isSimulationError, error: simulationError, refetch: refetchSimulation } = useQuery<TransactionSimulation, Error>({
     queryKey: ['simulateTransaction', network, txHash],
@@ -47,8 +47,8 @@ const TransactionExplainer: React.FC = () => {
         throw new Error('reCAPTCHA verification failed');
       }
 
-      const recaptchaToken = await executeRecaptcha('fetchSimulation');
-      const body = JSON.stringify({ network_id: network, tx_hash: txHash, recaptcha_token: recaptchaToken });
+      const recaptchaToken = !isLocalEnvironment ? await executeRecaptcha('fetchSimulation') : ''
+      const body = JSON.stringify({ network_id: network, tx_hash: txHash, isrecaptcha_token: recaptchaToken });
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/fetch_and_simulate`, {
         method: 'POST',
         headers: {
@@ -275,6 +275,7 @@ const TransactionExplainer: React.FC = () => {
   }
 
   const handleNavigateTx = (direction: 'next' | 'prev') => {
+    setActiveTab('overview')
     setCurrentTxIndex((prevIndex: number | null) => {
       const transactionsLength = block.data?.transactions?.length ?? 0;
       if (transactionsLength === 0) return prevIndex;
@@ -300,6 +301,9 @@ const TransactionExplainer: React.FC = () => {
     }
   }, [txHash, showOnboarding]);
 
+  console.log(activeTab);
+
+
   return (
     <Wrapper>
       <InputForm
@@ -323,11 +327,6 @@ const TransactionExplainer: React.FC = () => {
           {isDevEnvironment && (
             <Button onClick={tmp}>Debug: showNotification</Button>
           )}
-          {isSimulationLoading && (
-            <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-              <Loader size="lg" />
-            </Box>
-          )}
           {error && (
             <Alert color="red" title="Error" mb="md">
               {error}
@@ -336,15 +335,15 @@ const TransactionExplainer: React.FC = () => {
           <Flex mt={20} gap="xl">
             {txHash && (
               <Flex w="50%" direction="column">
-                <Tabs defaultValue="overview">
+                <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
                   <Tabs.List mb={20}>
                     <Tabs.Tab value="overview">
                       Overview
                     </Tabs.Tab>
-                    <Tabs.Tab value="details" >
+                    <Tabs.Tab value="details" disabled={simulationDataCache[network + ":" + txHash] ? false : true}>
                       Details
                     </Tabs.Tab>
-                    <Tabs.Tab value="function-calls">
+                    <Tabs.Tab value="function-calls" disabled={simulationDataCache[network + ":" + txHash] ? false : true}>
                       Function Calls
                     </Tabs.Tab>
                   </Tabs.List>
@@ -366,16 +365,20 @@ const TransactionExplainer: React.FC = () => {
                     )}
                   </Tabs.Panel>
                   <Tabs.Panel value="function-calls">
-                    function calls
+                    {simulationDataCache[network + ":" + txHash] && (
+                      <FunctionCalls calls={simulationData?.call_trace} />
+                    )}
                   </Tabs.Panel>
                 </Tabs>
               </Flex>
             )}
-            <Overview
-              explanation={explanationCache[network + ":" + txHash]}
-              isExplanationLoading={isExplanationLoading}
-              setFeedbackModalOpen={setFeedbackModalOpen}
-            />
+            {txHash && (
+              <Overview
+                explanation={explanationCache[network + ":" + txHash]}
+                isExplanationLoading={isSimulationLoading}
+                setFeedbackModalOpen={setFeedbackModalOpen}
+                handleSubmit={handleSearch}
+              />)}
           </Flex>
           <Space h="xl" />
           {isDevEnvironment && (
@@ -394,7 +397,7 @@ const TransactionExplainer: React.FC = () => {
           />
         </Box>
       }
-    </Wrapper >
+    </Wrapper>
   );
 };
 

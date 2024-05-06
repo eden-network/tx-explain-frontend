@@ -10,6 +10,7 @@ import { WagmiProvider } from 'wagmi'
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import { config } from '../config'
 
+
 const queryClient = new QueryClient();
 
 const theme = createTheme({
