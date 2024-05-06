@@ -47,7 +47,7 @@ const TransactionExplainer: React.FC = () => {
         throw new Error('reCAPTCHA verification failed');
       }
 
-      const recaptchaToken = !isLocalEnvironment ? await executeRecaptcha('fetchSimulation') : ''
+      const recaptchaToken = await executeRecaptcha('fetchSimulation')
       const body = JSON.stringify({ network_id: network, tx_hash: txHash, isrecaptcha_token: recaptchaToken });
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/fetch_and_simulate`, {
         method: 'POST',
@@ -301,9 +301,6 @@ const TransactionExplainer: React.FC = () => {
     }
   }, [txHash, showOnboarding]);
 
-  console.log(activeTab);
-
-
   return (
     <Wrapper>
       <InputForm
@@ -320,8 +317,8 @@ const TransactionExplainer: React.FC = () => {
         <Box>
           <Center>
             <Flex gap={10} mb={20}>
-              <Image style={{ cursor: 'pointer' }} onClick={() => handleNavigateTx('prev')} src="/blockminus.svg" height={30} />
-              <Image style={{ cursor: 'pointer' }} onClick={() => handleNavigateTx('next')} src="/blockplus.svg" height={30} />
+              <Image alt='navigate-tx' style={{ cursor: 'pointer' }} onClick={() => handleNavigateTx('prev')} src="/blockminus.svg" height={30} />
+              <Image alt='navigate-tx' style={{ cursor: 'pointer' }} onClick={() => handleNavigateTx('next')} src="/blockplus.svg" height={30} />
             </Flex>
           </Center>
           {isDevEnvironment && (

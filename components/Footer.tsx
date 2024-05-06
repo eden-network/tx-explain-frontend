@@ -7,6 +7,7 @@ const Footer = () => {
         <Flex px="2rem" py="1rem" align="center" justify="space-between" mt="auto">
             <Flex style={{ alignItems: 'center' }}>
                 <Image
+                    alt="eden-logo"
                     radius="md"
                     h={30}
                     w="auto"
@@ -19,6 +20,7 @@ const Footer = () => {
                 <Text size="xs">Explore the technology — our code is open-source on</Text>
                 <Anchor href="https://github.com/eden-network" target="_blank">
                     <Image
+                        alt="github"
                         radius="md"
                         h={20}
                         w="auto"
