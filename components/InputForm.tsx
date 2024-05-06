@@ -63,12 +63,10 @@ const InputForm = ({
                 <Select
                     w="15%"
                     checkIconPosition="right"
-                    // label="Network"
                     leftSection={<Image radius="md" h={30} w="auto" fit="contain" src={selectedIcon || '/eth.svg'} />}
                     placeholder="Select a network"
                     value={network}
                     onChange={(value) => handleIconChange(value)}
-
                     data={[
                         { value: '1', label: 'Ethereum' },
                         { value: '42161', label: 'Arbitrum' },
