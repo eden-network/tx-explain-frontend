@@ -27,7 +27,7 @@ const Overview = ({
             <Card style={{ boxShadow: '1px 1px 8px 0px #00000054', minHeight: "100%" }} p="lg" radius="md" withBorder mb="xl">
                 {!isExplanationLoading && !explanation && explanation !== '' ? <Center display="flex" style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
                     <Box mt="xl">
-                        <Image style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={400} width={5} />
+                        <Image alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={400} width={5} />
                         <Button size="lg" autoContrast fullWidth onClick={handleSubmit}>
                             Explain Transaction
                         </Button>

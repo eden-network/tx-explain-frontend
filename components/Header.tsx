@@ -12,6 +12,7 @@ const Header = () => {
     return (
         <Flex px="2rem" py="1rem" align="center" justify="space-between">
             <Image
+                alt="tx-agent"
                 radius="md"
                 h={50}
                 w="auto"

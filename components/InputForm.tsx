@@ -63,7 +63,7 @@ const InputForm = ({
                 <Select
                     w="15%"
                     checkIconPosition="right"
-                    leftSection={<Image radius="md" h={30} w="auto" fit="contain" src={selectedIcon || '/eth.svg'} />}
+                    leftSection={<Image alt="network-logo" radius="md" h={30} w="auto" fit="contain" src={selectedIcon || '/eth.svg'} />}
                     placeholder="Select a network"
                     value={network}
                     onChange={(value) => handleIconChange(value)}
