@@ -48,7 +48,7 @@ const TransactionExplainer: React.FC = () => {
       }
 
       const recaptchaToken = await executeRecaptcha('fetchSimulation')
-      const body = JSON.stringify({ network_id: network, tx_hash: txHash, isrecaptcha_token: recaptchaToken });
+      const body = JSON.stringify({ network_id: network, tx_hash: txHash, recaptcha_token: recaptchaToken });
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/fetch_and_simulate`, {
         method: 'POST',
         headers: {
