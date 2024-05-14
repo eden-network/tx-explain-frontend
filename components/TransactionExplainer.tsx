@@ -321,9 +321,6 @@ const TransactionExplainer: React.FC = () => {
               <Image alt='navigate-tx' style={{ cursor: 'pointer' }} onClick={() => handleNavigateTx('next')} src="/blockplus.svg" height={30} />
             </Flex>
           </Center>
-          {isDevEnvironment && (
-            <Button onClick={tmp}>Debug: showNotification</Button>
-          )}
           {error && (
             <Alert color="red" title="Error" mb="md">
               {error}
