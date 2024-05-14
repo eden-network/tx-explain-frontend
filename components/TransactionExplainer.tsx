@@ -266,14 +266,6 @@ const TransactionExplainer: React.FC = () => {
   });
   const [currentTxIndex, setCurrentTxIndex] = useState<number | null>(transaction?.transactionIndex ?? null);
 
-  const tmp = () => {
-    showNotification({
-      title: 'Feedback submitted',
-      message: 'Thank you for your feedback!',
-      color: 'green',
-    });
-  }
-
   const handleNavigateTx = (direction: 'next' | 'prev') => {
     setActiveTab('overview')
     setCurrentTxIndex((prevIndex: number | null) => {
