@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Head from 'next/head';
 import { AppProps } from 'next/app';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -59,6 +59,8 @@ const theme = createTheme({
 });
 
 const App: React.FC<AppProps> = ({ Component, pageProps }) => {
+  const [showOnboarding, setShowOnboarding] = useState(true);
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
@@ -74,7 +76,7 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
               />
               <link rel='icon' href='/favicon.png' />
             </Head>
-            <Component {...pageProps} />
+            <Component {...pageProps} showOnboarding={showOnboarding} setShowOnboarding={setShowOnboarding} />
             <ReactQueryDevtools initialIsOpen={false} />
             <Notifications
               pos="fixed"

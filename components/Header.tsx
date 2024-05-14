@@ -1,41 +1,66 @@
-import { Flex, Box, Image, Anchor } from "@mantine/core";
+import { Flex, Box, Image, ActionIcon } from "@mantine/core";
+import { IconBrandDiscord, IconBrandTwitter, IconBrandGithub, IconNotebook } from "@tabler/icons-react";
+import InputForm from './InputForm';
 
-const Header = () => {
+interface HeaderProps {
+  handleSubmit: (e: React.FormEvent, token: string) => Promise<void>;
+  network: string;
+  handleNetworkChange: (s: string) => void;
+  txHash: string;
+  handleTxHashChange: (s: string) => void;
+}
 
-    const anchorData = [
-        { text: "Discord", href: "https://discord.com/invite/ZhB9mpWWG3", target: "_blank" },
-        { text: "Twitter", href: "https://twitter.com/edennetwork", target: "_blank" },
-        { text: "Blog", href: "https://www.edennetwork.io/blog", target: "_blank" },
-        { text: "Github", href: "https://example.com/blog", target: "_blank" },
-    ];
+const Header: React.FC<HeaderProps> = ({
+  handleSubmit,
+  network,
+  handleNetworkChange,
+  txHash,
+  handleTxHashChange
+}) => {
 
-    return (
-        <Flex px="2rem" py="1rem" align="center" justify="space-between">
-            <Image
-                alt="tx-agent"
-                radius="md"
-                h={50}
-                w="auto"
-                fit="contain"
-                src="/txagent-logo.svg"
-            />
-            <Flex gap={40}>
-                {anchorData.map((anchor, index) => (
-                    <Anchor
-                        key={index}
-                        style={{ fontWeight: "bold" }}
-                        c="white"
-                        underline="never"
-                        href={anchor.href}
-                        target={anchor.target}
-                        size="sm"
-                    >
-                        {anchor.text}
-                    </Anchor>
-                ))}
-            </Flex>
-        </Flex>
-    );
+  const iconData = [
+    { icon: IconBrandDiscord, href: "https://discord.com/invite/ZhB9mpWWG3", target: "_blank" },
+    { icon: IconBrandTwitter, href: "https://twitter.com/edennetwork", target: "_blank" },
+    { icon: IconBrandGithub, href: "https://github.com/eden-network", target: "_blank" },
+    // { icon: IconNotebook, href: "https://www.edennetwork.io/blog", target: "_blank" },
+  ];
+
+  return (
+    <Flex px="2rem" py="1rem" align="center" justify="space-between">
+      <Image
+        alt="tx-agent"
+        radius="md"
+        h={50}
+        w="auto"
+        fit="contain"
+        src="/txagent-logo.svg"
+      />
+      <Box mx="2rem" style={{ flexGrow: 1 }}>
+        <InputForm
+          handleSubmit={handleSubmit}
+          network={network}
+          handleNetworkChange={handleNetworkChange}
+          txHash={txHash}
+          handleTxHashChange={handleTxHashChange}
+        />
+      </Box>
+      <Flex gap={20}>
+        {iconData.map((icon, index) => (
+          <ActionIcon
+            key={index}
+            component="a"
+            href={icon.href}
+            target={icon.target}
+            size="lg"
+            radius="xl"
+            variant="transparent"
+          >
+            <icon.icon size={24} color="white" />
+          </ActionIcon>
+        ))}
+      </Flex>
+    </Flex>
+  );
 };
 
 export default Header;

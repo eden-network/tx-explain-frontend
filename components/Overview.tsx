@@ -3,14 +3,16 @@ import { IconSend } from "@tabler/icons-react"
 import React from "react"
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
-const Overview = ({
+const Overview = React.memo(({
     explanation,
     isExplanationLoading,
+    isSimulationLoading,
     setFeedbackModalOpen,
     handleSubmit
 }: {
     explanation: string | undefined
     isExplanationLoading: boolean,
+    isSimulationLoading: boolean,
     setFeedbackModalOpen: (v: React.SetStateAction<boolean>) => void,
     handleSubmit: (e: React.FormEvent, token: string) => Promise<void>,
 }) => {
@@ -33,38 +35,41 @@ const Overview = ({
                 </Title>
             </Box>
             <Card style={{ boxShadow: '1px 1px 8px 0px #00000054', minHeight: "100%" }} p="lg" radius="md" withBorder mb="xl">
-                {!isExplanationLoading && !explanation && explanation !== '' ? <Center display="flex" style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
+                {!explanation && !isExplanationLoading && !isSimulationLoading ? (
+                <Center display="flex" style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
                     <Box mt="xl">
                         <Image alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={400} width={5} />
                         <Button size="lg" autoContrast fullWidth onClick={handleFormSubmit}>
                             Explain Transaction
                         </Button>
                     </Box>
-                </Center> : ''}
-                {isExplanationLoading ?
+                </Center>) : isSimulationLoading ? (
                     <Box display="flex" style={{ justifyContent: 'center', margin: 'auto', height: '100%' }}>
                         <Loader ml={10} color="eden" size="xl" />
-                    </Box> :
-                    <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Bw Modelica, sans-serif' }}>
-                        {explanation}
-                        {explanation && (
-                            <Button
-                                display="flex"
-                                m="auto"
-                                mt={50}
-                                autoContrast
-                                // size="compact-sm"
-                                onClick={() => setFeedbackModalOpen(true)}
-                                leftSection={<IconSend size={16} />}
-                            >
-                                Feedback
-                            </Button>
-                        )}
-                    </pre>
+                    </Box>) : (
+                        <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Bw Modelica, sans-serif' }}>
+                            {explanation}
+                            {explanation && (
+                                <Button
+                                    display="flex"
+                                    m="auto"
+                                    mt={50}
+                                    autoContrast
+                                    // size="compact-sm"
+                                    onClick={() => setFeedbackModalOpen(true)}
+                                    leftSection={<IconSend size={16} />}
+                                >
+                                    Feedback
+                                </Button>
+                            )}
+                        </pre>
+                    )
                 }
             </Card>
         </Box>
     )
-}
+})
+
+Overview.displayName = 'Overview';
 
 export default Overview

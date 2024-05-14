@@ -4,13 +4,12 @@ import TransactionExplainer from '../components/TransactionExplainer';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-const HomePage: React.FC = () => {
+const HomePage: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   return (
     <Box>
       <Flex style={{ minHeight: '100vh' }} direction="column">
         <Box>
-          <Header />
-          <TransactionExplainer />
+          <TransactionExplainer showOnboarding={showOnboarding} setShowOnboarding={setShowOnboarding} />
         </Box>
         <Footer />
       </Flex>

@@ -67,19 +67,6 @@ const TxDetails = ({
         blockTag: "latest",
     })
 
-    // Construct the previous nonce transaction
-    // const previousNonceTransaction = useCall({
-    //     account: transaction?.from,
-    //     nonce: 0
-    // });
-
-    // Log the transaction details if the conditions are met
-    // useEffect(() => {
-    //     if (currentTx?.from === currentTx?.from && currentTx?.nonce === -1) {
-    //         console.log("Transaction details:", transactionDetails);
-    //     }
-    // }, [currentTx, nonce]);
-
     if (isTransactionLoading) return <Loader size="xl" display="flex" style={{ margin: 'auto' }} />
     if (!transaction) return <Text>Transaction hash invalid or transaction not found.</Text>;
 
@@ -92,13 +79,11 @@ const TxDetails = ({
     const maxPriorityFee: string | undefined = currentTx?.maxPriorityFeePerGas ? `${formatUnits(currentTx.maxPriorityFeePerGas, 9)} gwei` : undefined;
     const gasUsedInEth: string | undefined = transactionReceipt?.gasUsed && currentTx?.gasPrice ? `${formatUnits(transactionReceipt?.gasUsed * currentTx.gasPrice, 18)} ETH` : undefined;
     const txIndex: number | undefined = currentTx?.transactionIndex;
-    // const timestamp = formatUnits(block?.data?.timestamp, 18)
 
     // Define an array of objects for the transaction details
     const transactionDetails = [
         { label: "Status:", value: transactionReceipt?.status, border: "1px solid #B0FF09", isStatus: true, color: "eden" },
         { label: "Block Number:", value: currentTx?.blockNumber.toString() },
-        // { label: "Timestamp:", value: timestamp },
         { label: "Chain ID:", value: currentTx?.chainId },
         { label: "Tx Hash:", value: currentTx?.hash },
         { label: "Position In Block:", value: txIndex },
