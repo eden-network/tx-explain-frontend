@@ -32,6 +32,7 @@ const ModelEditor: React.FC<ModelEditorProps> = ({ model, onModelChange, systemP
                 { value: 'claude-3-haiku-20240307', label: 'Claude-3 Haiku' },
                 { value: 'claude-3-sonnet-20240229', label: 'Claude-3 Sonnet' },
                 { value: 'claude-3-opus-20240229', label: 'Claude-3 Opus' },
+                { value: 'llama3-70b-8192', label: 'Llama3 70b' },
             ]}
             size="xs"
             />
