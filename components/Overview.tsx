@@ -1,6 +1,7 @@
 import { Box, Button, Card, Group, Loader, Title, Center, Image, Text } from "@mantine/core"
 import { IconSend } from "@tabler/icons-react"
 import React from "react"
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 const Overview = ({
     explanation,
@@ -11,10 +12,17 @@ const Overview = ({
     explanation: string | undefined
     isExplanationLoading: boolean,
     setFeedbackModalOpen: (v: React.SetStateAction<boolean>) => void,
-    handleSubmit: (e: React.FormEvent, token?: string) => Promise<void>,
+    handleSubmit: (e: React.FormEvent, token: string) => Promise<void>,
 }) => {
+    const { executeRecaptcha } = useGoogleReCaptcha();
 
-    // console.log(explanation);
+    const handleFormSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
+
+        const token = await executeRecaptcha('inputForm');
+        await handleSubmit(e, token);
+    };
 
 
     return (
@@ -28,7 +36,7 @@ const Overview = ({
                 {!isExplanationLoading && !explanation && explanation !== '' ? <Center display="flex" style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
                     <Box mt="xl">
                         <Image alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={400} width={5} />
-                        <Button size="lg" autoContrast fullWidth onClick={handleSubmit}>
+                        <Button size="lg" autoContrast fullWidth onClick={handleFormSubmit}>
                             Explain Transaction
                         </Button>
                     </Box>

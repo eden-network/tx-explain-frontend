@@ -11,7 +11,7 @@ import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
 import { TransactionSimulation } from '../types';
 import Wrapper from './Wrapper';
-import { isDevEnvironment, isLocalEnvironment } from '../lib/env';
+import { isDevEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import InputForm from './InputForm';
 import Overview from './Overview';
@@ -76,7 +76,7 @@ const TransactionExplainer: React.FC = () => {
     retry: false,
   });
 
-  const fetchExplanation = async (simulationData: TransactionSimulation, token?: string) => {
+  const fetchExplanation = async (simulationData: TransactionSimulation, token: string) => {
     if (!simulationData) return;
 
     try {
@@ -138,7 +138,7 @@ const TransactionExplainer: React.FC = () => {
     }
   };
 
-  const handleSearch = async (e: React.FormEvent, token?: string) => {
+  const handleSearch = async (e: React.FormEvent, token: string) => {
     e.preventDefault();
     if (!isValidTxHash(txHash)) {
       const networkName = getNetworkName(network);
@@ -153,7 +153,7 @@ const TransactionExplainer: React.FC = () => {
     const cachedExplanation = explanationCache[network + ":" + txHash];
 
     if (!cachedExplanation || forceRefresh) {
-      await fetchExplanation(simulation.data!, token || '');
+      await fetchExplanation(simulation.data!, token);
     }
   };
 
@@ -199,7 +199,7 @@ const TransactionExplainer: React.FC = () => {
     }
   }, [router.query]); // Empty dependency array ensures useEffect runs only once on mount
 
-  const handleSubmitFeedback = async (values: any, token?: string) => {
+  const handleSubmitFeedback = async (values: any, token: string) => {
     const feedbackData = {
       date: new Date().toISOString(),
       network: getNetworkName(network),
@@ -209,7 +209,7 @@ const TransactionExplainer: React.FC = () => {
       systemPrompt,
       simulationData: JSON.stringify(simulationDataCache[network + ":" + txHash]),
       ...values,
-      recaptcha_token: token || '',
+      recaptcha_token: token,
     };
 
     setFeedbackModalOpen(false);

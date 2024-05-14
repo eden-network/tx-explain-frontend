@@ -1,7 +1,7 @@
 import { Box, Button, Checkbox, Select, TextInput, Image } from "@mantine/core"
 import React from "react"
 import { useState } from "react"
-import { isDevEnvironment, isLocalEnvironment } from "../lib/env"
+import { isDevEnvironment } from "../lib/env"
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 const InputForm = ({
@@ -14,7 +14,7 @@ const InputForm = ({
     forceRefresh,
     setForceRefresh
 }: {
-    handleSubmit: (e: React.FormEvent, token?: string) => Promise<void>,
+    handleSubmit: (e: React.FormEvent, token: string) => Promise<void>,
     network: string,
     handleNetworkChange: (s: string) => void,
     txHash: string,
@@ -27,9 +27,9 @@ const InputForm = ({
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!isLocalEnvironment && (!executeRecaptcha || typeof executeRecaptcha !== 'function')) return;
+        if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
 
-        const token = !isLocalEnvironment && executeRecaptcha ? await executeRecaptcha('inputForm') : undefined;
+        const token = await executeRecaptcha('inputForm');
         await handleSubmit(e, token);
     };
 
