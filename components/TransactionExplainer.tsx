@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Space, Alert, Flex, Tabs, Image, Center } from '@mantine/core';
+import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
@@ -37,6 +37,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [systemPromptModalOpen, setSystemPromptModalOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [isExplanationLoading, setIsExplanationLoading] = useState(false);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [activeTab, setActiveTab] = useState<string | null>('overview');
 
@@ -52,7 +53,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       if (!executeRecaptcha || typeof executeRecaptcha !== 'function') {
         throw new Error('reCAPTCHA verification failed');
       }
-
+      setIsDetailsLoading(true)
       const recaptchaToken = await executeRecaptcha('fetchSimulation');
       const body = JSON.stringify({ network_id: network, tx_hash: txHash, recaptcha_token: recaptchaToken });
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/fetch_and_simulate`, {
@@ -70,8 +71,11 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         setError(errorMessage);
         throw new Error(errorMessage);
       }
-
       const data = await response.json();
+
+      setIsDetailsLoading(false)
+      data.result.asset_changes.length === 0 ? setActiveTab('function-calls') : setActiveTab('details')
+
       setSimulationDataCache((prevCache) => ({
         ...prevCache,
         [`${network}:${txHash}`]: data.result as TransactionSimulation,
@@ -302,7 +306,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   };
 
   useEffect(() => {
-    if (isValidTxHash(txHash) && showOnboarding) {
+    if (txHash === '') {
+      setShowOnboarding(true);
+    } else if (isValidTxHash(txHash) && showOnboarding) {
       setShowOnboarding(false);
     }
   }, [txHash, showOnboarding]);
@@ -315,9 +321,17 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         handleNetworkChange={handleNetworkChange}
         txHash={txHash}
         handleTxHashChange={handleTxHashChange}
+        showOnBoarding={() => {
+          setTxHash('');
+          setShowOnboarding(true);
+        }}
       />
       {showOnboarding ? (
-        <OnBoarding />
+        <OnBoarding
+          loadTx1={() => setTxHash('0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95')}
+          loadTx2={() => setTxHash('0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95')}
+          loadTx3={() => setTxHash('0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95')}
+        />
       ) : (
         <Box>
           <Center>
@@ -348,12 +362,17 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
               <Flex w="50%" direction="column">
                 <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
                   <Tabs.List mb={20}>
-                    <Tabs.Tab value="overview">Overview</Tabs.Tab>
+                    <Tabs.Tab value="overview">
+                      <Text size='sm'>
+                        Overview
+                      </Text>
+                    </Tabs.Tab>
                     <Tabs.Tab value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
-                      Details
+                      {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Details</Text>}
+
                     </Tabs.Tab>
                     <Tabs.Tab value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
-                      Function Calls
+                      {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Function Calls</Text>}
                     </Tabs.Tab>
                   </Tabs.List>
                   <Tabs.Panel value="overview">

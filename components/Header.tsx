@@ -8,6 +8,7 @@ interface HeaderProps {
   handleNetworkChange: (s: string) => void;
   txHash: string;
   handleTxHashChange: (s: string) => void;
+  showOnBoarding: () => void
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -15,7 +16,8 @@ const Header: React.FC<HeaderProps> = ({
   network,
   handleNetworkChange,
   txHash,
-  handleTxHashChange
+  handleTxHashChange,
+  showOnBoarding
 }) => {
 
   const iconData = [
@@ -28,6 +30,8 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <Flex px="2rem" py="1rem" align="center" justify="space-between">
       <Image
+        style={{ cursor: 'pointer' }}
+        onClick={showOnBoarding}
         alt="tx-agent"
         radius="md"
         h={50}
