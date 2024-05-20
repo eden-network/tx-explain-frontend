@@ -68,7 +68,7 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
           <ColorSchemeScript forceColorScheme={"dark"} defaultColorScheme='dark' />
           <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}>
             <Head>
-              <title>Agent</title>
+              <title>Explain | Eden Network</title>
               <meta name="description" content="Transaction explainer" />
               <meta
                 name="viewport"

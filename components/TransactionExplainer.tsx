@@ -170,7 +170,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   };
 
   const handleTxHashChange = (newTxHash: string) => {
-    console.log('handleTxHashChange', newTxHash);
     setError('');
     setTxHash(newTxHash);
     updateUrlParams({ network, txHash: newTxHash });
@@ -179,7 +178,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const handleNetworkChange = (network: string) => {
     setError('');
     setNetwork(network);
-    updateUrlParams({ network: network, txHash });
+    setTxHash('');
+    updateUrlParams({ network: network, txHash: '' });
   };
 
   const updateUrlParams = (params: { [key: string]: string }) => {
@@ -212,9 +212,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         }
       }
     };
-
     fetchSimulationAndExplanation();
   }, [txHash, showOnboarding, network, forceRefresh, explanationCache, refetchSimulation, executeRecaptcha, fetchExplanation, router.asPath]);
+
   useEffect(() => {
     const { network: queryNetwork, txHash: queryTxHash } = router.query;
 
@@ -223,9 +223,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     }
     if (queryTxHash && typeof queryTxHash === 'string') {
       setTxHash(queryTxHash);
-    }
-    if (network !== queryNetwork || txHash !== queryTxHash) {
-      updateUrlParams({ network, txHash });
     }
   }, [router.query]);
 
@@ -285,6 +282,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   const [currentTxIndex, setCurrentTxIndex] = useState<number | null>(transaction?.transactionIndex ?? null);
 
+
+  //change url params to match the txHash
   const handleNavigateTx = (direction: 'next' | 'prev') => {
     setActiveTab('overview');
     setCurrentTxIndex((prevIndex: number | null) => {
@@ -313,6 +312,10 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     }
   }, [txHash, showOnboarding]);
 
+  useEffect(() => {
+    setError('')
+  }, [txHash]);
+
   return (
     <Wrapper>
       <Header
@@ -328,8 +331,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       />
       {showOnboarding ? (
         <OnBoarding
-          loadTx1={() => setTxHash('0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95')}
-          loadTx2={() => setTxHash('0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95')}
+          loadTx1={() => setTxHash('0x0188a328a29fea068552f39a6346f05dcc81345d678ea1bf8ed5c99678a0a219')}
+          loadTx2={() => setTxHash('0xa0cb8511aea95c5ea59ef2b196739e082a5b36d178045a5b29091bdece6db614')}
           loadTx3={() => setTxHash('0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95')}
         />
       ) : (
