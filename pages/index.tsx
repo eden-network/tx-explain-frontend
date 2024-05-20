@@ -1,13 +1,19 @@
 import React from 'react';
-import { ColorSchemeToggle } from '../components/ColorSchemeToggle';
+import { Box, Flex } from '@mantine/core';
 import TransactionExplainer from '../components/TransactionExplainer';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
-const HomePage: React.FC = () => {
+const HomePage: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   return (
-    <>
-      <ColorSchemeToggle />
-      <TransactionExplainer />
-    </>
+    <Box>
+      <Flex style={{ minHeight: '100vh' }} direction="column">
+        <Box>
+          <TransactionExplainer showOnboarding={showOnboarding} setShowOnboarding={setShowOnboarding} />
+        </Box>
+        <Footer />
+      </Flex>
+    </Box >
   );
 };
 

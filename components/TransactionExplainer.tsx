@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Space, Alert, Loader, Button } from '@mantine/core';
+import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text, em } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
@@ -11,33 +11,51 @@ import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
 import { TransactionSimulation } from '../types';
 import Wrapper from './Wrapper';
-import { isDevEnvironment } from '../lib/dev';
+import { isDevEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
-import InputForm from './InputForm';
+import Header from './Header';
 import Overview from './Overview';
 import Details from './Details';
-import { useTransaction, useTransactionReceipt } from 'wagmi';
+import { useTransaction, useBlock } from 'wagmi';
 import TxDetails from './TxDetails';
+import OnBoarding from './OnBoarding';
+import FunctionCalls from './FunctionCalls';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
-const TransactionExplainer: React.FC = () => {
+const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
   const [txHash, setTxHash] = useStore((state) => [state.txHash, state.setTxHash]);
   const [error, setError] = useState('');
-  const [showButton, setShowButton] = useState(true);
   const [forceRefresh, setForceRefresh] = useState(false);
   const [model, setModel] = useState('claude-3-haiku-20240307');
   const [simulationDataCache, setSimulationDataCache] = useState<Record<string, TransactionSimulation>>({});
-  const [explanationCache, setExplanationCache] = useState<Record<string, string>>({});
+  const [explanationCache, setExplanationCache] = useState<Record<string, string>>({
+    [`${network}:${txHash}`]: '',
+  });
   const [systemPrompt, setSystemPrompt] = useState(DEFAULT_SYSTEM_PROMPT);
   const [systemPromptModalOpen, setSystemPromptModalOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [isExplanationLoading, setIsExplanationLoading] = useState(false);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
+  const { executeRecaptcha } = useGoogleReCaptcha();
+  const [activeTab, setActiveTab] = useState<string | null>('overview');
 
-  const { data: simulationData, isLoading: isSimulationLoading, isError: isSimulationError, error: simulationError, refetch: refetchSimulation } = useQuery<TransactionSimulation, Error>({
+  const {
+    data: simulationData,
+    isLoading: isSimulationLoading,
+    isError: isSimulationError,
+    error: simulationError,
+    refetch: refetchSimulation,
+  } = useQuery<TransactionSimulation, Error>({
     queryKey: ['simulateTransaction', network, txHash],
-    queryFn: async () => {
-      const body = JSON.stringify({ network_id: network, tx_hash: txHash });
+    queryFn: async ({ queryKey: [_, network, txHash] }) => {
+      if (!executeRecaptcha || typeof executeRecaptcha !== 'function') {
+        throw new Error('reCAPTCHA verification failed');
+      }
+      setIsDetailsLoading(true)
+      const recaptchaToken = await executeRecaptcha('fetchSimulation');
+      const body = JSON.stringify({ network_id: network, tx_hash: txHash, recaptcha_token: recaptchaToken });
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/fetch_and_simulate`, {
         method: 'POST',
         headers: {
@@ -49,15 +67,18 @@ const TransactionExplainer: React.FC = () => {
 
       if (!response.ok) {
         const errorResponse = await response.json();
-        const errorMessage = errorResponse.error || 'An unknown error occurred'
+        const errorMessage = errorResponse.error || 'An unknown error occurred';
         setError(errorMessage);
         throw new Error(errorMessage);
       }
-
       const data = await response.json();
+
+      setIsDetailsLoading(false)
+      data.result.asset_changes.length === 0 ? setActiveTab('function-calls') : setActiveTab('details')
+
       setSimulationDataCache((prevCache) => ({
         ...prevCache,
-        [network + ":" + txHash]: data.result as TransactionSimulation,
+        [`${network}:${txHash}`]: data.result as TransactionSimulation,
       }));
       return data.result as TransactionSimulation;
     },
@@ -65,17 +86,24 @@ const TransactionExplainer: React.FC = () => {
     retry: false,
   });
 
-  const fetchExplanation = async (simulationData: TransactionSimulation) => {
+  const fetchExplanation = useCallback(async (simulationData: TransactionSimulation, token: string) => {
     if (!simulationData) return;
 
     try {
       setIsExplanationLoading(true);
       setExplanationCache((prevCache) => ({
         ...prevCache,
-        [network + ":" + txHash]: '',
+        [`${network}:${txHash}`]: '',
       }));
 
-      const body = JSON.stringify({ transactions: [simulationData], model, system: systemPrompt, force_refresh: forceRefresh });
+      const body = JSON.stringify({
+        transactions: [simulationData],
+        model,
+        system: systemPrompt,
+        force_refresh: forceRefresh,
+        recaptcha_token: token,
+      });
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/explain`, {
         method: 'POST',
         headers: {
@@ -103,7 +131,7 @@ const TransactionExplainer: React.FC = () => {
           explanation += chunk;
           setExplanationCache((prevCache) => ({
             ...prevCache,
-            [network + ":" + txHash]: explanation,
+            [`${network}:${txHash}`]: explanation,
           }));
         }
       } else {
@@ -118,9 +146,9 @@ const TransactionExplainer: React.FC = () => {
     } finally {
       setIsExplanationLoading(false);
     }
-  };
+  }, [network, txHash, model, systemPrompt, forceRefresh]);
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent, token: string) => {
     e.preventDefault();
     if (!isValidTxHash(txHash)) {
       const networkName = getNetworkName(network);
@@ -128,31 +156,32 @@ const TransactionExplainer: React.FC = () => {
       return;
     }
     setError('');
-    setShowButton(false);
 
-    const simulation = await refetchSimulation();
-    const cachedExplanation = explanationCache[network + ":" + txHash];
+    if (!showOnboarding) {
+      setIsExplanationLoading(true);
+      const simulation = await refetchSimulation();
 
-    if (!cachedExplanation || forceRefresh) {
-      await fetchExplanation(simulation.data!);
+      const cachedExplanation = explanationCache[`${network}:${txHash}`];
+
+      if (!cachedExplanation || forceRefresh) {
+        await fetchExplanation(simulation.data!, token);
+      }
     }
   };
 
   const handleTxHashChange = (newTxHash: string) => {
-    setError('')
+    setError('');
     setTxHash(newTxHash);
-    setShowButton(true);
     updateUrlParams({ network, txHash: newTxHash });
   };
 
   const handleNetworkChange = (network: string) => {
-    setError('')
+    setError('');
     setNetwork(network);
-    setShowButton(true);
-    updateUrlParams({ network: network, txHash });
+    setTxHash('');
+    updateUrlParams({ network: network, txHash: '' });
   };
 
-  // Function to update URL params
   const updateUrlParams = (params: { [key: string]: string }) => {
     const query = { ...router.query, ...params };
     const url = {
@@ -162,34 +191,52 @@ const TransactionExplainer: React.FC = () => {
     router.replace(url, undefined, { shallow: true });
   };
 
-  // useEffect to parse query params and update state variables on mount
   useEffect(() => {
-    // Parse the query parameters from the URL
+    if (isValidTxHash(txHash) && showOnboarding) {
+      setShowOnboarding(false);
+    }
+  }, [txHash, showOnboarding, router.asPath]);
+
+  useEffect(() => {
+    const fetchSimulationAndExplanation = async () => {
+      if (isValidTxHash(txHash) && showOnboarding) {
+        setIsExplanationLoading(true);
+        const simulation = await refetchSimulation();
+
+        const cachedExplanation = explanationCache[`${network}:${txHash}`];
+
+        if (!cachedExplanation || forceRefresh) {
+          if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
+          const token = await executeRecaptcha('fetchExplanation');
+          await fetchExplanation(simulation.data!, token);
+        }
+      }
+    };
+    fetchSimulationAndExplanation();
+  }, [txHash, showOnboarding, network, forceRefresh, explanationCache, refetchSimulation, executeRecaptcha, fetchExplanation, router.asPath]);
+
+  useEffect(() => {
     const { network: queryNetwork, txHash: queryTxHash } = router.query;
 
-    // Update state variables based on the parsed query parameters
     if (queryNetwork && typeof queryNetwork === 'string') {
       setNetwork(queryNetwork);
     }
     if (queryTxHash && typeof queryTxHash === 'string') {
       setTxHash(queryTxHash);
     }
-    // Update URL params if state variables are not matching with URL params
-    if (network !== queryNetwork || txHash !== queryTxHash) {
-      updateUrlParams({ network, txHash });
-    }
-  }, [router.query]); // Empty dependency array ensures useEffect runs only once on mount
+  }, [router.query]);
 
-  const handleSubmitFeedback = async (values: any) => {
+  const handleSubmitFeedback = async (values: any, token: string) => {
     const feedbackData = {
       date: new Date().toISOString(),
       network: getNetworkName(network),
       txHash,
-      explanation: explanationCache[network + ":" + txHash],
+      explanation: explanationCache[`${network}:${txHash}`],
       model,
       systemPrompt,
-      simulationData: JSON.stringify(simulationDataCache[network + ":" + txHash]),
+      simulationData: JSON.stringify(simulationDataCache[`${network}:${txHash}`]),
       ...values,
+      recaptcha_token: token,
     };
 
     setFeedbackModalOpen(false);
@@ -197,8 +244,8 @@ const TransactionExplainer: React.FC = () => {
       title: 'Sending feedback...',
       message: 'Sending feedback...!',
       color: 'green',
-      loading: true
-    })
+      loading: true,
+    });
     try {
       await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/feedback`, feedbackData);
       updateNotification({
@@ -206,7 +253,7 @@ const TransactionExplainer: React.FC = () => {
         title: 'Success! Feedback sent',
         message: 'Thank you for your feedback!',
         color: 'green',
-        loading: false
+        loading: false,
       });
     } catch (error) {
       console.error('Error submitting feedback:', error);
@@ -215,82 +262,243 @@ const TransactionExplainer: React.FC = () => {
         title: 'Error submitting feedback',
         message: 'An error occurred while submitting your feedback. Please try again later.',
         color: 'red',
-        loading: false
+        loading: false,
       });
     }
   };
 
-  const {
-    data: transactionReceipt,
-    isFetching: isTransactionReceiptLoading
-  } = useTransactionReceipt({
-    hash: txHash as `0x${string}`,
-  })
+  const chainId: number = parseFloat(network);
 
-  const tmp = () => {
-    showNotification({
-      title: 'Feedback submitted',
-      message: 'Thank you for your feedback!',
-      color: 'green',
+  const { data: transaction, isLoading: isTransactionLoading } = useTransaction({
+    hash: txHash as `0x${string}`,
+    chainId: chainId,
+  });
+
+  const block = useBlock({
+    blockHash: transaction?.blockHash,
+    includeTransactions: true,
+    chainId: chainId,
+  });
+
+  const [currentTxIndex, setCurrentTxIndex] = useState<number | null>(transaction?.transactionIndex ?? null);
+
+
+  //change url params to match the txHash
+  const handleNavigateTx = (direction: 'next' | 'prev') => {
+    setActiveTab('overview');
+    setCurrentTxIndex((prevIndex: number | null) => {
+      const transactionsLength = block.data?.transactions?.length ?? 0;
+      if (transactionsLength === 0) return prevIndex;
+      const index = prevIndex !== null ? prevIndex : transaction?.transactionIndex ?? 0;
+      let newIndex;
+      if (direction === 'next') {
+        newIndex = (index + 1) % transactionsLength;
+      } else {
+        newIndex = (index - 1 + transactionsLength) % transactionsLength;
+      }
+      const newTxHash = block.data?.transactions[newIndex]?.hash;
+      if (newTxHash) {
+        setTxHash(newTxHash);
+        updateUrlParams({ network: network, txHash: newTxHash });
+      }
+      return newIndex;
     });
-  }
+  };
+
+  useEffect(() => {
+    if (txHash === '') {
+      setShowOnboarding(true);
+    } else if (isValidTxHash(txHash) && showOnboarding) {
+      setShowOnboarding(false);
+    }
+  }, [txHash, showOnboarding]);
+
+  useEffect(() => {
+    setError('')
+  }, [txHash]);
+
+  const handleLoadTxHash = (txHash: string) => {
+    setTxHash(txHash);
+    if (txHash) {
+      updateUrlParams({ network: network, txHash: txHash });
+    }
+  };
+
+  const examples = {
+    txHash1: '0x0188a328a29fea068552f39a6346f05dcc81345d678ea1bf8ed5c99678a0a219',
+    txHash2: '0xa0cb8511aea95c5ea59ef2b196739e082a5b36d178045a5b29091bdece6db614',
+    txHash3: '0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95',
+  };
 
   return (
     <Wrapper>
-      <InputForm
+      <Header
         handleSubmit={handleSearch}
         network={network}
         handleNetworkChange={handleNetworkChange}
         txHash={txHash}
         handleTxHashChange={handleTxHashChange}
-        showButton={showButton}
-        forceRefresh={forceRefresh}
-        setForceRefresh={setForceRefresh}
+        showOnBoarding={() => {
+          setTxHash('');
+          setShowOnboarding(true);
+        }}
       />
-      {isDevEnvironment && (
-        <Button onClick={tmp}>Debug: showNotification</Button>
-      )}
-      {isSimulationLoading && (
-        <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-          <Loader size="lg" />
+      {showOnboarding ? (
+        <OnBoarding
+          loadTx1={() => handleLoadTxHash(examples.txHash1)}
+          loadTx2={() => handleLoadTxHash(examples.txHash2)}
+          loadTx3={() => handleLoadTxHash(examples.txHash3)}
+        />
+      ) : (
+        <Box>
+          <Center>
+            <Flex gap={10} mb={{ md: "20" }}>
+              <Image
+                alt="navigate-tx"
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleNavigateTx('prev')}
+                src="/blockminus.svg"
+                height={30}
+              />
+              <Image
+                alt="navigate-tx"
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleNavigateTx('next')}
+                src="/blockplus.svg"
+                height={30}
+              />
+            </Flex>
+          </Center>
+          {error && (
+            <Alert color="red" title="Error" mb="md">
+              {error}
+            </Alert>
+          )}
+          <Flex mt={20} gap="xl">
+            {txHash && (
+              <>
+                <Flex visibleFrom='md' w="50%" direction="column">
+                  <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
+                    <Tabs.List mb={20}>
+                      <Tabs.Tab value="overview">
+                        <Text size='sm'>
+                          Overview
+                        </Text>
+                      </Tabs.Tab>
+                      <Tabs.Tab value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
+                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Details</Text>}
+
+                      </Tabs.Tab>
+                      <Tabs.Tab value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
+                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Function Calls</Text>}
+                      </Tabs.Tab>
+                    </Tabs.List>
+                    <Tabs.Panel value="overview">
+                      {isValidTxHash(txHash) && (
+                        <TxDetails
+                          chainId={chainId}
+                          transactionHash={txHash as `0x${string}`}
+                          currentTxIndex={currentTxIndex}
+                        />
+                      )}
+                    </Tabs.Panel>
+                    <Tabs.Panel value="details">
+                      {simulationDataCache[`${network}:${txHash}`] && (
+                        <Details network={network} simulation={simulationDataCache[`${network}:${txHash}`]} />
+                      )}
+                    </Tabs.Panel>
+                    <Tabs.Panel value="function-calls">
+                      {simulationDataCache[`${network}:${txHash}`] && (
+                        <FunctionCalls calls={simulationData?.call_trace} />
+                      )}
+                    </Tabs.Panel>
+                  </Tabs>
+                </Flex>
+                <Flex px={20} hiddenFrom='md' w="100%" direction="column">
+                  <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
+                    <Tabs.List justify='center' mb={20}>
+                      <Tabs.Tab value="overview">
+                        <Text size='sm'>
+                          Overview
+                        </Text>
+                      </Tabs.Tab>
+                      <Tabs.Tab value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
+                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Details</Text>}
+
+                      </Tabs.Tab>
+                      <Tabs.Tab value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
+                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Function Calls</Text>}
+                      </Tabs.Tab>
+                      <Tabs.Tab hiddenFrom='md' value='analysis'>
+                        <Text size='sm'>
+                          {isExplanationLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Analysis</Text>}
+                        </Text>
+                      </Tabs.Tab>
+                    </Tabs.List>
+                    <Tabs.Panel value="overview">
+                      {isValidTxHash(txHash) && (
+                        <TxDetails
+                          chainId={chainId}
+                          transactionHash={txHash as `0x${string}`}
+                          currentTxIndex={currentTxIndex}
+                        />
+                      )}
+                    </Tabs.Panel>
+                    <Tabs.Panel value="details">
+                      {simulationDataCache[`${network}:${txHash}`] && (
+                        <Details network={network} simulation={simulationDataCache[`${network}:${txHash}`]} />
+                      )}
+                    </Tabs.Panel>
+                    <Tabs.Panel value="function-calls">
+                      {simulationDataCache[`${network}:${txHash}`] && (
+                        <FunctionCalls calls={simulationData?.call_trace} />
+                      )}
+                    </Tabs.Panel>
+                    <Tabs.Panel value="analysis">
+                      <Overview
+                        explanation={explanationCache[`${network}:${txHash}`]}
+                        isExplanationLoading={isExplanationLoading}
+                        isSimulationLoading={isSimulationLoading}
+                        setFeedbackModalOpen={setFeedbackModalOpen}
+                        handleSubmit={handleSearch}
+                      />
+                    </Tabs.Panel>
+                  </Tabs>
+                </Flex>
+              </>
+            )}
+            {txHash && (
+              <Overview
+                explanation={explanationCache[`${network}:${txHash}`]}
+                isExplanationLoading={isExplanationLoading}
+                isSimulationLoading={isSimulationLoading}
+                setFeedbackModalOpen={setFeedbackModalOpen}
+                handleSubmit={handleSearch}
+              />
+            )}
+          </Flex>
+          <Space h="xl" />
+          {isDevEnvironment && (
+            <ModelEditor
+              model={model}
+              onModelChange={setModel}
+              systemPromptModalOpen={systemPromptModalOpen}
+              setSystemPromptModalOpen={setSystemPromptModalOpen}
+            />
+          )}
+          <SystemPromptModal
+            opened={systemPromptModalOpen}
+            onClose={() => setSystemPromptModalOpen(false)}
+            systemPrompt={systemPrompt}
+            onSystemPromptChange={setSystemPrompt}
+          />
+          <FeedbackModal
+            opened={feedbackModalOpen}
+            onClose={() => setFeedbackModalOpen(false)}
+            onSubmit={handleSubmitFeedback}
+          />
         </Box>
       )}
-      {error && (
-        <Alert color="red" title="Error" mb="md">
-          {error}
-        </Alert>
-      )}
-      {(explanationCache[network + ":" + txHash] || isExplanationLoading) && (
-        <Overview
-          explanation={explanationCache[network + ":" + txHash]}
-          isExplanationLoading={isExplanationLoading}
-          setFeedbackModalOpen={setFeedbackModalOpen}
-        />
-      )}
-      {txHash && (
-        <TxDetails transactionHash={transactionReceipt?.transactionHash} />
-      )}
-      {simulationDataCache[network + ":" + txHash] && (
-        <Details
-          network={network}
-          simulation={simulationDataCache[network + ":" + txHash]}
-        />
-      )}
-      <Space h="xl" />
-      {isDevEnvironment && (
-        <ModelEditor model={model} onModelChange={setModel} systemPromptModalOpen={systemPromptModalOpen} setSystemPromptModalOpen={setSystemPromptModalOpen} />
-      )}
-      <SystemPromptModal
-        opened={systemPromptModalOpen}
-        onClose={() => setSystemPromptModalOpen(false)}
-        systemPrompt={systemPrompt}
-        onSystemPromptChange={setSystemPrompt}
-      />
-      <FeedbackModal
-        opened={feedbackModalOpen}
-        onClose={() => setFeedbackModalOpen(false)}
-        onSubmit={handleSubmitFeedback}
-      />
     </Wrapper>
   );
 };

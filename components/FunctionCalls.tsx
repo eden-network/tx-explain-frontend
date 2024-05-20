@@ -3,7 +3,7 @@ import { Card, Title, Text, Accordion, Button, Code, Box } from '@mantine/core';
 import { FunctionCall } from '../types';
 
 interface FunctionCallsProps {
-  calls: FunctionCall[];
+  calls: FunctionCall[] | undefined;
 }
 
 const FunctionCalls: React.FC<FunctionCallsProps> = ({ calls }) => {
@@ -100,9 +100,9 @@ const FunctionCalls: React.FC<FunctionCallsProps> = ({ calls }) => {
 
   return (
     <Box mb="xl">
-      <Title order={3} mb="md">Function Calls</Title>
+      <Title size="xs" order={3} mb="md">Function Calls</Title>
       <Card shadow="sm" p="lg" radius="md" withBorder mb="xl">
-        {calls.map((call, index) => renderCallTree(call, 0))}
+        {calls?.map((call, index) => renderCallTree(call, 0))}
       </Card>
     </Box>
   );
