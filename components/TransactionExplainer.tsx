@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text } from '@mantine/core';
+import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text, em } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
@@ -299,6 +299,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       const newTxHash = block.data?.transactions[newIndex]?.hash;
       if (newTxHash) {
         setTxHash(newTxHash);
+        updateUrlParams({ network: network, txHash: newTxHash });
       }
       return newIndex;
     });
@@ -316,6 +317,19 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     setError('')
   }, [txHash]);
 
+  const handleLoadTxHash = (txHash: string) => {
+    setTxHash(txHash);
+    if (txHash) {
+      updateUrlParams({ network: network, txHash: txHash });
+    }
+  };
+
+  const examples = {
+    txHash1: '0x0188a328a29fea068552f39a6346f05dcc81345d678ea1bf8ed5c99678a0a219',
+    txHash2: '0xa0cb8511aea95c5ea59ef2b196739e082a5b36d178045a5b29091bdece6db614',
+    txHash3: '0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95',
+  };
+
   return (
     <Wrapper>
       <Header
@@ -331,14 +345,14 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       />
       {showOnboarding ? (
         <OnBoarding
-          loadTx1={() => setTxHash('0x0188a328a29fea068552f39a6346f05dcc81345d678ea1bf8ed5c99678a0a219')}
-          loadTx2={() => setTxHash('0xa0cb8511aea95c5ea59ef2b196739e082a5b36d178045a5b29091bdece6db614')}
-          loadTx3={() => setTxHash('0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95')}
+          loadTx1={() => handleLoadTxHash(examples.txHash1)}
+          loadTx2={() => handleLoadTxHash(examples.txHash2)}
+          loadTx3={() => handleLoadTxHash(examples.txHash3)}
         />
       ) : (
         <Box>
           <Center>
-            <Flex gap={10} mb={20}>
+            <Flex gap={10} mb={{ md: "20" }}>
               <Image
                 alt="navigate-tx"
                 style={{ cursor: 'pointer' }}
@@ -362,43 +376,96 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           )}
           <Flex mt={20} gap="xl">
             {txHash && (
-              <Flex w="50%" direction="column">
-                <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
-                  <Tabs.List mb={20}>
-                    <Tabs.Tab value="overview">
-                      <Text size='sm'>
-                        Overview
-                      </Text>
-                    </Tabs.Tab>
-                    <Tabs.Tab value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
-                      {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Details</Text>}
+              <>
+                <Flex visibleFrom='md' w="50%" direction="column">
+                  <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
+                    <Tabs.List mb={20}>
+                      <Tabs.Tab value="overview">
+                        <Text size='sm'>
+                          Overview
+                        </Text>
+                      </Tabs.Tab>
+                      <Tabs.Tab value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
+                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Details</Text>}
 
-                    </Tabs.Tab>
-                    <Tabs.Tab value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
-                      {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Function Calls</Text>}
-                    </Tabs.Tab>
-                  </Tabs.List>
-                  <Tabs.Panel value="overview">
-                    {isValidTxHash(txHash) && (
-                      <TxDetails
-                        chainId={chainId}
-                        transactionHash={txHash as `0x${string}`}
-                        currentTxIndex={currentTxIndex}
+                      </Tabs.Tab>
+                      <Tabs.Tab value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
+                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Function Calls</Text>}
+                      </Tabs.Tab>
+                    </Tabs.List>
+                    <Tabs.Panel value="overview">
+                      {isValidTxHash(txHash) && (
+                        <TxDetails
+                          chainId={chainId}
+                          transactionHash={txHash as `0x${string}`}
+                          currentTxIndex={currentTxIndex}
+                        />
+                      )}
+                    </Tabs.Panel>
+                    <Tabs.Panel value="details">
+                      {simulationDataCache[`${network}:${txHash}`] && (
+                        <Details network={network} simulation={simulationDataCache[`${network}:${txHash}`]} />
+                      )}
+                    </Tabs.Panel>
+                    <Tabs.Panel value="function-calls">
+                      {simulationDataCache[`${network}:${txHash}`] && (
+                        <FunctionCalls calls={simulationData?.call_trace} />
+                      )}
+                    </Tabs.Panel>
+                  </Tabs>
+                </Flex>
+                <Flex px={20} hiddenFrom='md' w="100%" direction="column">
+                  <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
+                    <Tabs.List justify='center' mb={20}>
+                      <Tabs.Tab value="overview">
+                        <Text size='sm'>
+                          Overview
+                        </Text>
+                      </Tabs.Tab>
+                      <Tabs.Tab value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
+                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Details</Text>}
+
+                      </Tabs.Tab>
+                      <Tabs.Tab value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
+                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Function Calls</Text>}
+                      </Tabs.Tab>
+                      <Tabs.Tab hiddenFrom='md' value='analysis'>
+                        <Text size='sm'>
+                          {isExplanationLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Analysis</Text>}
+                        </Text>
+                      </Tabs.Tab>
+                    </Tabs.List>
+                    <Tabs.Panel value="overview">
+                      {isValidTxHash(txHash) && (
+                        <TxDetails
+                          chainId={chainId}
+                          transactionHash={txHash as `0x${string}`}
+                          currentTxIndex={currentTxIndex}
+                        />
+                      )}
+                    </Tabs.Panel>
+                    <Tabs.Panel value="details">
+                      {simulationDataCache[`${network}:${txHash}`] && (
+                        <Details network={network} simulation={simulationDataCache[`${network}:${txHash}`]} />
+                      )}
+                    </Tabs.Panel>
+                    <Tabs.Panel value="function-calls">
+                      {simulationDataCache[`${network}:${txHash}`] && (
+                        <FunctionCalls calls={simulationData?.call_trace} />
+                      )}
+                    </Tabs.Panel>
+                    <Tabs.Panel value="analysis">
+                      <Overview
+                        explanation={explanationCache[`${network}:${txHash}`]}
+                        isExplanationLoading={isExplanationLoading}
+                        isSimulationLoading={isSimulationLoading}
+                        setFeedbackModalOpen={setFeedbackModalOpen}
+                        handleSubmit={handleSearch}
                       />
-                    )}
-                  </Tabs.Panel>
-                  <Tabs.Panel value="details">
-                    {simulationDataCache[`${network}:${txHash}`] && (
-                      <Details network={network} simulation={simulationDataCache[`${network}:${txHash}`]} />
-                    )}
-                  </Tabs.Panel>
-                  <Tabs.Panel value="function-calls">
-                    {simulationDataCache[`${network}:${txHash}`] && (
-                      <FunctionCalls calls={simulationData?.call_trace} />
-                    )}
-                  </Tabs.Panel>
-                </Tabs>
-              </Flex>
+                    </Tabs.Panel>
+                  </Tabs>
+                </Flex>
+              </>
             )}
             {txHash && (
               <Overview

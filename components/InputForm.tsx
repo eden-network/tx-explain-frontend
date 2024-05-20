@@ -1,4 +1,4 @@
-import { Box, Select, TextInput, Image } from "@mantine/core";
+import { Box, Select, TextInput, Image, Flex } from "@mantine/core";
 import React from "react";
 import { useState } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
@@ -45,7 +45,7 @@ const InputForm = ({
 
         break;
       case "43114":
-        setSelectedIcon("/43114.svg");
+        setSelectedIcon("43114.svg");
         setIconHeight(30)
 
         break;
@@ -55,11 +55,6 @@ const InputForm = ({
     }
     handleNetworkChange(value || network);
   };
-
-
-  console.log(network);
-
-
 
   return (
     <Box py="0.5rem">
@@ -71,37 +66,71 @@ const InputForm = ({
         }}
         onSubmit={handleFormSubmit}
       >
-        <Select
-          style={{ width: "150px" }}
-          checkIconPosition="right"
-          leftSection={
-            <Image
-              alt="network-logo"
-              radius="md"
-              h={iconHeight}
-              w="auto"
-              fit="contain"
-              src={`${network}.svg`}
-            />
-          }
-          placeholder="Select network"
-          value={network}
-          onChange={(value) => handleIconChange(value)}
-          data={[
-            { value: "1", label: "Ethereum" },
-            { value: "42161", label: "Arbitrum" },
-            { value: "10", label: "Optimism" },
-            { value: "43114", label: "Avalanche" },
-          ]}
-          required
-        />
-        <TextInput
-          style={{ flexGrow: 1, minWidth: "400px" }}
-          placeholder="Enter transaction hash"
-          value={txHash}
-          onChange={(e) => handleTxHashChange(e.target.value)}
-          required
-        />
+        <Flex visibleFrom="md" gap={20} w={"100%"}>
+          <Select
+            checkIconPosition="right"
+            leftSection={
+              <Image
+                alt="network-logo"
+                radius="md"
+                h={iconHeight}
+                w="auto"
+                fit="contain"
+                src={`${network}.svg`}
+              />
+            }
+            placeholder="Select network"
+            value={network}
+            onChange={(value) => handleIconChange(value)}
+            data={[
+              { value: "1", label: "Ethereum" },
+              { value: "42161", label: "Arbitrum" },
+              { value: "10", label: "Optimism" },
+              { value: "43114", label: "Avalanche" },
+            ]}
+            required
+          />
+          <TextInput
+            w={"100%"}
+            placeholder="Enter transaction hash"
+            value={txHash}
+            onChange={(e) => handleTxHashChange(e.target.value)}
+            required
+          />
+        </Flex>
+        <Box px={20} w={"100%"} hiddenFrom="md">
+          <Select
+            mb={10}
+            checkIconPosition="right"
+            leftSection={
+              <Image
+                alt="network-logo"
+                radius="md"
+                h={iconHeight}
+                w="auto"
+                fit="contain"
+                src={`${network}.svg`}
+              />
+            }
+            placeholder="Select network"
+            value={network}
+            onChange={(value) => handleIconChange(value)}
+            data={[
+              { value: "1", label: "Ethereum" },
+              { value: "42161", label: "Arbitrum" },
+              { value: "10", label: "Optimism" },
+              { value: "43114", label: "Avalanche" },
+            ]}
+            required
+          />
+          <TextInput
+            w={"100%"}
+            placeholder="Enter transaction hash"
+            value={txHash}
+            onChange={(e) => handleTxHashChange(e.target.value)}
+            required
+          />
+        </Box>
       </form>
     </Box>
   );
