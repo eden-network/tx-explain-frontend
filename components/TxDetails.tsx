@@ -7,17 +7,19 @@ import { CheckIcon } from '@modulz/radix-icons';
 // Function to render a row of transaction details
 const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom }: { label: string, value: any, border?: string, isStatus?: boolean, color?: string, borderBottom?: string }) => {
     return (
-        <Box display="flex" mb="12px" style={{ borderBottom: borderBottom }}>
+        <Box display={{ md: "flex" }} mb="12px" style={{ borderBottom: borderBottom }}>
             <Box w="20%">
                 <Text style={{ whiteSpace: "nowrap", color: "gray" }} size="sm">{label}</Text>
             </Box>
             <Box w="80%">
                 <Flex
+
                     px={isStatus ? 5 : 0}
-                    style={{ width: 'fit-content', border: border, borderRadius: '4px', alignItems: 'center', color: color }}
+                    style={{ width: 'fit-content', border: border, borderRadius: '4px', alignItems: 'center', color: color, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                 >
                     {isStatus && <CheckIcon color='#B0FF09' />}
                     <Text
+                        truncate
                         px={3}
                         style={{ width: 'fit-content', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                         size={isStatus ? "xs" : "sm"}
@@ -113,7 +115,12 @@ const TxDetails = ({
                     isStatus={detail.isStatus}
                 />
             ))}
-            <Box display="flex">
+            <Box visibleFrom='md' display="flex">
+                <Text style={{ color: 'gray' }} w="20%" size="sm">Input Data:</Text>
+                <Textarea maxRows={1} w="80%" resize='vertical' readOnly name='input' value={currentTx?.input}>
+                </Textarea>
+            </Box>
+            <Box hiddenFrom='md'>
                 <Text style={{ color: 'gray' }} w="20%" size="sm">Input Data:</Text>
                 <Textarea maxRows={1} w="80%" resize='vertical' readOnly name='input' value={currentTx?.input}>
                 </Textarea>
