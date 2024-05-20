@@ -41,6 +41,13 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [activeTab, setActiveTab] = useState<string | null>('overview');
 
+  useEffect(() => {
+    setIsExplanationLoading(false);
+  }, []);
+
+
+
+
   const {
     data: simulationData,
     isLoading: isSimulationLoading,
@@ -88,7 +95,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   const fetchExplanation = useCallback(async (simulationData: TransactionSimulation, token: string) => {
     if (!simulationData) return;
-
     try {
       setIsExplanationLoading(true);
       setExplanationCache((prevCache) => ({
@@ -200,7 +206,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   useEffect(() => {
     const fetchSimulationAndExplanation = async () => {
       if (isValidTxHash(txHash) && showOnboarding) {
-        setIsExplanationLoading(true);
+        // setIsExplanationLoading(true);
         const simulation = await refetchSimulation();
 
         const cachedExplanation = explanationCache[`${network}:${txHash}`];
@@ -320,7 +326,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const handleLoadTxHash = (txHash: string) => {
     setTxHash(txHash);
     if (txHash) {
-      updateUrlParams({ network: network, txHash: txHash });
+      setNetwork('1')
+      updateUrlParams({ network: '1', txHash: txHash });
     }
   };
 
@@ -414,7 +421,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                     </Tabs.Panel>
                   </Tabs>
                 </Flex>
-                <Flex px={20} hiddenFrom='md' w="100%" direction="column">
+                <Flex hiddenFrom='md' w="100%" direction="column">
                   <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
                     <Tabs.List justify='center' mb={20}>
                       <Tabs.Tab value="overview">
