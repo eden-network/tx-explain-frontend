@@ -25,28 +25,41 @@ const InputForm = ({
   };
 
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
+  const [iconHeight, setIconHeight] = useState(30);
 
   // Function to handle icon selection based on the network value
   const handleIconChange = (value: string | null) => {
     switch (value) {
       case "1":
-        setSelectedIcon("/eth.svg");
+        setSelectedIcon("/1.svg");
+        setIconHeight(30)
         break;
       case "42161":
-        setSelectedIcon("/arb.svg");
+        setSelectedIcon("42161.svg");
+        setIconHeight(20)
+
         break;
       case "10":
-        setSelectedIcon("/op.svg");
+        setSelectedIcon("/10.svg");
+        setIconHeight(20)
+
         break;
       case "43114":
-        setSelectedIcon("/avax.svg");
+        setSelectedIcon("/43114.svg");
+        setIconHeight(30)
+
         break;
       default:
         setSelectedIcon(null);
         break;
     }
-    handleNetworkChange(value || "1");
+    handleNetworkChange(value || network);
   };
+
+
+  console.log(network);
+
+
 
   return (
     <Box py="0.5rem">
@@ -65,10 +78,10 @@ const InputForm = ({
             <Image
               alt="network-logo"
               radius="md"
-              h={30}
+              h={iconHeight}
               w="auto"
               fit="contain"
-              src={selectedIcon || "/eth.svg"}
+              src={`${network}.svg`}
             />
           }
           placeholder="Select network"
