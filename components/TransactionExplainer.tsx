@@ -11,7 +11,7 @@ import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
 import { TransactionSimulation } from '../types';
 import Wrapper from './Wrapper';
-import { isDevEnvironment } from '../lib/env';
+import { isDevEnvironment, isLocalEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import Header from './Header';
 import Overview from './Overview';
@@ -21,6 +21,7 @@ import TxDetails from './TxDetails';
 import OnBoarding from './OnBoarding';
 import FunctionCalls from './FunctionCalls';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import OverviewMobile from './OverviewMobile';
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
@@ -40,6 +41,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [activeTab, setActiveTab] = useState<string | null>('overview');
+  const [mobileActiveTab, setMobileActiveTab] = useState<string | null>('overview');
 
   const {
     data: simulationData,
@@ -69,6 +71,10 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         const errorResponse = await response.json();
         const errorMessage = errorResponse.error || 'An unknown error occurred';
         setError(errorMessage);
+        setIsDetailsLoading(false)
+        setIsExplanationLoading(false)
+        setActiveTab('overview')
+        setMobileActiveTab('overview')
         throw new Error(errorMessage);
       }
       const data = await response.json();
@@ -88,7 +94,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   const fetchExplanation = useCallback(async (simulationData: TransactionSimulation, token: string) => {
     if (!simulationData) return;
-
     try {
       setIsExplanationLoading(true);
       setExplanationCache((prevCache) => ({
@@ -122,7 +127,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       if (reader) {
         const decoder = new TextDecoder('utf-8');
         let explanation = '';
-
+        setMobileActiveTab('analysis')
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -286,6 +291,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   //change url params to match the txHash
   const handleNavigateTx = (direction: 'next' | 'prev') => {
     setActiveTab('overview');
+    setMobileActiveTab('overview')
+    setIsExplanationLoading(false);
+    setIsDetailsLoading(false)
     setCurrentTxIndex((prevIndex: number | null) => {
       const transactionsLength = block.data?.transactions?.length ?? 0;
       if (transactionsLength === 0) return prevIndex;
@@ -317,10 +325,15 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     setError('')
   }, [txHash]);
 
+  useEffect(() => {
+    setIsExplanationLoading(false)
+  }, [txHash]);
+
   const handleLoadTxHash = (txHash: string) => {
     setTxHash(txHash);
     if (txHash) {
-      updateUrlParams({ network: network, txHash: txHash });
+      setNetwork('1')
+      updateUrlParams({ network: '1', txHash: txHash });
     }
   };
 
@@ -341,6 +354,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         showOnBoarding={() => {
           setTxHash('');
           setShowOnboarding(true);
+          updateUrlParams({ network: network, txHash: '' });
         }}
       />
       {showOnboarding ? (
@@ -414,20 +428,13 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                     </Tabs.Panel>
                   </Tabs>
                 </Flex>
-                <Flex px={20} hiddenFrom='md' w="100%" direction="column">
-                  <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
+                <Flex variant="pills" hiddenFrom='md' w="100%" direction="column">
+                  <Tabs value={mobileActiveTab} onChange={setMobileActiveTab} defaultValue="overview">
                     <Tabs.List justify='center' mb={20}>
                       <Tabs.Tab value="overview">
                         <Text size='sm'>
                           Overview
                         </Text>
-                      </Tabs.Tab>
-                      <Tabs.Tab value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
-                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Details</Text>}
-
-                      </Tabs.Tab>
-                      <Tabs.Tab value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
-                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Function Calls</Text>}
                       </Tabs.Tab>
                       <Tabs.Tab hiddenFrom='md' value='analysis'>
                         <Text size='sm'>
@@ -444,18 +451,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                         />
                       )}
                     </Tabs.Panel>
-                    <Tabs.Panel value="details">
-                      {simulationDataCache[`${network}:${txHash}`] && (
-                        <Details network={network} simulation={simulationDataCache[`${network}:${txHash}`]} />
-                      )}
-                    </Tabs.Panel>
-                    <Tabs.Panel value="function-calls">
-                      {simulationDataCache[`${network}:${txHash}`] && (
-                        <FunctionCalls calls={simulationData?.call_trace} />
-                      )}
-                    </Tabs.Panel>
                     <Tabs.Panel value="analysis">
-                      <Overview
+                      <OverviewMobile
                         explanation={explanationCache[`${network}:${txHash}`]}
                         isExplanationLoading={isExplanationLoading}
                         isSimulationLoading={isSimulationLoading}
@@ -478,7 +475,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             )}
           </Flex>
           <Space h="xl" />
-          {isDevEnvironment && (
+          {isLocalEnvironment && (
             <ModelEditor
               model={model}
               onModelChange={setModel}

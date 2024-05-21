@@ -3,7 +3,7 @@ import { IconSend } from "@tabler/icons-react"
 import React from "react"
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
-const Overview = React.memo(({
+const OverviewMobile = React.memo(({
     explanation,
     isExplanationLoading,
     isSimulationLoading,
@@ -27,12 +27,7 @@ const Overview = React.memo(({
     };
 
     return (
-        <Box visibleFrom="md" mt={20} w="50%" pos="relative">
-            <Box pos="absolute" top={-20} left={0} style={{ borderRadius: '10px 10px 0px 0px', width: '100%', textAlign: 'center', zIndex: '10' }} bg="eden" p={5}>
-                <Title size="xs" order={2} c="dark">
-                    Analysis
-                </Title>
-            </Box>
+        <Box hiddenFrom="md" mt={20} pos="relative">
             <Card style={{ boxShadow: '1px 1px 8px 0px #00000054', minHeight: "100%" }} p="lg" radius="md" withBorder mb="xl">
                 {!explanation && !isExplanationLoading && !isSimulationLoading ? (
                     <Center display="flex" style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
@@ -68,6 +63,6 @@ const Overview = React.memo(({
     )
 })
 
-Overview.displayName = 'Overview';
+OverviewMobile.displayName = 'OverviewMobile';
 
-export default Overview
+export default OverviewMobile

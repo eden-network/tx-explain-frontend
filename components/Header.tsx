@@ -60,7 +60,7 @@ const Header: React.FC<HeaderProps> = ({
               radius="xl"
               variant="transparent"
             >
-              <icon.icon size={24} color="white" />
+              <icon.icon size={24} color="gray" />
             </ActionIcon>
           ))}
         </Flex>
