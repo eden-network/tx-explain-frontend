@@ -11,7 +11,7 @@ import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
 import { TransactionSimulation } from '../types';
 import Wrapper from './Wrapper';
-import { isDevEnvironment } from '../lib/env';
+import { isDevEnvironment, isLocalEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import Header from './Header';
 import Overview from './Overview';
@@ -41,13 +41,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [activeTab, setActiveTab] = useState<string | null>('overview');
 
-  useEffect(() => {
-    setIsExplanationLoading(false);
-  }, []);
-
-
-
-
   const {
     data: simulationData,
     isLoading: isSimulationLoading,
@@ -76,6 +69,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         const errorResponse = await response.json();
         const errorMessage = errorResponse.error || 'An unknown error occurred';
         setError(errorMessage);
+        setIsDetailsLoading(false)
+        setIsExplanationLoading(false)
         throw new Error(errorMessage);
       }
       const data = await response.json();
@@ -206,7 +201,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   useEffect(() => {
     const fetchSimulationAndExplanation = async () => {
       if (isValidTxHash(txHash) && showOnboarding) {
-        // setIsExplanationLoading(true);
+        setIsExplanationLoading(true);
         const simulation = await refetchSimulation();
 
         const cachedExplanation = explanationCache[`${network}:${txHash}`];
@@ -292,6 +287,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   //change url params to match the txHash
   const handleNavigateTx = (direction: 'next' | 'prev') => {
     setActiveTab('overview');
+    setIsExplanationLoading(false);
+    setIsDetailsLoading(false)
     setCurrentTxIndex((prevIndex: number | null) => {
       const transactionsLength = block.data?.transactions?.length ?? 0;
       if (transactionsLength === 0) return prevIndex;
@@ -323,6 +320,10 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     setError('')
   }, [txHash]);
 
+  useEffect(() => {
+    setIsExplanationLoading(false)
+  }, [txHash]);
+
   const handleLoadTxHash = (txHash: string) => {
     setTxHash(txHash);
     if (txHash) {
@@ -348,6 +349,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         showOnBoarding={() => {
           setTxHash('');
           setShowOnboarding(true);
+          updateUrlParams({ network: network, txHash: '' });
         }}
       />
       {showOnboarding ? (
@@ -485,7 +487,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             )}
           </Flex>
           <Space h="xl" />
-          {isDevEnvironment && (
+          {isLocalEnvironment && (
             <ModelEditor
               model={model}
               onModelChange={setModel}
