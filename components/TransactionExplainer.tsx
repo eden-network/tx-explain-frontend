@@ -11,7 +11,7 @@ import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
 import { TransactionSimulation } from '../types';
 import Wrapper from './Wrapper';
-import { isDevEnvironment } from '../lib/env';
+import { isDevEnvironment, isLocalEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import Header from './Header';
 import Overview from './Overview';
@@ -69,6 +69,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         const errorResponse = await response.json();
         const errorMessage = errorResponse.error || 'An unknown error occurred';
         setError(errorMessage);
+        setIsDetailsLoading(false)
+        setIsExplanationLoading(false)
         throw new Error(errorMessage);
       }
       const data = await response.json();
@@ -88,7 +90,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   const fetchExplanation = useCallback(async (simulationData: TransactionSimulation, token: string) => {
     if (!simulationData) return;
-
     try {
       setIsExplanationLoading(true);
       setExplanationCache((prevCache) => ({
@@ -286,6 +287,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   //change url params to match the txHash
   const handleNavigateTx = (direction: 'next' | 'prev') => {
     setActiveTab('overview');
+    setIsExplanationLoading(false);
+    setIsDetailsLoading(false)
     setCurrentTxIndex((prevIndex: number | null) => {
       const transactionsLength = block.data?.transactions?.length ?? 0;
       if (transactionsLength === 0) return prevIndex;
@@ -317,10 +320,15 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     setError('')
   }, [txHash]);
 
+  useEffect(() => {
+    setIsExplanationLoading(false)
+  }, [txHash]);
+
   const handleLoadTxHash = (txHash: string) => {
     setTxHash(txHash);
     if (txHash) {
-      updateUrlParams({ network: network, txHash: txHash });
+      setNetwork('1')
+      updateUrlParams({ network: '1', txHash: txHash });
     }
   };
 
@@ -341,6 +349,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         showOnBoarding={() => {
           setTxHash('');
           setShowOnboarding(true);
+          updateUrlParams({ network: network, txHash: '' });
         }}
       />
       {showOnboarding ? (
@@ -414,7 +423,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                     </Tabs.Panel>
                   </Tabs>
                 </Flex>
-                <Flex px={20} hiddenFrom='md' w="100%" direction="column">
+                <Flex hiddenFrom='md' w="100%" direction="column">
                   <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
                     <Tabs.List justify='center' mb={20}>
                       <Tabs.Tab value="overview">
@@ -478,7 +487,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             )}
           </Flex>
           <Space h="xl" />
-          {isDevEnvironment && (
+          {isLocalEnvironment && (
             <ModelEditor
               model={model}
               onModelChange={setModel}

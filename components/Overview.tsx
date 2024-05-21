@@ -26,9 +26,8 @@ const Overview = React.memo(({
         await handleSubmit(e, token);
     };
 
-
     return (
-        <Box visibleFrom="md" mt={20} w="50%" mb="xl" pos="relative">
+        <Box visibleFrom="md" mt={20} w="50%" pos="relative">
             <Box pos="absolute" top={-20} left={0} style={{ borderRadius: '10px 10px 0px 0px', width: '100%', textAlign: 'center', zIndex: '10' }} bg="eden" p={5}>
                 <Title size="xs" order={2} c="dark">
                     Analysis
@@ -55,7 +54,6 @@ const Overview = React.memo(({
                                 m="auto"
                                 mt={50}
                                 autoContrast
-                                // size="compact-sm"
                                 onClick={() => setFeedbackModalOpen(true)}
                                 leftSection={<IconSend size={16} />}
                             >
