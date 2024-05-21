@@ -98,7 +98,7 @@ const InputForm = ({
             required
           />
         </Flex>
-        <Box px={20} w={"100%"} hiddenFrom="md">
+        <Box w={"100%"} hiddenFrom="md">
           <Select
             mb={10}
             checkIconPosition="right"

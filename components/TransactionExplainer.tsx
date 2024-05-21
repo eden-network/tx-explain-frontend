@@ -21,6 +21,7 @@ import TxDetails from './TxDetails';
 import OnBoarding from './OnBoarding';
 import FunctionCalls from './FunctionCalls';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import OverviewMobile from './OverviewMobile';
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
@@ -424,20 +425,13 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                     </Tabs.Panel>
                   </Tabs>
                 </Flex>
-                <Flex hiddenFrom='md' w="100%" direction="column">
+                <Flex variant="pills" hiddenFrom='md' w="100%" direction="column">
                   <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
                     <Tabs.List justify='center' mb={20}>
                       <Tabs.Tab value="overview">
                         <Text size='sm'>
                           Overview
                         </Text>
-                      </Tabs.Tab>
-                      <Tabs.Tab value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
-                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Details</Text>}
-
-                      </Tabs.Tab>
-                      <Tabs.Tab value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
-                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Function Calls</Text>}
                       </Tabs.Tab>
                       <Tabs.Tab hiddenFrom='md' value='analysis'>
                         <Text size='sm'>
@@ -454,18 +448,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                         />
                       )}
                     </Tabs.Panel>
-                    <Tabs.Panel value="details">
-                      {simulationDataCache[`${network}:${txHash}`] && (
-                        <Details network={network} simulation={simulationDataCache[`${network}:${txHash}`]} />
-                      )}
-                    </Tabs.Panel>
-                    <Tabs.Panel value="function-calls">
-                      {simulationDataCache[`${network}:${txHash}`] && (
-                        <FunctionCalls calls={simulationData?.call_trace} />
-                      )}
-                    </Tabs.Panel>
                     <Tabs.Panel value="analysis">
-                      <Overview
+                      <OverviewMobile
                         explanation={explanationCache[`${network}:${txHash}`]}
                         isExplanationLoading={isExplanationLoading}
                         isSimulationLoading={isSimulationLoading}
