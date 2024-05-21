@@ -41,6 +41,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [activeTab, setActiveTab] = useState<string | null>('overview');
+  const [mobileActiveTab, setMobileActiveTab] = useState<string | null>('overview');
 
   const {
     data: simulationData,
@@ -73,6 +74,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         setIsDetailsLoading(false)
         setIsExplanationLoading(false)
         setActiveTab('overview')
+        setMobileActiveTab('overview')
         throw new Error(errorMessage);
       }
       const data = await response.json();
@@ -125,7 +127,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       if (reader) {
         const decoder = new TextDecoder('utf-8');
         let explanation = '';
-
+        setMobileActiveTab('analysis')
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -289,6 +291,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   //change url params to match the txHash
   const handleNavigateTx = (direction: 'next' | 'prev') => {
     setActiveTab('overview');
+    setMobileActiveTab('overview')
     setIsExplanationLoading(false);
     setIsDetailsLoading(false)
     setCurrentTxIndex((prevIndex: number | null) => {
@@ -426,7 +429,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                   </Tabs>
                 </Flex>
                 <Flex variant="pills" hiddenFrom='md' w="100%" direction="column">
-                  <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
+                  <Tabs value={mobileActiveTab} onChange={setMobileActiveTab} defaultValue="overview">
                     <Tabs.List justify='center' mb={20}>
                       <Tabs.Tab value="overview">
                         <Text size='sm'>
