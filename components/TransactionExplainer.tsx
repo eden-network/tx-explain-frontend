@@ -71,6 +71,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         setError(errorMessage);
         setIsDetailsLoading(false)
         setIsExplanationLoading(false)
+        setActiveTab('overview')
         throw new Error(errorMessage);
       }
       const data = await response.json();

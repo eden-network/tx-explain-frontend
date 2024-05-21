@@ -69,12 +69,24 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
           <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}>
             <Head>
               <title>Explain | Eden Network</title>
-              <meta name="description" content="Transaction explainer" />
+              <meta name="description" content="Tx Explain is an agent-like open source service that takes a transaction and returns a human-readable description of what happened." />
               <meta
                 name="viewport"
                 content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
               />
               <link rel='icon' href='/favicon.png' />
+              {/* Open Graph Meta Tags */}
+              <meta property="og:title" content="Explain | Eden Network" />
+              <meta property="og:description" content="Tx Explain is an agent-like open source service that takes a transaction and returns a human-readable description of what happened." />
+              <meta property="og:image" content="https://tx-explain.edennetwork.io/tx-explain.jpeg" />
+              <meta property="og:url" content="https://edennetwork.io" />
+              <meta property="og:type" content="website" />
+              {/* Twitter Meta Tags */}
+              <meta name="twitter:card" content="summary_large_image" />
+              <meta name="twitter:title" content="Explain | Eden Network" />
+              <meta name="twitter:description" content="Tx Explain is an agent-like open source service that takes a transaction and returns a human-readable description of what happened." />
+              <meta name="twitter:image" content="https://tx-explain.edennetwork.io/tx-explain.jpeg" />
+              <meta name="twitter:site" content="@EdenNetwork" />
             </Head>
             <Component {...pageProps} showOnboarding={showOnboarding} setShowOnboarding={setShowOnboarding} />
             <ReactQueryDevtools initialIsOpen={false} />
