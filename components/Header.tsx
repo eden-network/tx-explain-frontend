@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({
   const iconData = [
     { icon: IconBrandDiscord, href: "https://discord.com/invite/ZhB9mpWWG3", target: "_blank" },
     { icon: IconBrandTwitter, href: "https://twitter.com/edennetwork", target: "_blank" },
-    { icon: IconBrandGithub, href: "https://github.com/eden-network", target: "_blank" },
+    { icon: IconBrandGithub, href: "https://github.com/eden-network/tx-explain", target: "_blank" },
     { icon: IconNotebook, href: "https://www.edennetwork.io/blog", target: "_blank" },
   ];
 
