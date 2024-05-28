@@ -29,7 +29,7 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3 }: OnBoardingProps) => {
 
     return (
         <Box>
-            <Flex visibleFrom="sm" mt={20} mb={50} gap={20} justify="center">
+            <Flex visibleFrom="md" mt={20} mb={50} gap={20} justify="center">
                 <Center>
                     <Text ta="center" c="gray">Explore our top intriguing transactions:</Text>
                 </Center>
@@ -42,7 +42,7 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3 }: OnBoardingProps) => {
                     </Card>
                 ))}
             </Flex>
-            <Box px={"3rem"} hiddenFrom="sm" mt={20} mb={50}>
+            <Box px={"3rem"} hiddenFrom="md" mt={20} mb={50}>
                 <Center>
                     <Text ta="center" c="gray">Explore our top intriguing transactions:</Text>
                 </Center>
@@ -57,7 +57,7 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3 }: OnBoardingProps) => {
             </Box>
             <Center display="flex" style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
                 <Text visibleFrom="md" size="xl">I understand.</Text>
-                <Image visibleFrom="md" alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={400} width={5} />
+                <Image visibleFrom="md" alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={480} width={5} />
                 <Text visibleFrom="md" size="xl">I analyze.</Text>
             </Center>
             <Center>

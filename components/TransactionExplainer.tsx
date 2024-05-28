@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text, em } from '@mantine/core';
+import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text, Button } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
@@ -22,6 +22,7 @@ import OnBoarding from './OnBoarding';
 import FunctionCalls from './FunctionCalls';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import OverviewMobile from './OverviewMobile';
+import SimulatePendingTx from './SimulatePendingTx';
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
@@ -134,6 +135,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
           const chunk = decoder.decode(value);
           explanation += chunk;
+
           setExplanationCache((prevCache) => ({
             ...prevCache,
             [`${network}:${txHash}`]: explanation,
@@ -343,6 +345,14 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     txHash3: '0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95',
   };
 
+  const networkList = [
+    { value: "1", label: "Ethereum" },
+    { value: "42161", label: "Arbitrum" },
+    { value: "10", label: "Optimism" },
+    { value: "43114", label: "Avalanche" },
+  ];
+  const currentBlockNumber = 19966950;
+
   return (
     <Wrapper>
       <Header
@@ -357,6 +367,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           updateUrlParams({ network: network, txHash: '' });
         }}
       />
+      <SimulatePendingTx networkList={networkList} currentBlockNumber={currentBlockNumber} />
       {showOnboarding ? (
         <OnBoarding
           loadTx1={() => handleLoadTxHash(examples.txHash1)}
@@ -365,20 +376,38 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         />
       ) : (
         <Box>
-          <Center>
+          <Center visibleFrom='md'>
             <Flex gap={10} mb={{ md: "20" }}>
               <Image
                 alt="navigate-tx"
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleNavigateTx('prev')}
-                src="/blockminus.svg"
+                src="/previous_tx.svg"
                 height={30}
               />
               <Image
                 alt="navigate-tx"
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleNavigateTx('next')}
-                src="/blockplus.svg"
+                src="/next_tx.svg"
+                height={30}
+              />
+            </Flex>
+          </Center>
+          <Center hiddenFrom='md'>
+            <Flex gap={10} mb={{ md: "20" }}>
+              <Image
+                alt="navigate-tx"
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleNavigateTx('prev')}
+                src="/previoustx_mobile.svg"
+                height={30}
+              />
+              <Image
+                alt="navigate-tx"
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleNavigateTx('next')}
+                src="/next_tx_mobile.svg"
                 height={30}
               />
             </Flex>
