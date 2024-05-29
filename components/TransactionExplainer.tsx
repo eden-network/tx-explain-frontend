@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text, em } from '@mantine/core';
+import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text, Button } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
@@ -22,6 +22,7 @@ import OnBoarding from './OnBoarding';
 import FunctionCalls from './FunctionCalls';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import OverviewMobile from './OverviewMobile';
+import SimulateTransaction from './SimulateTx';
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
@@ -34,14 +35,21 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [explanationCache, setExplanationCache] = useState<Record<string, string>>({
     [`${network}:${txHash}`]: '',
   });
+  const [explanation, setExplanation] = useState<string>('')
   const [systemPrompt, setSystemPrompt] = useState(DEFAULT_SYSTEM_PROMPT);
   const [systemPromptModalOpen, setSystemPromptModalOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [isExplanationLoading, setIsExplanationLoading] = useState(false);
+  const [isTxSimulationLoading, setIsTxSimulationLoading] = useState(false);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [activeTab, setActiveTab] = useState<string | null>('overview');
   const [mobileActiveTab, setMobileActiveTab] = useState<string | null>('overview');
+  const [isSimulateModalOpened, setIsSimulateModalOpened] = useState(false);
+  const [isSimulationTransaction, setIsSimulationTransaction] = useState(false)
+
+  const openModal = () => setIsSimulateModalOpened(true);
+  const closeModal = () => setIsSimulateModalOpened(false);
 
   const {
     data: simulationData,
@@ -56,6 +64,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         throw new Error('reCAPTCHA verification failed');
       }
       setIsDetailsLoading(true)
+      setIsExplanationLoading(true)
       const recaptchaToken = await executeRecaptcha('fetchSimulation');
       const body = JSON.stringify({ network_id: network, tx_hash: txHash, recaptcha_token: recaptchaToken });
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/fetch_and_simulate`, {
@@ -78,7 +87,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         throw new Error(errorMessage);
       }
       const data = await response.json();
-
+      setIsTxSimulationLoading(false)
       setIsDetailsLoading(false)
       data.result.asset_changes.length === 0 ? setActiveTab('function-calls') : setActiveTab('details')
 
@@ -86,6 +95,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         ...prevCache,
         [`${network}:${txHash}`]: data.result as TransactionSimulation,
       }));
+      setIsExplanationLoading(false)
       return data.result as TransactionSimulation;
     },
     enabled: false,
@@ -96,6 +106,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     if (!simulationData) return;
     try {
       setIsExplanationLoading(true);
+      setIsExplanationLoading(true)
+
       setExplanationCache((prevCache) => ({
         ...prevCache,
         [`${network}:${txHash}`]: '',
@@ -134,10 +146,15 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
           const chunk = decoder.decode(value);
           explanation += chunk;
+
           setExplanationCache((prevCache) => ({
             ...prevCache,
             [`${network}:${txHash}`]: explanation,
           }));
+          setIsTxSimulationLoading(false)
+          console.log(simulationData);
+          console.log(explanation);
+          setExplanation(explanation)
         }
       } else {
         throw new Error('Failed to read explanation stream');
@@ -152,6 +169,77 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       setIsExplanationLoading(false);
     }
   }, [network, txHash, model, systemPrompt, forceRefresh]);
+
+  const simulateTransaction = useCallback(async ({
+    networkId,
+    fromAddress,
+    toAddress,
+    gas,
+    value,
+    input,
+    transactionIndex,
+    currentBlockNumber,
+  }: {
+    networkId: string,
+    fromAddress: string,
+    toAddress: string,
+    gas: number,
+    value: number,
+    input: string,
+    transactionIndex: number,
+    currentBlockNumber: number,
+  }) => {
+    const txHash = `0x99999${Math.random().toString(16).substring(2, 62)}`;
+    if (!executeRecaptcha || typeof executeRecaptcha !== 'function') {
+      throw new Error('reCAPTCHA verification failed');
+    }
+    const recaptchaToken = await executeRecaptcha('simulate_pending');
+
+    const payload = {
+      network_id: networkId,
+      tx_hash: txHash,
+      block_number: currentBlockNumber,
+      from_address: fromAddress,
+      to_address: toAddress,
+      gas: gas,
+      value: value,
+      input: input,
+      transaction_index: transactionIndex,
+      recaptcha_token: recaptchaToken,
+    };
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/simulate_pending`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setShowOnboarding(false)
+        setIsSimulateModalOpened(false)
+        setTxHash(txHash)
+        setNetwork(networkId)
+        setIsSimulationTransaction(true)
+        updateUrlParams({ network: networkId, txHash })
+        setSimulationDataCache((prevCache) => ({
+          ...prevCache,
+          [`${network}:${txHash}`]: data.result as TransactionSimulation,
+        }));
+        data.result.asset_changes.length === 0 ? setActiveTab('function-calls') : setActiveTab('details')
+        await fetchExplanation(data.result, recaptchaToken);
+      } else {
+        alert(`Transaction simulation failed: ${data.message}`);
+      }
+    } catch (error) {
+      console.error('Error simulating transaction:', error);
+      alert('An error occurred during transaction simulation');
+    }
+  }, [executeRecaptcha, fetchExplanation]);
 
   const handleSearch = async (e: React.FormEvent, token: string) => {
     e.preventDefault();
@@ -287,13 +375,12 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   const [currentTxIndex, setCurrentTxIndex] = useState<number | null>(transaction?.transactionIndex ?? null);
 
-
-  //change url params to match the txHash
   const handleNavigateTx = (direction: 'next' | 'prev') => {
     setActiveTab('overview');
     setMobileActiveTab('overview')
     setIsExplanationLoading(false);
     setIsDetailsLoading(false)
+    setExplanation('')
     setCurrentTxIndex((prevIndex: number | null) => {
       const transactionsLength = block.data?.transactions?.length ?? 0;
       if (transactionsLength === 0) return prevIndex;
@@ -316,7 +403,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   useEffect(() => {
     if (txHash === '') {
       setShowOnboarding(true);
-    } else if (isValidTxHash(txHash) && showOnboarding) {
+      setIsSimulationTransaction(false)
+    } else if (txHash && showOnboarding) {
       setShowOnboarding(false);
     }
   }, [txHash, showOnboarding]);
@@ -327,6 +415,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   useEffect(() => {
     setIsExplanationLoading(false)
+
   }, [txHash]);
 
   const handleLoadTxHash = (txHash: string) => {
@@ -356,6 +445,12 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           setShowOnboarding(true);
           updateUrlParams({ network: network, txHash: '' });
         }}
+        handleModal={openModal}
+      />
+      <SimulateTransaction
+        simulateTransaction={simulateTransaction}
+        onClose={closeModal}
+        opened={isSimulateModalOpened}
       />
       {showOnboarding ? (
         <OnBoarding
@@ -365,20 +460,40 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         />
       ) : (
         <Box>
-          <Center>
+          {!isSimulationTransaction && (
+            <Center visibleFrom='md'>
+              <Flex gap={10} mb={{ md: "20" }}>
+                <Image
+                  alt="navigate-tx"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => handleNavigateTx('prev')}
+                  src="/previous_tx.svg"
+                  height={30}
+                />
+                <Image
+                  alt="navigate-tx"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => handleNavigateTx('next')}
+                  src="/next_tx.svg"
+                  height={30}
+                />
+              </Flex>
+            </Center>
+          )}
+          <Center hiddenFrom='md'>
             <Flex gap={10} mb={{ md: "20" }}>
               <Image
                 alt="navigate-tx"
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleNavigateTx('prev')}
-                src="/blockminus.svg"
+                src="/previoustx_mobile.svg"
                 height={30}
               />
               <Image
                 alt="navigate-tx"
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleNavigateTx('next')}
-                src="/blockplus.svg"
+                src="/next_tx_mobile.svg"
                 height={30}
               />
             </Flex>
@@ -388,27 +503,28 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
               {error}
             </Alert>
           )}
-          <Flex mt={20} gap="xl">
+          <Flex mt={isSimulationTransaction ? 50 : 20} gap="xl">
             {txHash && (
               <>
                 <Flex visibleFrom='md' w="50%" direction="column">
                   <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
                     <Tabs.List mb={20}>
-                      <Tabs.Tab value="overview">
-                        <Text size='sm'>
-                          Overview
-                        </Text>
-                      </Tabs.Tab>
+                      {!isSimulationTransaction && (
+                        <Tabs.Tab value="overview">
+                          <Text size='sm'>
+                            Overview
+                          </Text>
+                        </Tabs.Tab>
+                      )}
                       <Tabs.Tab value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
                         {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Details</Text>}
-
                       </Tabs.Tab>
                       <Tabs.Tab value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
                         {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Function Calls</Text>}
                       </Tabs.Tab>
                     </Tabs.List>
                     <Tabs.Panel value="overview">
-                      {isValidTxHash(txHash) && (
+                      {isValidTxHash(txHash) && !isSimulationTransaction && (
                         <TxDetails
                           chainId={chainId}
                           transactionHash={txHash as `0x${string}`}
@@ -466,11 +582,12 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             )}
             {txHash && (
               <Overview
-                explanation={explanationCache[`${network}:${txHash}`]}
+                explanation={explanationCache[`${network}:${txHash}`] === '' ? explanationCache[`${network}:${txHash}`] : explanation}
                 isExplanationLoading={isExplanationLoading}
                 isSimulationLoading={isSimulationLoading}
                 setFeedbackModalOpen={setFeedbackModalOpen}
                 handleSubmit={handleSearch}
+                isTxSimulationLoading={isTxSimulationLoading}
               />
             )}
           </Flex>

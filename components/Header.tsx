@@ -1,5 +1,4 @@
-import { Flex, Box, Image, ActionIcon, Center } from "@mantine/core";
-import { IconBrandDiscord, IconBrandTwitter, IconBrandGithub, IconNotebook } from "@tabler/icons-react";
+import { Flex, Box, Image, ActionIcon, Button } from "@mantine/core";
 import InputForm from './InputForm';
 
 interface HeaderProps {
@@ -8,7 +7,8 @@ interface HeaderProps {
   handleNetworkChange: (s: string) => void;
   txHash: string;
   handleTxHashChange: (s: string) => void;
-  showOnBoarding: () => void
+  showOnBoarding: () => void,
+  handleModal: () => void
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -17,30 +17,31 @@ const Header: React.FC<HeaderProps> = ({
   handleNetworkChange,
   txHash,
   handleTxHashChange,
-  showOnBoarding
+  showOnBoarding,
+  handleModal
 }) => {
 
   const iconData = [
-    { icon: IconBrandDiscord, href: "https://discord.com/invite/ZhB9mpWWG3", target: "_blank" },
-    { icon: IconBrandTwitter, href: "https://twitter.com/edennetwork", target: "_blank" },
-    { icon: IconBrandGithub, href: "https://github.com/eden-network/tx-explain", target: "_blank" },
-    { icon: IconNotebook, href: "https://www.edennetwork.io/blog", target: "_blank" },
+    { icon: "discord.svg", href: "https://discord.com/invite/ZhB9mpWWG3", target: "_blank" },
+    { icon: "x.svg", href: "https://twitter.com/edennetwork", target: "_blank" },
+    { icon: "github.svg", href: "https://github.com/eden-network", target: "_blank" },
+    { icon: "blog.svg", href: "https://www.edennetwork.io/blog", target: "_blank" },
   ];
 
   return (
     <>
-      <Flex visibleFrom="md" px="2rem" py="1rem" align="center" justify="space-between">
+      <Flex visibleFrom="md" py="1rem" align="center" justify="space-between">
         <Image
           style={{ cursor: 'pointer', mixBlendMode: "screen" }}
           onClick={showOnBoarding}
           alt="tx-agent"
           radius="md"
-          h={30}
+          h={40}
           w="auto"
           fit="contain"
-          src="/txexplainlogo.svg"
+          src="/tx_explain.svg"
         />
-        <Box mx="2rem" style={{ flexGrow: 1 }}>
+        <Box ml="2rem" style={{ flexGrow: 1 }}>
           <InputForm
             handleSubmit={handleSubmit}
             network={network}
@@ -49,9 +50,12 @@ const Header: React.FC<HeaderProps> = ({
             handleTxHashChange={handleTxHashChange}
           />
         </Box>
+        {/* <Button radius={"md"} bg={"eden.5"} autoContrast onClick={() => handleSubmit} mx={10} size="sm">Explain Transaction</Button> */}
+        <Button radius={"md"} bg={"eden.5"} autoContrast mx={30} size="sm" onClick={handleModal}>Simulate Transaction</Button>
         <Flex gap={20}>
           {iconData.map((icon, index) => (
             <ActionIcon
+
               key={index}
               component="a"
               href={icon.href}
@@ -60,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({
               radius="xl"
               variant="transparent"
             >
-              <icon.icon size={24} color="gray" />
+              <Image src={icon.icon} />
             </ActionIcon>
           ))}
         </Flex>
@@ -73,10 +77,10 @@ const Header: React.FC<HeaderProps> = ({
           onClick={showOnBoarding}
           alt="tx-agent"
           radius="md"
-          h={30}
+          h={50}
           w="auto"
           fit="contain"
-          src="/txexplainlogo.svg"
+          src="/tx_explain.svg"
         />
         <Box style={{ flexGrow: 1 }}>
           <InputForm

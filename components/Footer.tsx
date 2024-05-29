@@ -1,11 +1,10 @@
 import { Flex, Image, Text, Anchor, ActionIcon, Box } from "@mantine/core";
-import { IconBrandDiscord, IconBrandTwitter, IconBrandGithub, IconNotebook } from "@tabler/icons-react";
 
 const iconData = [
-    { icon: IconBrandDiscord, href: "https://discord.com/invite/ZhB9mpWWG3", target: "_blank" },
-    { icon: IconBrandTwitter, href: "https://twitter.com/edennetwork", target: "_blank" },
-    { icon: IconBrandGithub, href: "https://github.com/eden-network", target: "_blank" },
-    { icon: IconNotebook, href: "https://www.edennetwork.io/blog", target: "_blank" },
+    { icon: "discord.svg", href: "https://discord.com/invite/ZhB9mpWWG3", target: "_blank" },
+    { icon: "x.svg", href: "https://twitter.com/edennetwork", target: "_blank" },
+    { icon: "github.svg", href: "https://github.com/eden-network", target: "_blank" },
+    { icon: "blog.svg", href: "https://www.edennetwork.io/blog", target: "_blank" },
 ];
 
 const Footer = () => {
@@ -51,7 +50,7 @@ const Footer = () => {
                     />
                     <Text c={"gray"} style={{ display: 'flex', marginTop: 'auto' }} size="xs">© Goe Network Ltd {currentYear}</Text>
                 </Flex>
-                <Flex mt={20} gap={70} justify="center" style={{ borderTop: '1px solid gray' }}>
+                <Flex mt={20} gap={70} py={20} justify="center" style={{ borderTop: '1px solid gray' }}>
                     {iconData.map((icon, index) => (
                         <ActionIcon
                             mt={10}
@@ -63,7 +62,7 @@ const Footer = () => {
                             radius="xl"
                             variant="transparent"
                         >
-                            <icon.icon size={24} color="white" />
+                            <Image src={icon.icon} />
                         </ActionIcon>
                     ))}
                 </Flex>
