@@ -8,13 +8,15 @@ const Overview = React.memo(({
     isExplanationLoading,
     isSimulationLoading,
     setFeedbackModalOpen,
-    handleSubmit
+    handleSubmit,
+    isTxSimulationLoading
 }: {
     explanation: string | undefined
     isExplanationLoading: boolean,
     isSimulationLoading: boolean,
     setFeedbackModalOpen: (v: React.SetStateAction<boolean>) => void,
     handleSubmit: (e: React.FormEvent, token: string) => Promise<void>,
+    isTxSimulationLoading: boolean
 }) => {
     const { executeRecaptcha } = useGoogleReCaptcha();
 
@@ -43,7 +45,7 @@ const Overview = React.memo(({
                             </Button>
                             {/* <Text>TX Explain uses data from Tenderly and Claude AI to deliver precise, carefully constructed explanations of transaction details, continuously refined through open-source development. Powered by Eden research and AI.</Text> */}
                         </Box>
-                    </Center>) : isSimulationLoading ? (
+                    </Center>) : isSimulationLoading || isTxSimulationLoading ? (
                         <Box display="flex" style={{ justifyContent: 'center', margin: 'auto', height: '100%' }}>
                             <Loader ml={10} color="eden" size="xl" />
                         </Box>) : (

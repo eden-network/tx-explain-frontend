@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Flex, Space, Text, Textarea, Loader } from "@mantine/core";
 import { formatUnits } from "viem";
-import { useTransaction, useBlock, useTransactionReceipt, useTransactionCount, useCall } from 'wagmi';
+import { useTransaction, useBlock, useTransactionReceipt, useTransactionCount } from 'wagmi';
 import { CheckIcon } from '@modulz/radix-icons';
 
 // Function to render a row of transaction details
@@ -13,7 +13,6 @@ const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom }: { 
             </Box>
             <Box w="80%">
                 <Flex
-
                     px={isStatus ? 5 : 0}
                     style={{ width: 'fit-content', border: border, borderRadius: '4px', alignItems: 'center', color: color, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                 >

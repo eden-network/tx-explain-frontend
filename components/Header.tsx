@@ -7,7 +7,8 @@ interface HeaderProps {
   handleNetworkChange: (s: string) => void;
   txHash: string;
   handleTxHashChange: (s: string) => void;
-  showOnBoarding: () => void
+  showOnBoarding: () => void,
+  handleModal: () => void
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -16,7 +17,8 @@ const Header: React.FC<HeaderProps> = ({
   handleNetworkChange,
   txHash,
   handleTxHashChange,
-  showOnBoarding
+  showOnBoarding,
+  handleModal
 }) => {
 
   const iconData = [
@@ -48,8 +50,8 @@ const Header: React.FC<HeaderProps> = ({
             handleTxHashChange={handleTxHashChange}
           />
         </Box>
-        <Button radius={"md"} bg={"eden.5"} autoContrast onClick={() => handleSubmit} mx={10} size="sm">Explain Transaction</Button>
-        <Button radius={"md"} bg={"eden.5"} autoContrast mr={30} size="sm">Simulate</Button>
+        {/* <Button radius={"md"} bg={"eden.5"} autoContrast onClick={() => handleSubmit} mx={10} size="sm">Explain Transaction</Button> */}
+        <Button radius={"md"} bg={"eden.5"} autoContrast mx={30} size="sm" onClick={handleModal}>Simulate Transaction</Button>
         <Flex gap={20}>
           {iconData.map((icon, index) => (
             <ActionIcon

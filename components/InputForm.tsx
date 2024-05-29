@@ -90,13 +90,14 @@ const InputForm = ({
               { value: "43114", label: "Avalanche" },
               { value: "81467", label: "Blast" },
               { value: "5000", label: "Mantle" },
+              { value: "8453", label: "Base" },
             ]}
             required
           />
           <TextInput
             radius={"md"}
             w={"100%"}
-            placeholder="Enter transaction hash"
+            placeholder="Enter Transaction Hash"
             value={txHash}
             onChange={(e) => handleTxHashChange(e.target.value)}
             required
@@ -124,6 +125,9 @@ const InputForm = ({
               { value: "42161", label: "Arbitrum" },
               { value: "10", label: "Optimism" },
               { value: "43114", label: "Avalanche" },
+              { value: "81467", label: "Blast" },
+              { value: "5000", label: "Mantle" },
+              { value: "8453", label: "Base" },
             ]}
             required
           />
