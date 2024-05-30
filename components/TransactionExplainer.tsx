@@ -5,7 +5,7 @@ import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text, Button } fr
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
-import { isValidTxHash, getNetworkName, isValidSimTxHash } from '../lib/utils';
+import { isValidTxHash, getNetworkName, isSimulationTxHash } from '../lib/utils';
 import ModelEditor from './ModelEditor';
 import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
@@ -519,7 +519,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                           </Text>
                         </Tabs.Tab>
                       )}
-                      {isValidSimTxHash(txHash) && (
+                      {isSimulationTxHash(txHash) && (
                         <Tabs.Tab value="overview">
                           <Text size='sm'>
                             Simulation Inputs
@@ -543,7 +543,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                       )}
                     </Tabs.Panel>
                     <Tabs.Panel value='overview'>
-                      {isValidSimTxHash(txHash) && (
+                      {isSimulationTxHash(txHash) && (
                         <SimulationInputs inputs={simulationInputs} />
                       )
                       }

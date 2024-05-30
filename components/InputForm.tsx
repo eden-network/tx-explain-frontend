@@ -2,6 +2,8 @@ import { Box, Select, TextInput, Image, Flex } from "@mantine/core";
 import React from "react";
 import { useState } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import { isSimulationTxHash } from '../lib/utils';
+
 
 const InputForm = ({
   handleSubmit,
@@ -108,7 +110,7 @@ const InputForm = ({
             radius={"md"}
             w={"100%"}
             placeholder="Enter Transaction Hash"
-            value={txHash}
+            value={isSimulationTxHash(txHash) ? '' : txHash}
             onChange={(e) => handleTxHashChange(e.target.value)}
             required
           />
@@ -144,7 +146,7 @@ const InputForm = ({
           <TextInput
             w={"100%"}
             placeholder="Enter transaction hash"
-            value={txHash}
+            value={isSimulationTxHash(txHash) ? '' : txHash}
             onChange={(e) => handleTxHashChange(e.target.value)}
             required
           />
