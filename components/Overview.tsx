@@ -43,7 +43,6 @@ const Overview = React.memo(({
                             <Button bg={"eden.5"} size="lg" autoContrast fullWidth onClick={handleFormSubmit}>
                                 Explain Transaction
                             </Button>
-                            {/* <Text>TX Explain uses data from Tenderly and Claude AI to deliver precise, carefully constructed explanations of transaction details, continuously refined through open-source development. Powered by Eden research and AI.</Text> */}
                         </Box>
                     </Center>) : isSimulationLoading || isTxSimulationLoading ? (
                         <Box display="flex" style={{ justifyContent: 'center', margin: 'auto', height: '100%' }}>
@@ -53,6 +52,7 @@ const Overview = React.memo(({
                         {explanation}
                         {explanation && (
                             <Button
+                                bg={"eden.5"}
                                 display="flex"
                                 m="auto"
                                 mt={50}

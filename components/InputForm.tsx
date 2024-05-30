@@ -47,8 +47,18 @@ const InputForm = ({
       case "43114":
         setSelectedIcon("43114.svg");
         setIconHeight(30)
-
         break;
+      case "5000":
+        setSelectedIcon("5000.svg");
+        setIconHeight(20)
+        break;
+      case "81467":
+        setSelectedIcon("81467.svg");
+        setIconHeight(20)
+        break;
+      case "5000":
+        setSelectedIcon("8453.svg");
+        setIconHeight(20)
       default:
         setSelectedIcon(null);
         break;
