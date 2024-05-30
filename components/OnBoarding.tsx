@@ -1,14 +1,14 @@
-import { Box, Center, Text, Image, Flex, Card } from "@mantine/core";
+import { Box, Center, Text, Image, Flex, Card, Button, Title } from "@mantine/core";
 import { ellipsis } from "../lib/ellipsis";
 
 interface OnBoardingProps {
     loadTx1: () => void;
     loadTx2: () => void;
     loadTx3: () => void;
+    openModal: () => void;
 }
 
-const OnBoarding = ({ loadTx1, loadTx2, loadTx3 }: OnBoardingProps) => {
-
+const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) => {
     const transactions = [
         {
             label: "Bridged swap",
@@ -60,6 +60,20 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3 }: OnBoardingProps) => {
                 <Image visibleFrom="md" alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={480} width={5} />
                 <Text visibleFrom="md" size="xl">I analyze.</Text>
             </Center>
+            <Flex visibleFrom="md" mt={20} mb={50} gap={20} justify="center">
+                <Center>
+                    <Text ta="center" c="gray">Or simulate a <em>new unsigned</em> transaction:</Text>
+                </Center>
+                <Button
+                    onClick={openModal}
+                    size="md"
+                    radius="md"
+                    variant="filled"
+                    autoContrast
+                >
+                    Simulate
+                </Button>
+            </Flex>
             <Center>
                 <Box>
                     <Text visibleFrom="md" mb={50} size="xl" style={{ textAlign: 'center' }}>The Future of Transaction Analysis</Text>
@@ -67,7 +81,7 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3 }: OnBoardingProps) => {
                     <Image px={20} hiddenFrom="md" alt="description" src="/text-mobile.svg" width="1000px" />
                 </Box>
             </Center>
-        </Box >
+        </Box>
     );
 };
 

@@ -447,7 +447,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           setShowOnboarding(true);
           updateUrlParams({ network: network, txHash: '' });
         }}
-        handleModal={openModal}
       />
       <SimulateTransaction
         simulateTransaction={simulateTransaction}
@@ -460,6 +459,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           loadTx1={() => handleLoadTxHash(examples.txHash1)}
           loadTx2={() => handleLoadTxHash(examples.txHash2)}
           loadTx3={() => handleLoadTxHash(examples.txHash3)}
+          openModal={openModal}
         />
       ) : (
         <Box>
