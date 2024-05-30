@@ -1,14 +1,14 @@
-import { Box, Center, Text, Image, Flex, Card } from "@mantine/core";
+import { Box, Center, Text, Image, Flex, Card, Button, Title } from "@mantine/core";
 import { ellipsis } from "../lib/ellipsis";
 
 interface OnBoardingProps {
     loadTx1: () => void;
     loadTx2: () => void;
     loadTx3: () => void;
+    openModal: () => void;
 }
 
-const OnBoarding = ({ loadTx1, loadTx2, loadTx3 }: OnBoardingProps) => {
-
+const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) => {
     const transactions = [
         {
             label: "Bridged swap",
@@ -29,7 +29,7 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3 }: OnBoardingProps) => {
 
     return (
         <Box>
-            <Flex visibleFrom="sm" mt={20} mb={50} gap={20} justify="center">
+            <Flex visibleFrom="md" mt={20} mb={50} gap={20} justify="center">
                 <Center>
                     <Text ta="center" c="gray">Explore our top intriguing transactions:</Text>
                 </Center>
@@ -42,7 +42,7 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3 }: OnBoardingProps) => {
                     </Card>
                 ))}
             </Flex>
-            <Box px={"3rem"} hiddenFrom="sm" mt={20} mb={50}>
+            <Box px={"3rem"} hiddenFrom="md" mt={20} mb={50}>
                 <Center>
                     <Text ta="center" c="gray">Explore our top intriguing transactions:</Text>
                 </Center>
@@ -57,9 +57,25 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3 }: OnBoardingProps) => {
             </Box>
             <Center display="flex" style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
                 <Text visibleFrom="md" size="xl">I understand.</Text>
-                <Image visibleFrom="md" alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={400} width={5} />
+                <Image visibleFrom="md" alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={480} width={5} />
                 <Text visibleFrom="md" size="xl">I analyze.</Text>
             </Center>
+            <Box visibleFrom="md" mt={20} mb={50}>
+                <Center>
+                    <Text ta="center" c="gray">Or simulate a <em>new unsigned</em> transaction (Preview):</Text>
+                </Center>
+                <Center mt={10}>
+                    <Button
+                        onClick={openModal}
+                        size="md"
+                        radius="md"
+                        variant="filled"
+                        autoContrast
+                    >
+                        Simulate Transaction
+                    </Button>
+                </Center>
+            </Box>
             <Center>
                 <Box>
                     <Text visibleFrom="md" mb={50} size="xl" style={{ textAlign: 'center' }}>The Future of Transaction Analysis</Text>
@@ -67,7 +83,7 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3 }: OnBoardingProps) => {
                     <Image px={20} hiddenFrom="md" alt="description" src="/text-mobile.svg" width="1000px" />
                 </Box>
             </Center>
-        </Box >
+        </Box>
     );
 };
 

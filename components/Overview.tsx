@@ -8,13 +8,15 @@ const Overview = React.memo(({
     isExplanationLoading,
     isSimulationLoading,
     setFeedbackModalOpen,
-    handleSubmit
+    handleSubmit,
+    isTxSimulationLoading
 }: {
     explanation: string | undefined
     isExplanationLoading: boolean,
     isSimulationLoading: boolean,
     setFeedbackModalOpen: (v: React.SetStateAction<boolean>) => void,
     handleSubmit: (e: React.FormEvent, token: string) => Promise<void>,
+    isTxSimulationLoading: boolean
 }) => {
     const { executeRecaptcha } = useGoogleReCaptcha();
 
@@ -28,7 +30,7 @@ const Overview = React.memo(({
 
     return (
         <Box visibleFrom="md" mt={20} w="50%" pos="relative">
-            <Box pos="absolute" top={-20} left={0} style={{ borderRadius: '10px 10px 0px 0px', width: '100%', textAlign: 'center', zIndex: '10' }} bg="eden" p={5}>
+            <Box bg={"eden.5"} pos="absolute" top={-20} left={0} style={{ borderRadius: '10px 10px 0px 0px', width: '100%', textAlign: 'center', zIndex: '10' }} p={5}>
                 <Title size="xs" order={2} c="dark">
                     Analysis
                 </Title>
@@ -37,12 +39,12 @@ const Overview = React.memo(({
                 {!explanation && !isExplanationLoading && !isSimulationLoading ? (
                     <Center display="flex" style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
                         <Box mt="xl">
-                            <Image alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={400} width={5} />
-                            <Button size="lg" autoContrast fullWidth onClick={handleFormSubmit}>
+                            <Image fit="contain" alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={400} width={5} />
+                            <Button bg={"eden.5"} size="lg" autoContrast fullWidth onClick={handleFormSubmit}>
                                 Explain Transaction
                             </Button>
                         </Box>
-                    </Center>) : isSimulationLoading ? (
+                    </Center>) : isSimulationLoading || isTxSimulationLoading ? (
                         <Box display="flex" style={{ justifyContent: 'center', margin: 'auto', height: '100%' }}>
                             <Loader ml={10} color="eden" size="xl" />
                         </Box>) : (
@@ -50,6 +52,7 @@ const Overview = React.memo(({
                         {explanation}
                         {explanation && (
                             <Button
+                                bg={"eden.5"}
                                 display="flex"
                                 m="auto"
                                 mt={50}
