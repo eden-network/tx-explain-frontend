@@ -60,20 +60,22 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) =
                 <Image visibleFrom="md" alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={480} width={5} />
                 <Text visibleFrom="md" size="xl">I analyze.</Text>
             </Center>
-            <Flex visibleFrom="md" mt={20} mb={50} gap={20} justify="center">
+            <Box visibleFrom="md" mt={20} mb={50}>
                 <Center>
-                    <Text ta="center" c="gray">Or simulate a <em>new unsigned</em> transaction:</Text>
+                    <Text ta="center" c="gray">Or simulate a <em>new unsigned</em> transaction (Preview):</Text>
                 </Center>
-                <Button
-                    onClick={openModal}
-                    size="md"
-                    radius="md"
-                    variant="filled"
-                    autoContrast
-                >
-                    Simulate
-                </Button>
-            </Flex>
+                <Center mt={10}>
+                    <Button
+                        onClick={openModal}
+                        size="md"
+                        radius="md"
+                        variant="filled"
+                        autoContrast
+                    >
+                        Simulate Transaction
+                    </Button>
+                </Center>
+            </Box>
             <Center>
                 <Box>
                     <Text visibleFrom="md" mb={50} size="xl" style={{ textAlign: 'center' }}>The Future of Transaction Analysis</Text>
