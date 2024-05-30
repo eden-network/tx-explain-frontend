@@ -65,6 +65,16 @@ const InputForm = ({
     handleNetworkChange(value || network);
   };
 
+  const networkOptions = [
+    { value: "1", label: "Ethereum" },
+    { value: "42161", label: "Arbitrum" },
+    { value: "43114", label: "Avalanche" },
+    { value: "8453", label: "Base" },
+    { value: "81467", label: "Blast" },
+    { value: "5000", label: "Mantle" },
+    { value: "10", label: "Optimism" },
+  ];
+
   return (
     <Box py="0.5rem">
       <form
@@ -92,15 +102,7 @@ const InputForm = ({
             placeholder="Select network"
             value={network}
             onChange={(value) => handleIconChange(value)}
-            data={[
-              { value: "1", label: "Ethereum" },
-              { value: "42161", label: "Arbitrum" },
-              { value: "10", label: "Optimism" },
-              { value: "43114", label: "Avalanche" },
-              { value: "81467", label: "Blast" },
-              { value: "5000", label: "Mantle" },
-              { value: "8453", label: "Base" },
-            ]}
+            data={networkOptions}
             maxDropdownHeight={400}
             required
           />
@@ -130,15 +132,7 @@ const InputForm = ({
             placeholder="Select network"
             value={network}
             onChange={(value) => handleIconChange(value)}
-            data={[
-              { value: "1", label: "Ethereum" },
-              { value: "42161", label: "Arbitrum" },
-              { value: "10", label: "Optimism" },
-              { value: "43114", label: "Avalanche" },
-              { value: "81467", label: "Blast" },
-              { value: "5000", label: "Mantle" },
-              { value: "8453", label: "Base" },
-            ]}
+            data={networkOptions}
             maxDropdownHeight={400}
             required
           />
