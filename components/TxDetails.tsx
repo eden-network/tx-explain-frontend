@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Flex, Space, Text, Textarea, Loader } from "@mantine/core";
+import { Box, Button, Flex, Space, Text, Textarea, Loader, Anchor, CopyButton } from "@mantine/core";
 import { formatUnits } from "viem";
 import { useTransaction, useBlock, useTransactionReceipt, useTransactionCount } from 'wagmi';
-import { CheckIcon } from '@modulz/radix-icons';
+import { CopyIcon, CheckIcon } from '@modulz/radix-icons';
+
+const explorerUrls: Record<number, string> = {
+    1: 'https://etherscan.io/tx/',
+    42161: 'https://arbiscan.io/tx/',
+    10: 'https://optimistic.etherscan.io/tx/',
+    43114: 'https:/https://snowtrace.io/tx/',
+    81467: 'https://https://blastscan.io//tx/',
+    5000: 'https://https://explorer.mantle.xyz/tx/',
+    8453: 'https:/https://basescan.org/tx/'
+};
 
 // Function to render a row of transaction details
-const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom }: { label: string, value: any, border?: string, isStatus?: boolean, color?: string, borderBottom?: string }) => {
+const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom, link }: { label: string, value: any, border?: string, isStatus?: boolean, color?: string, borderBottom?: string, link?: string }) => {
     return (
         <Box display={{ md: "flex" }} mb="12px" style={{ borderBottom: borderBottom, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             <Box w="20%">
@@ -17,20 +27,36 @@ const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom }: { 
                     style={{ width: 'fit-content', border: border, borderRadius: '4px', alignItems: 'center', color: color, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                 >
                     {isStatus && <CheckIcon color='#B0FF09' />}
-                    <Text
-                        truncate
-                        px={3}
-                        style={{ width: 'fit-content', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                        size={isStatus ? "xs" : "sm"}
-                        c={color}
-                    >
-                        {value ?? 'N/A'}
-                    </Text>
+                    {link ? (
+                        <>
+                            <Anchor c={"white"} size='sm' style={{ width: 'fit-content', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} truncate px={3} href={link} target="_blank" >
+                                {value ?? 'N/A'}
+                            </Anchor>
+                            <CopyButton value={link}>
+                                {({ copied, copy }) => (
+                                    <Button ml={10} px={5} py={0} size='xs' color={'dark'} onClick={copy}>
+                                        <CopyIcon color={copied ? "#b6ff1c" : "white"} width={10} />
+                                    </Button>
+                                )}
+                            </CopyButton>
+                        </>
+                    ) : (
+                        <Text
+                            truncate
+                            px={3}
+                            style={{ width: 'fit-content', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                            size={isStatus ? "xs" : "sm"}
+                            c={color}
+                        >
+                            {value ?? 'N/A'}
+                        </Text>
+                    )}
                 </Flex>
             </Box>
         </Box >
     );
 }
+
 
 const TxDetails = ({
     transactionHash,
@@ -86,7 +112,7 @@ const TxDetails = ({
         { label: "Status:", value: transactionReceipt?.status, border: "1px solid #B0FF09", isStatus: true, color: "eden" },
         { label: "Block Number:", value: currentTx?.blockNumber.toString() },
         { label: "Chain ID:", value: currentTx?.chainId },
-        { label: "Tx Hash:", value: currentTx?.hash },
+        { label: "Tx Hash:", value: currentTx?.hash, link: explorerUrls[chainId] + currentTx?.hash },  // Adding link here
         { label: "Position In Block:", value: txIndex },
         { label: "From:", value: currentTx?.from },
         { label: "To:", value: currentTx?.to },
@@ -112,6 +138,7 @@ const TxDetails = ({
                     border={detail.border}
                     color={detail.color}
                     isStatus={detail.isStatus}
+                    link={detail.link}
                 />
             ))}
             <Box visibleFrom='md' display="flex">

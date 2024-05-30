@@ -23,6 +23,7 @@ import FunctionCalls from './FunctionCalls';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import OverviewMobile from './OverviewMobile';
 import SimulateTransaction from './SimulateTx';
+import { IconFlagShare } from '@tabler/icons-react';
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
@@ -152,8 +153,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             [`${network}:${txHash}`]: explanation,
           }));
           setIsTxSimulationLoading(false)
-          console.log(simulationData);
-          console.log(explanation);
           setExplanation(explanation)
         }
       } else {
@@ -189,6 +188,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     transactionIndex: number,
     currentBlockNumber: number,
   }) => {
+    setIsTxSimulationLoading(true)
     const txHash = `0x99999${Math.random().toString(16).substring(2, 62)}`;
     if (!executeRecaptcha || typeof executeRecaptcha !== 'function') {
       throw new Error('reCAPTCHA verification failed');
@@ -234,10 +234,12 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         await fetchExplanation(data.result, recaptchaToken);
       } else {
         alert(`Transaction simulation failed: ${data.message}`);
+        setIsTxSimulationLoading(false)
       }
     } catch (error) {
       console.error('Error simulating transaction:', error);
       alert('An error occurred during transaction simulation');
+      setIsTxSimulationLoading(false)
     }
   }, [executeRecaptcha, fetchExplanation]);
 
@@ -451,6 +453,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         simulateTransaction={simulateTransaction}
         onClose={closeModal}
         opened={isSimulateModalOpened}
+        isTxLoading={isTxSimulationLoading}
       />
       {showOnboarding ? (
         <OnBoarding
