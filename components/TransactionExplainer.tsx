@@ -231,8 +231,10 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           ...prevCache,
           [`${network}:${txHash}`]: data.result as TransactionSimulation,
         }));
+        
+        const explanationRecaptchaToken = await executeRecaptcha('fetchExplanation');
 
-        await fetchExplanation(data.result, recaptchaToken);
+        await fetchExplanation(data.result, explanationRecaptchaToken);
       } else {
         alert(`Transaction simulation failed: ${data.message}`);
         setIsTxSimulationLoading(false)

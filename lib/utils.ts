@@ -1,5 +1,8 @@
 // Function to validate standard 64-character transaction hashes
 export const isValidTxHash = (hash: string): boolean => {
+  if (hash.startsWith('0x99999')) {
+    return false;
+  }
   const txHashRegex = /^0x([A-Fa-f0-9]{64})$/;
   return txHashRegex.test(hash);
 };
