@@ -521,7 +521,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                       {isValidSimTxHash(txHash) && (
                         <Tabs.Tab value="overview">
                           <Text size='sm'>
-                            Simulation inputs
+                            Simulation Inputs
                           </Text>
                         </Tabs.Tab>
                       )}
@@ -540,7 +540,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                           currentTxIndex={currentTxIndex}
                         />
                       )}
-
                     </Tabs.Panel>
                     <Tabs.Panel value='overview'>
                       {isValidSimTxHash(txHash) && (
