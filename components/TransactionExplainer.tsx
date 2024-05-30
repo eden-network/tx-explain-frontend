@@ -5,7 +5,7 @@ import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text, Button } fr
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
-import { isValidTxHash, getNetworkName } from '../lib/utils';
+import { isValidTxHash, getNetworkName, isValidSimTxHash } from '../lib/utils';
 import ModelEditor from './ModelEditor';
 import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
@@ -24,6 +24,7 @@ import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import OverviewMobile from './OverviewMobile';
 import SimulateTransaction from './SimulateTx';
 import { IconFlagShare } from '@tabler/icons-react';
+import SimulationInputs from './SimulationINputs';
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
@@ -48,6 +49,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [mobileActiveTab, setMobileActiveTab] = useState<string | null>('overview');
   const [isSimulateModalOpened, setIsSimulateModalOpened] = useState(false);
   const [isSimulationTransaction, setIsSimulationTransaction] = useState(false)
+  const [simulationInputs, setSimulationInputs] = useState<{ [key: string]: any } | null>(null);
 
   const openModal = () => setIsSimulateModalOpened(true);
   const closeModal = () => setIsSimulateModalOpened(false);
@@ -90,8 +92,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       const data = await response.json();
       setIsTxSimulationLoading(false)
       setIsDetailsLoading(false)
-      data.result.asset_changes.length === 0 ? setActiveTab('function-calls') : setActiveTab('details')
-
       setSimulationDataCache((prevCache) => ({
         ...prevCache,
         [`${network}:${txHash}`]: data.result as TransactionSimulation,
@@ -207,6 +207,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       transaction_index: transactionIndex,
       recaptcha_token: recaptchaToken,
     };
+    setSimulationInputs(payload)
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/simulate_pending`, {
@@ -224,13 +225,14 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         setIsSimulateModalOpened(false)
         setTxHash(txHash)
         setNetwork(networkId)
+        setActiveTab('simulation')
         setIsSimulationTransaction(true)
         updateUrlParams({ network: networkId, txHash })
         setSimulationDataCache((prevCache) => ({
           ...prevCache,
           [`${network}:${txHash}`]: data.result as TransactionSimulation,
         }));
-        data.result.asset_changes.length === 0 ? setActiveTab('function-calls') : setActiveTab('details')
+
         await fetchExplanation(data.result, recaptchaToken);
       } else {
         alert(`Transaction simulation failed: ${data.message}`);
@@ -405,19 +407,16 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   useEffect(() => {
     if (txHash === '') {
       setShowOnboarding(true);
-      setIsSimulationTransaction(false)
     } else if (txHash && showOnboarding) {
       setShowOnboarding(false);
     }
   }, [txHash, showOnboarding]);
 
   useEffect(() => {
-    setError('')
-  }, [txHash]);
-
-  useEffect(() => {
     setIsExplanationLoading(false)
-
+    setExplanation('')
+    setError('')
+    setActiveTab('overview')
   }, [txHash]);
 
   const handleLoadTxHash = (txHash: string) => {
@@ -463,7 +462,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         />
       ) : (
         <Box>
-          {!isSimulationTransaction && (
+          {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>
               <Flex gap={10} mb={{ md: "20" }}>
                 <Image
@@ -506,16 +505,23 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
               {error}
             </Alert>
           )}
-          <Flex mt={isSimulationTransaction ? 50 : 20} gap="xl">
+          <Flex mt={isValidTxHash(txHash) ? 20 : 50} gap="xl">
             {txHash && (
               <>
                 <Flex visibleFrom='md' w="50%" direction="column">
                   <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
                     <Tabs.List mb={20}>
-                      {!isSimulationTransaction && (
+                      {isValidTxHash(txHash) && (
                         <Tabs.Tab value="overview">
                           <Text size='sm'>
                             Overview
+                          </Text>
+                        </Tabs.Tab>
+                      )}
+                      {isValidSimTxHash(txHash) && (
+                        <Tabs.Tab value="overview">
+                          <Text size='sm'>
+                            Simulation inputs
                           </Text>
                         </Tabs.Tab>
                       )}
@@ -527,13 +533,20 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                       </Tabs.Tab>
                     </Tabs.List>
                     <Tabs.Panel value="overview">
-                      {isValidTxHash(txHash) && !isSimulationTransaction && (
+                      {isValidTxHash(txHash) && (
                         <TxDetails
                           chainId={chainId}
                           transactionHash={txHash as `0x${string}`}
                           currentTxIndex={currentTxIndex}
                         />
                       )}
+
+                    </Tabs.Panel>
+                    <Tabs.Panel value='overview'>
+                      {isValidSimTxHash(txHash) && (
+                        <SimulationInputs inputs={simulationInputs} />
+                      )
+                      }
                     </Tabs.Panel>
                     <Tabs.Panel value="details">
                       {simulationDataCache[`${network}:${txHash}`] && (

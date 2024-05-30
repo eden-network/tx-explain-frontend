@@ -9,7 +9,7 @@ const explorerUrls: Record<number, string> = {
     42161: 'https://arbiscan.io/tx/',
     10: 'https://optimistic.etherscan.io/tx/',
     43114: 'https:/https://snowtrace.io/tx/',
-    81467: 'https://https://blastscan.io//tx/',
+    81467: 'https://https://blastscan.io/tx/',
     5000: 'https://https://explorer.mantle.xyz/tx/',
     8453: 'https:/https://basescan.org/tx/'
 };
@@ -112,7 +112,7 @@ const TxDetails = ({
         { label: "Status:", value: transactionReceipt?.status, border: "1px solid #B0FF09", isStatus: true, color: "eden" },
         { label: "Block Number:", value: currentTx?.blockNumber.toString() },
         { label: "Chain ID:", value: currentTx?.chainId },
-        { label: "Tx Hash:", value: currentTx?.hash, link: explorerUrls[chainId] + currentTx?.hash },  // Adding link here
+        { label: "Tx Hash:", value: currentTx?.hash, link: explorerUrls[chainId] + currentTx?.hash },
         { label: "Position In Block:", value: txIndex },
         { label: "From:", value: currentTx?.from },
         { label: "To:", value: currentTx?.to },

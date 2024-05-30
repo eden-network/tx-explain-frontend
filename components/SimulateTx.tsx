@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, TextInput, Button, Select, Modal, Center, Textarea, Flex, Image } from '@mantine/core';
 import { useBlockNumber } from 'wagmi';
+import { TransactionSimulation } from '../types';
 
 interface SimulateTx {
     simulateTransaction: (params: {
@@ -26,7 +27,7 @@ const SimulateTransaction: React.FC<SimulateTx> = ({ simulateTransaction, opened
     const [input, setInput] = useState('');
     const [transactionIndex, setTransactionIndex] = useState('');
     const [networkId, setNetworkId] = useState<string | null>('1');
-    const [currentBlockNumber, setCurrentBlockNumber] = useState<string>('19966950');
+    const [currentBlockNumber, setCurrentBlockNumber] = useState<string>('');
     const [iconHeight, setIconHeight] = useState(20);
     const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
 
@@ -38,7 +39,7 @@ const SimulateTransaction: React.FC<SimulateTx> = ({ simulateTransaction, opened
         if (latestBlockNumber) {
             setCurrentBlockNumber(latestBlockNumber.toString());
         }
-    }, [latestBlockNumber, networkId]);
+    }, [latestBlockNumber]);
 
     const handleSimulateTransaction = async () => {
         await simulateTransaction({

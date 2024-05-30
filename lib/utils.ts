@@ -1,8 +1,12 @@
+// Function to validate standard 64-character transaction hashes
 export const isValidTxHash = (hash: string): boolean => {
   const txHashRegex = /^0x([A-Fa-f0-9]{64})$/;
-  const txHashLength66Regex = /^0x([A-Fa-f0-9]{66})$/;
+  return txHashRegex.test(hash);
+};
 
-  return txHashRegex.test(hash) || txHashLength66Regex.test(hash);
+// Function to validate 66-character transaction hashes
+export const isValidSimTxHash = (hash: string): boolean => {
+  return hash.startsWith('0x99999');
 };
 
 

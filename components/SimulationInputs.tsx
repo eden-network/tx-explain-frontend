@@ -4,14 +4,14 @@ import { Box, Text } from '@mantine/core';
 const SimulationInputs: React.FC<{ inputs: any }> = ({ inputs }) => {
     return (
         <Box>
-            <Text><strong>Network ID:</strong> {inputs.networkId}</Text>
-            <Text><strong>From Address:</strong> {inputs.fromAddress}</Text>
-            <Text><strong>To Address:</strong> {inputs.toAddress}</Text>
-            <Text><strong>Gas:</strong> {inputs.gas}</Text>
-            <Text><strong>Value:</strong> {inputs.value}</Text>
-            <Text><strong>Input:</strong> {inputs.input}</Text>
-            <Text><strong>Transaction Index:</strong> {inputs.transactionIndex}</Text>
-            <Text><strong>Current Block Number:</strong> {inputs.currentBlockNumber}</Text>
+            <Text>Network ID: {inputs.network_id}</Text>
+            <Text>From Address: {inputs.from_address}</Text>
+            <Text>To Address: {inputs.to_address}</Text>
+            <Text>Gas: {inputs.gas}</Text>
+            <Text>Value:{inputs.value}</Text>
+            <Text>Input: {inputs.input}</Text>
+            <Text>Transaction Index: {inputs.transaction_index}</Text>
+            <Text>Block Number: {inputs.block_number}</Text>
         </Box>
     );
 };
