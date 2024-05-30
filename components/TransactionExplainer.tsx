@@ -23,8 +23,7 @@ import FunctionCalls from './FunctionCalls';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import OverviewMobile from './OverviewMobile';
 import SimulateTransaction from './SimulateTx';
-import { IconFlagShare } from '@tabler/icons-react';
-import SimulationInputs from './SimulationINputs';
+import SimulationInputs from './SimulationInputs';
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
