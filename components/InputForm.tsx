@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { isSimulationTxHash } from '../lib/utils';
 
-
 const InputForm = ({
   handleSubmit,
   network,
@@ -39,12 +38,10 @@ const InputForm = ({
       case "42161":
         setSelectedIcon("42161.svg");
         setIconHeight(20)
-
         break;
       case "10":
         setSelectedIcon("/10.svg");
         setIconHeight(20)
-
         break;
       case "43114":
         setSelectedIcon("43114.svg");
@@ -104,6 +101,7 @@ const InputForm = ({
               { value: "5000", label: "Mantle" },
               { value: "8453", label: "Base" },
             ]}
+            maxDropdownHeight={400}
             required
           />
           <TextInput
@@ -141,6 +139,7 @@ const InputForm = ({
               { value: "5000", label: "Mantle" },
               { value: "8453", label: "Base" },
             ]}
+            maxDropdownHeight={400}
             required
           />
           <TextInput
