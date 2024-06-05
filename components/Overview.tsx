@@ -1,7 +1,8 @@
-import { Box, Button, Card, Group, Loader, Title, Center, Image, Text } from "@mantine/core"
+import { Box, Button, Card, Group, Loader, Title, Center, Image, Text, Badge, Flex } from "@mantine/core"
 import { IconSend } from "@tabler/icons-react"
 import React from "react"
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { Categories } from "../types";
 
 const Overview = React.memo(({
     explanation,
@@ -9,14 +10,18 @@ const Overview = React.memo(({
     isSimulationLoading,
     setFeedbackModalOpen,
     handleSubmit,
-    isTxSimulationLoading
+    isTxSimulationLoading,
+    categories,
+    isCategoriesLoading
 }: {
     explanation: string | undefined
     isExplanationLoading: boolean,
     isSimulationLoading: boolean,
     setFeedbackModalOpen: (v: React.SetStateAction<boolean>) => void,
     handleSubmit: (e: React.FormEvent, token: string) => Promise<void>,
-    isTxSimulationLoading: boolean
+    isTxSimulationLoading: boolean,
+    categories: Categories
+    isCategoriesLoading: boolean
 }) => {
     const { executeRecaptcha } = useGoogleReCaptcha();
 
@@ -49,6 +54,18 @@ const Overview = React.memo(({
                             <Loader ml={10} color="eden" size="xl" />
                         </Box>) : (
                     <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Bw Modelica, sans-serif' }}>
+                        <Flex align={"center"} mb={20}>
+                            <Text mr={10}>Categories:</Text>
+                            {isCategoriesLoading ? (
+                                <Loader type='dots' size={"xs"} />
+                            ) : (
+                                <>
+                                    {categories.labels.map((category: string, index: number) => (
+                                        <Badge variant="outline" autoContrast mr={10} key={index}>{category}</Badge>
+                                    ))}
+                                </>
+                            )}
+                        </Flex>
                         {explanation}
                         {explanation && (
                             <Button
@@ -67,7 +84,7 @@ const Overview = React.memo(({
                 )
                 }
             </Card>
-        </Box>
+        </Box >
     )
 })
 
