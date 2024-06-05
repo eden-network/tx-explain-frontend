@@ -177,7 +177,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
     const body = JSON.stringify({
       tx_hash: txHash,
-      recaptcha_token: token
+      network_id: network,
+      recaptcha_token: token,
     });
 
     try {
@@ -189,7 +190,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         },
         body: body,
       })
-      const data = await response.json(); // Get the response as text
+      const data = await response.json();
       const dataObj = JSON.parse(data)
 
       if (dataObj.labels.length === 0) {
@@ -197,7 +198,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         setCategories({ labels: ["No categories found"], probabilities: [] });
       } else if (dataObj.labels) {
         setIsCategoriesLoading(false)
-        setCategories(dataObj); // Set categories state
+        setCategories(dataObj);
       }
     } catch (error) {
       if (error instanceof Error) {
