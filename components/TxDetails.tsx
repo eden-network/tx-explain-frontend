@@ -17,7 +17,7 @@ const explorerUrls: Record<number, string> = {
 // Function to render a row of transaction details
 const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom, link }: { label: string, value: any, border?: string, isStatus?: boolean, color?: string, borderBottom?: string, link?: string }) => {
     return (
-        <Box display={{ md: "flex" }} mb="12px" style={{ borderBottom: borderBottom, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <Box display={{ md: "flex" }} mb="12px" style={{ borderBottom: borderBottom, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', alignItems: 'center' }}>
             <Box w="20%">
                 <Text style={{ whiteSpace: "nowrap", color: "gray" }} size="sm">{label}</Text>
             </Box>
