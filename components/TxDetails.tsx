@@ -8,10 +8,10 @@ const explorerUrls: Record<number, string> = {
     1: 'https://etherscan.io/tx/',
     42161: 'https://arbiscan.io/tx/',
     10: 'https://optimistic.etherscan.io/tx/',
-    43114: 'https:/https://snowtrace.io/tx/',
-    81467: 'https://https://blastscan.io/tx/',
-    5000: 'https://https://explorer.mantle.xyz/tx/',
-    8453: 'https:/https://basescan.org/tx/'
+    43114: 'https://snowtrace.io/tx/',
+    81467: 'https://blastscan.io/tx/',
+    5000: 'https://explorer.mantle.xyz/tx/',
+    8453: 'https://basescan.org/tx/'
 };
 
 // Function to render a row of transaction details
@@ -72,6 +72,7 @@ const TxDetails = ({
         hash: transactionHash,
         chainId: chainId
     });
+
 
     // Fetch block details related to the transaction
     const block = useBlock({

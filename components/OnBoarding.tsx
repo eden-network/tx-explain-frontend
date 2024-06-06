@@ -66,6 +66,7 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) =
                 </Center>
                 <Center mt={10}>
                     <Button
+                        bg={"eden.5"}
                         onClick={openModal}
                         size="md"
                         radius="md"

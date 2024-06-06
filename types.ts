@@ -49,3 +49,8 @@ export interface TransactionSimulation {
     call_trace: FunctionCall[];
     asset_changes: AssetChange[];
 }
+
+export interface Categories {
+    labels: string[];
+    probabilities: number[];
+}

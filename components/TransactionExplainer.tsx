@@ -9,7 +9,7 @@ import { isValidTxHash, getNetworkName, isSimulationTxHash } from '../lib/utils'
 import ModelEditor from './ModelEditor';
 import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
-import { TransactionSimulation } from '../types';
+import { TransactionSimulation, Categories } from '../types';
 import Wrapper from './Wrapper';
 import { isDevEnvironment, isLocalEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
@@ -49,6 +49,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [isSimulateModalOpened, setIsSimulateModalOpened] = useState(false);
   const [isSimulationTransaction, setIsSimulationTransaction] = useState(false)
   const [simulationInputs, setSimulationInputs] = useState<{ [key: string]: any } | null>(null);
+  const [categories, setCategories] = useState<Categories>({ labels: [], probabilities: [] });
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState<boolean>(false)
 
   const openModal = () => setIsSimulateModalOpened(true);
   const closeModal = () => setIsSimulateModalOpened(false);
@@ -67,6 +69,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       }
       setIsDetailsLoading(true)
       setIsExplanationLoading(true)
+      setCategories({ labels: [], probabilities: [] })
+      setIsCategoriesLoading(true)
       const recaptchaToken = await executeRecaptcha('fetchSimulation');
       const body = JSON.stringify({ network_id: network, tx_hash: txHash, recaptcha_token: recaptchaToken });
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/fetch_and_simulate`, {
@@ -165,8 +169,44 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       }
     } finally {
       setIsExplanationLoading(false);
+      if (isValidTxHash(txHash))
+        categorizeTransaction(txHash, token)
     }
   }, [network, txHash, model, systemPrompt, forceRefresh]);
+
+  const categorizeTransaction = useCallback(async (txHash: string, token: string) => {
+    const body = JSON.stringify({
+      tx_hash: txHash,
+      network_id: network,
+      recaptcha_token: token,
+    });
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/categorize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+        },
+        body: body,
+      })
+      const data = await response.json();
+      if (data.labels.length === 0 || data === undefined) {
+        setIsCategoriesLoading(false)
+        setCategories({ labels: ["No categories found"], probabilities: [] });
+      } else if (data.labels) {
+        setIsCategoriesLoading(false)
+        setCategories(data);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+        setIsCategoriesLoading(false)
+        setCategories({ labels: ["No categories found"], probabilities: [] });
+      } else {
+        setError('Failed to categorize transaction');
+      }
+    }
+  }, [network, txHash])
 
   const simulateTransaction = useCallback(async ({
     networkId,
@@ -231,7 +271,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           ...prevCache,
           [`${network}:${txHash}`]: data.result as TransactionSimulation,
         }));
-        
+
         const explanationRecaptchaToken = await executeRecaptcha('fetchExplanation');
 
         await fetchExplanation(data.result, explanationRecaptchaToken);
@@ -258,7 +298,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     if (!showOnboarding) {
       setIsExplanationLoading(true);
       const simulation = await refetchSimulation();
-
       const cachedExplanation = explanationCache[`${network}:${txHash}`];
 
       if (!cachedExplanation || forceRefresh) {
@@ -418,6 +457,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     setExplanation('')
     setError('')
     setActiveTab('overview')
+    setCurrentTxIndex(transaction?.transactionIndex ?? null)
+    setCategories({ labels: [], probabilities: [] })
   }, [txHash]);
 
   const handleLoadTxHash = (txHash: string) => {
@@ -598,12 +639,15 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             )}
             {txHash && (
               <Overview
-                explanation={explanationCache[`${network}:${txHash}`] === '' ? explanationCache[`${network}:${txHash}`] : explanation}
+                explanation={explanation === '' ? explanationCache[`${network}:${txHash}`] : explanation}
                 isExplanationLoading={isExplanationLoading}
                 isSimulationLoading={isSimulationLoading}
                 setFeedbackModalOpen={setFeedbackModalOpen}
                 handleSubmit={handleSearch}
                 isTxSimulationLoading={isTxSimulationLoading}
+                categories={categories}
+                isCategoriesLoading={isCategoriesLoading}
+                isAnalyzedTx={isValidTxHash(txHash)}
               />
             )}
           </Flex>
