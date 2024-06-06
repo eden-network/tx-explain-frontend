@@ -171,11 +171,13 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       if (!executeRecaptcha || typeof executeRecaptcha !== 'function') {
         throw new Error('reCAPTCHA verification failed');
       }
-      const categorizeRecaptchaToken = await executeRecaptcha('categorize');
       setIsExplanationLoading(false);
 
-      if (isValidTxHash(txHash))
-        categorizeTransaction(txHash, network, categorizeRecaptchaToken)
+      if (isValidTxHash(txHash)) {
+        const categorizeRecaptchaToken = await executeRecaptcha('categorize');
+
+        await categorizeTransaction(txHash, network, categorizeRecaptchaToken);
+      }
     }
   }, [network, txHash, model, systemPrompt, forceRefresh]);
 

@@ -28,7 +28,7 @@ const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom, link
                 >
                     {isStatus && <CheckIcon color='#B0FF09' />}
                     {link ? (
-                        <>
+                        <Flex align={"center"}>
                             <Anchor c={"white"} size='sm' style={{ width: 'fit-content', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} truncate px={3} href={link} target="_blank" >
                                 {value ?? 'N/A'}
                             </Anchor>
@@ -39,7 +39,7 @@ const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom, link
                                     </Button>
                                 )}
                             </CopyButton>
-                        </>
+                        </Flex>
                     ) : (
                         <Text
                             truncate
