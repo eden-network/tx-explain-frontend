@@ -641,6 +641,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                         isSimulationLoading={isSimulationLoading}
                         setFeedbackModalOpen={setFeedbackModalOpen}
                         handleSubmit={handleSearch}
+                        categories={categories}
+                        isCategoriesLoading={isCategoriesLoading}
                       />
                     </Tabs.Panel>
                   </Tabs>
