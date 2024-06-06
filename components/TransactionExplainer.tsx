@@ -169,17 +169,20 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       }
     } finally {
       setIsExplanationLoading(false);
+
       if (isValidTxHash(txHash))
-        categorizeTransaction(txHash, token)
+        categorizeTransaction(txHash, network, token)
     }
   }, [network, txHash, model, systemPrompt, forceRefresh]);
 
-  const categorizeTransaction = useCallback(async (txHash: string, token: string) => {
+  const categorizeTransaction = useCallback(async (txHash: string, network: string, token: string) => {
+
     const body = JSON.stringify({
       tx_hash: txHash,
       network_id: network,
       recaptcha_token: token,
     });
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/categorize`, {
         method: 'POST',
@@ -190,6 +193,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         body: body,
       })
       const data = await response.json();
+
       if (data.labels.length === 0 || data === undefined) {
         setIsCategoriesLoading(false)
         setCategories({ labels: ["No categories found"], probabilities: [] });
