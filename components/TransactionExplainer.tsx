@@ -170,15 +170,10 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         setError('Failed to fetch transaction explanation');
       }
     } finally {
-      if (!executeRecaptcha || typeof executeRecaptcha !== 'function') {
-        throw new Error('reCAPTCHA verification failed');
-      }
       setIsExplanationLoading(false);
 
       if (isValidTxHash(txHash)) {
-        const categorizeRecaptchaToken = await executeRecaptcha('categorize');
-
-        await categorizeTransaction(txHash, network, categorizeRecaptchaToken);
+        await categorizeTransaction(txHash, network, token);
       }
     }
   }, [network, txHash, model, systemPrompt, forceRefresh]);
