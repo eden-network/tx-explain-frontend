@@ -313,9 +313,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   const handleSearch = async (e: React.FormEvent, token: string) => {
     e.preventDefault();
-    if (!executeRecaptcha || typeof executeRecaptcha !== 'function') {
-      throw new Error('reCAPTCHA verification failed');
-    }
     if (!isValidTxHash(txHash)) {
       const networkName = getNetworkName(network);
       setError(`Please enter a valid ${networkName} transaction hash`);
@@ -332,8 +329,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         await fetchExplanation(simulation.data!, token);
       }
 
-      const categorizeRecaptchaToken = await executeRecaptcha('categorize_search');
-      await categorizeTransaction(txHash, network, categorizeRecaptchaToken);
+      if (isValidTxHash(txHash)) {
+        await categorizeTransaction(txHash, network, token);
+      }
     }
   };
 
