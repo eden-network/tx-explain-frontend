@@ -329,7 +329,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         await fetchExplanation(simulation.data!, token);
       }
 
-      if (isValidTxHash(txHash)) {
+      if (!categoriesCache && isValidTxHash(txHash)) {
         await categorizeTransaction(txHash, network, token);
       }
     }
