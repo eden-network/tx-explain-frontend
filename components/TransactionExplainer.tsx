@@ -119,9 +119,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         [`${network}:${txHash}`]: '',
       }));
 
-      console.log(explanationCache[`${network}:${txHash}`])
-
-
       const body = JSON.stringify({
         transactions: [simulationData],
         model,
