@@ -332,7 +332,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         await fetchExplanation(simulation.data!, token);
       }
 
-      const categorizeRecaptchaToken = await executeRecaptcha('categorize');
+      const categorizeRecaptchaToken = await executeRecaptcha('categorize_search');
       await categorizeTransaction(txHash, network, categorizeRecaptchaToken);
     }
   };
