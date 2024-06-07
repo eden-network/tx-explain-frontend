@@ -4,11 +4,12 @@ import { AppProps } from 'next/app';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import '@mantine/core/styles.css';
-import { createTheme, MantineProvider, useMantineColorScheme, ColorSchemeScript } from '@mantine/core';
+import { createTheme, MantineProvider, ColorSchemeScript } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { WagmiProvider } from 'wagmi'
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import { config } from '../config'
+import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 
 
 const queryClient = new QueryClient();
@@ -64,39 +65,46 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <MantineProvider forceColorScheme={"dark"} defaultColorScheme='dark' theme={theme}>
-          <ColorSchemeScript forceColorScheme={"dark"} defaultColorScheme='dark' />
-          <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}>
-            <Head>
-              <title>Explain | Eden Network</title>
-              <meta name="description" content="Tx Explain is an agent-like open source service that takes a transaction and returns a human-readable description of what happened." />
-              <meta
-                name="viewport"
-                content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
+        <RainbowKitProvider theme={darkTheme({
+          accentColor: "#87c900",
+          accentColorForeground: "#000000",
+          borderRadius: "small",
+          fontStack: "system",
+        })}>
+          <MantineProvider forceColorScheme={"dark"} defaultColorScheme='dark' theme={theme}>
+            <ColorSchemeScript forceColorScheme={"dark"} defaultColorScheme='dark' />
+            <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}>
+              <Head>
+                <title>Explain | Eden Network</title>
+                <meta name="description" content="Tx Explain is an agent-like open source service that takes a transaction and returns a human-readable description of what happened." />
+                <meta
+                  name="viewport"
+                  content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
+                />
+                <link rel='icon' href='/favicon.png' />
+                {/* Open Graph Meta Tags */}
+                <meta property="og:title" content="Explain | Eden Network" />
+                <meta property="og:description" content="Tx Explain is an agent-like open source service that takes a transaction and returns a human-readable description of what happened." />
+                <meta property="og:image" content="https://tx-explain.edennetwork.io/tx-explain.jpeg" />
+                <meta property="og:url" content="https://edennetwork.io" />
+                <meta property="og:type" content="website" />
+                {/* Twitter Meta Tags */}
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="Explain | Eden Network" />
+                <meta name="twitter:description" content="Tx Explain is an agent-like open source service that takes a transaction and returns a human-readable description of what happened." />
+                <meta name="twitter:image" content="https://tx-explain.edennetwork.io/tx-explain.jpeg" />
+                <meta name="twitter:site" content="@EdenNetwork" />
+              </Head>
+              <Component {...pageProps} showOnboarding={showOnboarding} setShowOnboarding={setShowOnboarding} />
+              <ReactQueryDevtools initialIsOpen={false} />
+              <Notifications
+                pos="fixed"
+                right={'1rem'}
+                top={'1rem'}
               />
-              <link rel='icon' href='/favicon.png' />
-              {/* Open Graph Meta Tags */}
-              <meta property="og:title" content="Explain | Eden Network" />
-              <meta property="og:description" content="Tx Explain is an agent-like open source service that takes a transaction and returns a human-readable description of what happened." />
-              <meta property="og:image" content="https://tx-explain.edennetwork.io/tx-explain.jpeg" />
-              <meta property="og:url" content="https://edennetwork.io" />
-              <meta property="og:type" content="website" />
-              {/* Twitter Meta Tags */}
-              <meta name="twitter:card" content="summary_large_image" />
-              <meta name="twitter:title" content="Explain | Eden Network" />
-              <meta name="twitter:description" content="Tx Explain is an agent-like open source service that takes a transaction and returns a human-readable description of what happened." />
-              <meta name="twitter:image" content="https://tx-explain.edennetwork.io/tx-explain.jpeg" />
-              <meta name="twitter:site" content="@EdenNetwork" />
-            </Head>
-            <Component {...pageProps} showOnboarding={showOnboarding} setShowOnboarding={setShowOnboarding} />
-            <ReactQueryDevtools initialIsOpen={false} />
-            <Notifications
-              pos="fixed"
-              right={'1rem'}
-              top={'1rem'}
-            />
-          </GoogleReCaptchaProvider>
-        </MantineProvider>
+            </GoogleReCaptchaProvider>
+          </MantineProvider>
+        </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider >
   );

@@ -1,4 +1,5 @@
 import { Flex, Box, Image, ActionIcon, Button } from "@mantine/core";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import InputForm from './InputForm';
 
 interface HeaderProps {
@@ -63,6 +64,7 @@ const Header: React.FC<HeaderProps> = ({
               <Image src={icon.icon} />
             </ActionIcon>
           ))}
+          <ConnectButton />
         </Flex>
       </Flex>
       <Box hiddenFrom="md">

@@ -1,7 +1,13 @@
-import { http, createConfig } from 'wagmi'
+import '@rainbow-me/rainbowkit/styles.css';
+import {
+  getDefaultConfig,
+} from '@rainbow-me/rainbowkit';
+import { http } from 'wagmi'
 import { mainnet, sepolia, optimism, arbitrum, blast, mantle, base, avalanche } from 'wagmi/chains'
 
-export const config = createConfig({
+export const config = getDefaultConfig({
+  appName: 'Tx Explain',
+  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_KEY || "",
   chains: [mainnet, sepolia, optimism, arbitrum, avalanche, blast, mantle, base],
   transports: {
     [mainnet.id]: http(),
@@ -13,4 +19,5 @@ export const config = createConfig({
     [base.id]: http(),
     [avalanche.id]: http(),
   },
-})
+  ssr: false, // If your dApp uses server side rendering (SSR)
+});
