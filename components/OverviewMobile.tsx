@@ -1,20 +1,25 @@
-import { Box, Button, Card, Group, Loader, Title, Center, Image, Text } from "@mantine/core"
+import { Box, Button, Card, Badge, Loader, Flex, Center, Image, Text } from "@mantine/core"
 import { IconSend } from "@tabler/icons-react"
 import React from "react"
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { Categories } from "../types";
 
 const OverviewMobile = React.memo(({
     explanation,
     isExplanationLoading,
     isSimulationLoading,
     setFeedbackModalOpen,
-    handleSubmit
+    handleSubmit,
+    categories,
+    isCategoriesLoading
 }: {
     explanation: string | undefined
     isExplanationLoading: boolean,
     isSimulationLoading: boolean,
     setFeedbackModalOpen: (v: React.SetStateAction<boolean>) => void,
     handleSubmit: (e: React.FormEvent, token: string) => Promise<void>,
+    categories: Categories,
+    isCategoriesLoading: boolean
 }) => {
     const { executeRecaptcha } = useGoogleReCaptcha();
 
@@ -42,6 +47,18 @@ const OverviewMobile = React.memo(({
                             <Loader ml={10} color="eden" size="xl" />
                         </Box>) : (
                     <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Bw Modelica, sans-serif' }}>
+                        <Box mb={20}>
+                            <Text mr={10}>Categories:</Text>
+                            {isCategoriesLoading ? (
+                                <Loader type='dots' size={"xs"} />
+                            ) : (
+                                <>
+                                    {categories.labels.map((category: string, index: number) => (
+                                        <Badge mr={5} mb={5} variant="outline" autoContrast key={index}>{category}</Badge>
+                                    ))}
+                                </>
+                            )}
+                        </Box>
                         {explanation}
                         {explanation && (
                             <Button

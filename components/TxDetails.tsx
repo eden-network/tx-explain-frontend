@@ -8,16 +8,16 @@ const explorerUrls: Record<number, string> = {
     1: 'https://etherscan.io/tx/',
     42161: 'https://arbiscan.io/tx/',
     10: 'https://optimistic.etherscan.io/tx/',
-    43114: 'https:/https://snowtrace.io/tx/',
-    81467: 'https://https://blastscan.io/tx/',
-    5000: 'https://https://explorer.mantle.xyz/tx/',
-    8453: 'https:/https://basescan.org/tx/'
+    43114: 'https://snowtrace.io/tx/',
+    81467: 'https://blastscan.io/tx/',
+    5000: 'https://explorer.mantle.xyz/tx/',
+    8453: 'https://basescan.org/tx/'
 };
 
 // Function to render a row of transaction details
 const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom, link }: { label: string, value: any, border?: string, isStatus?: boolean, color?: string, borderBottom?: string, link?: string }) => {
     return (
-        <Box display={{ md: "flex" }} mb="12px" style={{ borderBottom: borderBottom, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <Box display={{ md: "flex" }} mb="12px" style={{ borderBottom: borderBottom, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', alignItems: 'center' }}>
             <Box w="20%">
                 <Text style={{ whiteSpace: "nowrap", color: "gray" }} size="sm">{label}</Text>
             </Box>
@@ -28,7 +28,7 @@ const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom, link
                 >
                     {isStatus && <CheckIcon color='#B0FF09' />}
                     {link ? (
-                        <>
+                        <Flex align={"center"}>
                             <Anchor c={"white"} size='sm' style={{ width: 'fit-content', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} truncate px={3} href={link} target="_blank" >
                                 {value ?? 'N/A'}
                             </Anchor>
@@ -39,7 +39,7 @@ const TxDetailRow = ({ label, value, border, isStatus, color, borderBottom, link
                                     </Button>
                                 )}
                             </CopyButton>
-                        </>
+                        </Flex>
                     ) : (
                         <Text
                             truncate
@@ -72,6 +72,7 @@ const TxDetails = ({
         hash: transactionHash,
         chainId: chainId
     });
+
 
     // Fetch block details related to the transaction
     const block = useBlock({
