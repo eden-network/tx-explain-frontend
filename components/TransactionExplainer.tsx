@@ -136,6 +136,11 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         body: body,
       });
 
+      if (!executeRecaptcha || typeof executeRecaptcha !== 'function') {
+        throw new Error('reCAPTCHA verification failed');
+      }
+      const categorizeRecaptchaToken = await executeRecaptcha('categorize');
+
       if (!response.ok) {
         const errorResponse = await response.json();
         throw new Error(errorResponse.error || 'An unknown error occurred');
@@ -160,6 +165,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           setIsTxSimulationLoading(false)
           setExplanation(explanation)
         }
+        if (isValidTxHash(txHash)) {
+          await categorizeTransaction(txHash, network, categorizeRecaptchaToken);
+        }
       } else {
         throw new Error('Failed to read explanation stream');
       }
@@ -170,16 +178,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         setError('Failed to fetch transaction explanation');
       }
     } finally {
-      if (!executeRecaptcha || typeof executeRecaptcha !== 'function') {
-        throw new Error('reCAPTCHA verification failed');
-      }
       setIsExplanationLoading(false);
-
-      if (isValidTxHash(txHash)) {
-        const categorizeRecaptchaToken = await executeRecaptcha('categorize');
-
-        await categorizeTransaction(txHash, network, categorizeRecaptchaToken);
-      }
     }
   }, [network, txHash, model, systemPrompt, forceRefresh]);
 
