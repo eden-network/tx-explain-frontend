@@ -42,8 +42,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [isExplanationLoading, setIsExplanationLoading] = useState(false);
   const [isTxSimulationLoading, setIsTxSimulationLoading] = useState(false);
-  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const { executeRecaptcha } = useGoogleReCaptcha();
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string | null>('overview');
   const [mobileActiveTab, setMobileActiveTab] = useState<string | null>('overview');
   const [isSimulateModalOpened, setIsSimulateModalOpened] = useState(false);
@@ -52,7 +52,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [categories, setCategories] = useState<Categories>({ labels: [], probabilities: [] });
   const [isCategoriesLoading, setIsCategoriesLoading] = useState<boolean>(false)
   const [categoriesCache, setCategoriesCache] = useState<Record<string, Categories>>({});
-
 
   const openModal = () => setIsSimulateModalOpened(true);
   const closeModal = () => setIsSimulateModalOpened(false);
@@ -110,6 +109,10 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   const fetchExplanation = useCallback(async (simulationData: TransactionSimulation, token: string) => {
     if (!simulationData) return;
+
+    if (!executeRecaptcha || typeof executeRecaptcha !== 'function' || !token) {
+      throw new Error('reCAPTCHA verification failed');
+    }
     try {
       setIsExplanationLoading(true);
       setIsExplanationLoading(true)
@@ -136,9 +139,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         body: body,
       });
 
-      if (!executeRecaptcha || typeof executeRecaptcha !== 'function') {
-        throw new Error('reCAPTCHA verification failed');
-      }
       const categorizeRecaptchaToken = await executeRecaptcha('categorize');
 
       if (!response.ok) {
@@ -180,7 +180,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     } finally {
       setIsExplanationLoading(false);
     }
-  }, [network, txHash, model, systemPrompt, forceRefresh]);
+  }, [network, txHash, model, systemPrompt, forceRefresh, executeRecaptcha]);
 
   const categorizeTransaction = useCallback(async (txHash: string, network: string, token: string) => {
 
@@ -299,6 +299,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         const explanationRecaptchaToken = await executeRecaptcha('fetchExplanation');
 
         await fetchExplanation(data.result, explanationRecaptchaToken);
+
       } else {
         alert(`Transaction simulation failed: ${data.message}`);
         setIsTxSimulationLoading(false)
@@ -312,6 +313,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   const handleSearch = async (e: React.FormEvent, token: string) => {
     e.preventDefault();
+
     if (!isValidTxHash(txHash)) {
       const networkName = getNetworkName(network);
       setError(`Please enter a valid ${networkName} transaction hash`);
