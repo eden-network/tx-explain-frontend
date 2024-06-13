@@ -50,10 +50,7 @@ const ChatModal = ({
                 }
             ];
 
-            const sessionId = {
-                uuid: uuidv4(),
-                txHash: txHash
-            };
+            const sessionId = `${uuidv4()}-${txHash}`;
 
             const body = JSON.stringify({
                 input_json: {
