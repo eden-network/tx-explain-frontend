@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Modal, Button, TextInput } from '@mantine/core';
+import { useState, useEffect, useRef } from 'react';
+import { Modal, Button, TextInput, Center, Flex, ScrollArea, Text, Box, Loader } from '@mantine/core';
 import { TransactionSimulation } from '../types';
 import { TransactionDetails } from '../types';
+const { v4: uuidv4 } = require('uuid');
 
 interface Message {
     id: number;
@@ -13,19 +14,30 @@ const ChatModal = ({
     transactionSimulation,
     explanation,
     transactionOverview,
-    txHash
+    txHash,
+    networkId
 }: {
     transactionSimulation: TransactionSimulation,
     explanation: string | undefined,
     transactionOverview: TransactionDetails | null,
-    txHash: string
+    txHash: string,
+    networkId: string
 }) => {
     const [opened, setOpened] = useState(false);
     const [message, setMessage] = useState('');
+    const [isLoading, setIsLoading] = useState<boolean>(false)
     const [messages, setMessages] = useState<Message[]>([]);
+    const viewport = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (viewport.current) {
+            viewport.current.scrollTo({ top: viewport.current.scrollHeight, behavior: 'smooth' });
+        }
+    }, [messages]);
 
     const handleSendChatMessage = async () => {
         console.log(transactionOverview);
+        setIsLoading(true)
 
         try {
             // Append the new user message to the full conversation
@@ -37,6 +49,11 @@ const ChatModal = ({
                     content: message
                 }
             ];
+
+            const sessionId = {
+                uuid: uuidv4(),
+                txHash: txHash
+            };
 
             const body = JSON.stringify({
                 input_json: {
@@ -59,8 +76,8 @@ const ChatModal = ({
                         ]
                     }))
                 },
-                network_id: '1',
-                session_id: '1'
+                network_id: networkId,
+                session_id: sessionId
             });
 
             console.log("Request body:", body);
@@ -73,8 +90,9 @@ const ChatModal = ({
                 },
                 body: body,
             });
-
+            setIsLoading(false)
             if (response.ok) {
+
                 const data = await response.json();
                 console.log("API response:", data.output);
 
@@ -105,38 +123,66 @@ const ChatModal = ({
         }
     };
 
-
-
+    useEffect(() => {
+        setMessages([])
+    }, [txHash])
 
 
     return (
         <>
-            <Button onClick={() => setOpened(true)}>Open Chat</Button>
+            <Center>
+                {explanation &&
+                    <Button
+
+                        mb={20}
+                        autoContrast
+                        bg={"eden.5"}
+                        onClick={() => setOpened(true)}>
+                        Open Chat
+                    </Button>
+                }
+            </Center>
             <Modal
+                padding={"xl"}
+                fullScreen
                 w={"1000px"}
                 opened={opened}
                 onClose={() => setOpened(false)}
                 title="Chat"
-                size="lg"
+                lockScroll={false}
             >
-                <div style={{ height: '300px', overflowY: 'auto' }}>
+                <ScrollArea viewportRef={viewport} style={{ height: '70vh' }} >
+                    {explanation && (
+                        <Text size='sm' component="pre" style={{ whiteSpace: 'pre-wrap' }}>
+                            {explanation}
+                        </Text>
+                    )}
                     {messages.map((msg) => (
-                        <div key={msg.id}>
-                            <div><strong>{msg.role === 'user' ? 'User' : 'Assistant'}:</strong> {msg.content}</div>
-                        </div>
+                        <Box>
+                            <Text size='sm' component="pre" style={{ whiteSpace: 'pre-wrap' }}>
+                                <strong>{msg.role === 'user' ? 'User' : 'Assistant'}:</strong> {msg.content}
+                            </Text>
+                        </Box>
                     ))}
-                </div>
-                <div style={{ display: 'flex', marginTop: '16px' }}>
+                    {isLoading && (
+                        <Center mt="md">
+                            <Loader type='dots' size={"lg"} />
+                        </Center>
+                    )}
+                </ScrollArea>
+                <Flex mt={"xl"}>
                     <TextInput
+                        size='md'
+                        h={"100%"}
                         placeholder="Type your message"
                         value={message}
                         onChange={(event) => setMessage(event.target.value)}
                         style={{ flexGrow: 1 }}
                     />
-                    <Button onClick={handleSendChatMessage} style={{ marginLeft: '8px' }}>
+                    <Button px={"xl"} size='md' loading={isLoading} onClick={handleSendChatMessage} style={{ marginLeft: '8px' }}>
                         Send
                     </Button>
-                </div>
+                </Flex>
             </Modal>
         </>
     )

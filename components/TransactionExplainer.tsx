@@ -60,10 +60,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const openModal = () => setIsSimulateModalOpened(true);
   const closeModal = () => setIsSimulateModalOpened(false);
 
-  const handleTransactionDetails = (details: TransactionDetails) => {
-    setTransactionDetails(details);
-  };
-
   // useEffect(() => {
   //   if (transactionDetails) {
   //     console.log(transactionDetails);
@@ -520,6 +516,10 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     txHash3: '0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95',
   };
 
+  const handleTransactionDetails = (details: TransactionDetails) => {
+    setTransactionDetails(details);
+  };
+
   return (
     <Wrapper>
       <Header
@@ -554,6 +554,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             explanation={explanation === '' ? explanationCache[`${network}:${txHash}`] : explanation}
             transactionOverview={transactionDetails}
             txHash={txHash}
+            networkId={network}
           />
           {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>

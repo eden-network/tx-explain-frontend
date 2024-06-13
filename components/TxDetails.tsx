@@ -175,12 +175,12 @@ const TxDetails = ({
                 />
             ))}
             <Box visibleFrom='md' display="flex">
-                <Text style={{ color: 'gray' }} w="20%" size="sm">Input Data:</Text>
+                <Text component='span' style={{ color: 'gray' }} w="20%" size="sm">Input Data:</Text>
                 <Textarea maxRows={1} w="80%" resize='vertical' readOnly name='input' value={currentTx?.input}>
                 </Textarea>
             </Box>
             <Box hiddenFrom='md'>
-                <Text style={{ color: 'gray' }} w="20%" size="sm">Input Data:</Text>
+                <Text component='span' style={{ color: 'gray' }} w="20%" size="sm">Input Data:</Text>
                 <Textarea maxRows={1} w="80%" resize='vertical' readOnly name='input' value={currentTx?.input}>
                 </Textarea>
             </Box>
