@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Modal, Button, TextInput, Center, Flex, ScrollArea, Text, Box, Loader } from '@mantine/core';
+import { getHotkeyHandler } from '@mantine/hooks';
 import { TransactionSimulation } from '../types';
 import { TransactionDetails } from '../types';
 const { v4: uuidv4 } = require('uuid');
@@ -168,6 +169,9 @@ const ChatModal = ({
                 </ScrollArea>
                 <Flex mt={"xl"}>
                     <TextInput
+                        onKeyDown={getHotkeyHandler([
+                            ['Enter', handleSendChatMessage],
+                        ])}
                         size='md'
                         h={"100%"}
                         placeholder="Type your message"
