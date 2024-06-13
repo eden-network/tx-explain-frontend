@@ -25,6 +25,7 @@ import OverviewMobile from './OverviewMobile';
 import SimulateTransaction from './SimulateTx';
 import SimulationInputs from './SimulationInputs';
 import ChatModal from './ChatModal';
+import { TransactionDetails } from '../types';
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
@@ -53,9 +54,22 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [categories, setCategories] = useState<Categories>({ labels: [], probabilities: [] });
   const [isCategoriesLoading, setIsCategoriesLoading] = useState<boolean>(false)
   const [categoriesCache, setCategoriesCache] = useState<Record<string, Categories>>({});
+  const [transactionDetails, setTransactionDetails] = useState<TransactionDetails | null>(null);
+
 
   const openModal = () => setIsSimulateModalOpened(true);
   const closeModal = () => setIsSimulateModalOpened(false);
+
+  const handleTransactionDetails = (details: TransactionDetails) => {
+    setTransactionDetails(details);
+  };
+
+  // useEffect(() => {
+  //   if (transactionDetails) {
+  //     console.log(transactionDetails);
+  //   }
+  // }, [txHash]); 
+
 
   const {
     data: simulationData,
@@ -538,6 +552,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           <ChatModal
             transactionSimulation={simulationDataCache[`${network}:${txHash}`]}
             explanation={explanation === '' ? explanationCache[`${network}:${txHash}`] : explanation}
+            transactionOverview={transactionDetails}
+            txHash={txHash}
           />
           {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>
@@ -615,6 +631,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                           chainId={chainId}
                           transactionHash={txHash as `0x${string}`}
                           currentTxIndex={currentTxIndex}
+                          onTransactionDetails={handleTransactionDetails}
                         />
                       )}
                     </Tabs.Panel>
@@ -656,6 +673,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                           chainId={chainId}
                           transactionHash={txHash as `0x${string}`}
                           currentTxIndex={currentTxIndex}
+                          onTransactionDetails={handleTransactionDetails}
                         />
                       )}
                     </Tabs.Panel>

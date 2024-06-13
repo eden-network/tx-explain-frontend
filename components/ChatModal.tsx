@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Button, TextInput } from '@mantine/core';
 import { TransactionSimulation } from '../types';
+import { TransactionDetails } from '../types';
 
 interface Message {
     id: number;
@@ -10,16 +11,22 @@ interface Message {
 
 const ChatModal = ({
     transactionSimulation,
-    explanation
+    explanation,
+    transactionOverview,
+    txHash
 }: {
     transactionSimulation: TransactionSimulation,
-    explanation: string | undefined
+    explanation: string | undefined,
+    transactionOverview: TransactionDetails | null,
+    txHash: string
 }) => {
     const [opened, setOpened] = useState(false);
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
 
     const handleSendChatMessage = async () => {
+        console.log(transactionOverview);
+
         try {
             // Append the new user message to the full conversation
             const updatedMessages = [
@@ -39,6 +46,7 @@ const ChatModal = ({
                     "system": {
                         "system_prompt": "",
                         "transaction_details": transactionSimulation,
+                        "transaction_overivew": transactionOverview,
                         "transaction_explanation": explanation
                     },
                     "messages": updatedMessages.map(msg => ({
@@ -97,7 +105,9 @@ const ChatModal = ({
         }
     };
 
-    console.log(messages);
+
+
+
 
     return (
         <>
