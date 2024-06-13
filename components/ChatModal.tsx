@@ -157,11 +157,10 @@ const ChatModal = ({
                             {explanation}
                         </Text>
                     )}
-                    {messages.map((msg) => (
-                        <Box>
+                    {messages.map((msg, index) => (
+                        <Box key={index}>
                             <Text size='sm' component="pre" style={{ whiteSpace: 'pre-wrap' }}>
-                                <strong>{msg.role === 'user' ? 'User' : 'Assistant'}:</strong> {msg.content}
-                            </Text>
+                                <strong>{msg.role === 'user' ? 'User' : 'Assistant'}:</strong> {msg.content}                            </Text>
                         </Box>
                     ))}
                     {isLoading && (
