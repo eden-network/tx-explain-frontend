@@ -34,9 +34,12 @@ const ChatModal = ({
         if (viewport.current) {
             viewport.current.scrollTo({ top: viewport.current.scrollHeight, behavior: 'smooth' });
         }
-    }, [messages]);
+    }, [messages, isLoading]);
 
     const handleSendChatMessage = async () => {
+        if (viewport.current) {
+            viewport.current.scrollTo({ top: viewport.current.scrollHeight, behavior: 'smooth' });
+        }
         console.log(transactionOverview);
         setIsLoading(true)
 
@@ -151,20 +154,21 @@ const ChatModal = ({
             >
                 <ScrollArea viewportRef={viewport} style={{ height: '70vh' }} >
                     {explanation && (
-                        <Text size='sm' component="pre" style={{ whiteSpace: 'pre-wrap' }}>
+                        <Text mb={30} size='sm' component="pre" style={{ whiteSpace: 'pre-wrap' }}>
                             {explanation}
                         </Text>
                     )}
                     {messages.map((msg, index) => (
                         <Box key={index}>
-                            <Text size='sm' component="pre" style={{ whiteSpace: 'pre-wrap' }}>
+                            <Text c={msg.role === 'user' ? 'eden.5' : 'white'} mb={10} size='sm' component="pre" style={{ whiteSpace: 'pre-wrap' }}>
                                 <strong>{msg.role === 'user' ? 'User' : 'Assistant'}:</strong> {msg.content}                            </Text>
                         </Box>
                     ))}
                     {isLoading && (
-                        <Center mt="md">
-                            <Loader type='dots' size={"lg"} />
-                        </Center>
+                        <Flex align={"center"}>
+                            <strong>Assistant:</strong>
+                            <Loader ml={20} type='dots' size={"lg"} />
+                        </Flex>
                     )}
                 </ScrollArea>
                 <Flex mt={"xl"}>
@@ -179,7 +183,7 @@ const ChatModal = ({
                         onChange={(event) => setMessage(event.target.value)}
                         style={{ flexGrow: 1 }}
                     />
-                    <Button px={"xl"} size='md' loading={isLoading} onClick={handleSendChatMessage} style={{ marginLeft: '8px' }}>
+                    <Button autoContrast bg={"eden.5"} px={"xl"} size='md' loading={isLoading} onClick={handleSendChatMessage} style={{ marginLeft: '8px' }}>
                         Send
                     </Button>
                 </Flex>
