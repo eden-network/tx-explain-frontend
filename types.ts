@@ -54,3 +54,26 @@ export interface Categories {
     labels: string[];
     probabilities: number[];
 }
+
+export interface TransactionDetails {
+    "Status:": string | undefined;
+    "Block Number:": string | undefined;
+    "Chain ID:": number | undefined;
+    "Tx Hash:": {
+        value: `0x${string}` | undefined;
+        link: string | undefined;
+    };
+    "Position In Block:": number | undefined;
+    "From:": `0x${string}` | undefined;
+    "To:": `0x${string}` | null | undefined;
+    "Value:": string;
+    "Nonce:": number | undefined;
+    "Gas Used:": string | undefined;
+    "TypeHex:": `0x${string}` | null | undefined;
+    "Type:": "legacy" | "eip2930" | "eip1559" | "eip4844" | undefined;
+    "Transaction Fee:": string | undefined;
+    "Gas Price:": string | undefined;
+    "Base:": string | undefined;
+    "Max:": string | undefined;
+    "Max Priority:": string | undefined;
+};

@@ -24,6 +24,7 @@ import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import OverviewMobile from './OverviewMobile';
 import SimulateTransaction from './SimulateTx';
 import SimulationInputs from './SimulationInputs';
+import ChatModal from './ChatModal';
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
@@ -534,6 +535,10 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         />
       ) : (
         <Box>
+          <ChatModal
+            transactionSimulation={simulationDataCache[`${network}:${txHash}`]}
+            explanation={explanation === '' ? explanationCache[`${network}:${txHash}`] : explanation}
+          />
           {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>
               <Flex gap={10} mb={{ md: "20" }}>

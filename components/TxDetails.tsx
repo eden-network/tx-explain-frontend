@@ -3,6 +3,7 @@ import { Box, Button, Flex, Space, Text, Textarea, Loader, Anchor, CopyButton } 
 import { formatUnits } from "viem";
 import { useTransaction, useBlock, useTransactionReceipt, useTransactionCount } from 'wagmi';
 import { CopyIcon, CheckIcon } from '@modulz/radix-icons';
+import { TransactionDetails } from '../types';
 
 const explorerUrls: Record<number, string> = {
     1: 'https://etherscan.io/tx/',
