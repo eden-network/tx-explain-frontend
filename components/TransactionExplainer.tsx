@@ -55,6 +55,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [isCategoriesLoading, setIsCategoriesLoading] = useState<boolean>(false)
   const [categoriesCache, setCategoriesCache] = useState<Record<string, Categories>>({});
   const [transactionDetails, setTransactionDetails] = useState<TransactionDetails | null>(null);
+  const [chatModalOpened, setChatModalOpened] = useState(false)
 
 
   const openModal = () => setIsSimulateModalOpened(true);
@@ -555,6 +556,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             transactionOverview={transactionDetails}
             txHash={txHash}
             networkId={network}
+            opened={chatModalOpened}
+            setOpened={setChatModalOpened}
           />
           {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>
@@ -704,6 +707,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                 categories={categoriesCache[`${network}:${txHash}`] || categories}
                 isCategoriesLoading={isCategoriesLoading}
                 isAnalyzedTx={isValidTxHash(txHash)}
+                setChatModalOpened={() => setChatModalOpened(!chatModalOpened)}
               />
             )}
           </Flex>
