@@ -135,7 +135,7 @@ const ChatModal = ({
                     }
                 ]);
 
-                console.log("Updated messages state:", updatedMessages);
+                console.log("Updated messages state", updatedMessages);
 
                 setMessage(''); // Clear the input field
             } else {
