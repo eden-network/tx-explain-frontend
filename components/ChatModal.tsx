@@ -34,7 +34,8 @@ const ChatModal = ({
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [messages, setMessages] = useState<Message[]>([]);
-    const viewport = useRef<HTMLDivElement>(null);
+    const viewportDesktop = useRef<HTMLDivElement>(null);
+    const viewportMobile = useRef<HTMLDivElement>(null);
 
     const explorerUrls: { [key: string]: string } = {
         '1': 'https://etherscan.io/tx/',
@@ -48,15 +49,20 @@ const ChatModal = ({
 
     const explorerUrl = explorerUrls[networkId] || ''
     useEffect(() => {
-        if (viewport.current) {
-            viewport.current.scrollTo({ top: viewport.current.scrollHeight, behavior: 'smooth' });
+        if (viewportDesktop.current) {
+            viewportDesktop.current.scrollTo({ top: viewportDesktop.current.scrollHeight, behavior: 'smooth' });
         }
+        if (viewportMobile.current) {
+            viewportMobile.current.scrollTo({ top: viewportMobile.current.scrollHeight, behavior: 'smooth' });
+        }
+
+
     }, [messages, isLoading]);
 
     const handleSendChatMessage = async () => {
-        if (viewport.current) {
-            viewport.current.scrollTo({ top: viewport.current.scrollHeight, behavior: 'smooth' });
-        }
+        // if (viewport.current) {
+        //     viewport.current.scrollTo({ top: viewport.current.scrollHeight, behavior: 'smooth' });
+        // }
         console.log(transactionOverview);
         setIsLoading(true)
 
@@ -177,7 +183,7 @@ const ChatModal = ({
                 }}
             >
                 <Center pb={20} px={60}>
-                    <ScrollArea pt={20} viewportRef={viewport} style={{ height: '50vh' }} pr={30}>
+                    <ScrollArea pt={20} viewportRef={viewportDesktop} style={{ height: '50vh', width: '100%' }} pr={30}>
                         {explanation && (
                             <Flex>
                                 <Image mr={10} style={{ mixBlendMode: 'screen' }} mb={'auto'} width={40} height={40} src={"/agent.svg"} />
@@ -235,11 +241,9 @@ const ChatModal = ({
                     </Button>
                 </Flex>
             </Modal>
-            sxCopy<Modal
+            <Modal
                 hiddenFrom='md'
-                radius={'lg'}
                 fullScreen
-                size={"xl"}
                 opened={opened}
                 onClose={() => setOpened(false)}
                 title={
@@ -259,47 +263,46 @@ const ChatModal = ({
                     icon: <CrossCircledIcon width={30} height={30} />,
                 }}
             >
-                <Center pb={20}>
-                    <ScrollArea pt={20} viewportRef={viewport} style={{ height: '65vh', width: '100%' }}>
-                        {explanation && (
-                            <Flex>
-                                <Image mr={10} style={{ mixBlendMode: 'screen' }} mb={'auto'} width={30} height={30} src={"/agent.svg"} />
-                                <Box py={10} px={20} style={{ borderRadius: '10px', border: '1px solid rgb(89 89 108)', width: '100%' }}>
-                                    <Text size='xs' style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
-                                        {explanation}
+
+                <ScrollArea viewportRef={viewportMobile} pt={20} style={{ height: '65vh' }}>
+                    {explanation && (
+                        <Flex>
+                            <Image mr={10} style={{ mixBlendMode: 'screen' }} mb={'auto'} width={30} height={30} src={"/agent.svg"} />
+                            <Box w={'60vw'} py={10} px={20} style={{ borderRadius: '10px', border: '1px solid rgb(89 89 108)' }}>
+                                <Text size='xs' component="pre" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
+                                    {explanation}
+                                </Text>
+                            </Box>
+                        </Flex>
+                    )}
+                    {messages.map((msg, index) => (
+                        <Box key={index} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start', width: '100%' }}>
+                            {msg.role === 'user' ? (
+                                <Box c={'eden.5'} my={10} py={5} px={10} style={{ borderRadius: '10px', maxWidth: '70%', border: '1px solid #bfff38' }}>
+                                    <Text size='xs' component="pre" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
+                                        {msg.content}
                                     </Text>
                                 </Box>
-                            </Flex>
-                        )}
-                        {messages.map((msg, index) => (
-                            <Box key={index} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start', width: '100%' }}>
-                                {msg.role === 'user' ? (
-                                    <Box c={'eden.5'} my={10} py={10} px={10} style={{ borderRadius: '10px', maxWidth: '70%', border: '1px solid #bfff38' }}>
+                            ) : (
+                                <Flex style={{ width: '100%' }}>
+                                    <Image mr={10} style={{ mixBlendMode: 'screen' }} mb={'auto'} width={40} height={40} src={"/agent.svg"} />
+                                    <Box style={{ borderRadius: '10px', padding: '10px', width: '100%', border: '1px solid rgb(89 89 108)' }}>
                                         <Text size='xs' component="pre" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
                                             {msg.content}
                                         </Text>
                                     </Box>
-                                ) : (
-                                    <Flex mb={20} style={{ width: '100%' }}>
-                                        <Image mr={10} style={{ mixBlendMode: 'screen' }} mb={'auto'} width={40} height={40} src={"/agent.svg"} />
-                                        <Box style={{ borderRadius: '10px', padding: '10px', width: '100%', border: '1px solid rgb(89 89 108)' }}>
-                                            <Text size='xs' component="pre" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
-                                                {msg.content}
-                                            </Text>
-                                        </Box>
-                                    </Flex>
-                                )}
-                            </Box>
-                        ))}
-                        {isLoading && (
-                            <Flex mt={20} mb={20} align="center">
-                                <Image style={{ mixBlendMode: 'screen' }} mb={'auto'} width={40} height={40} src={"/agent.svg"} />
-                                {/* <strong>Assistantt:</strong> */}
-                                <Loader ml={20} type='dots' size="sm" />
-                            </Flex>
-                        )}
-                    </ScrollArea>
-                </Center>
+                                </Flex>
+                            )}
+                        </Box>
+                    ))}
+                    {isLoading && (
+                        <Flex mt={20} mb={20} align="center">
+                            <Image style={{ mixBlendMode: 'screen' }} mb={'auto'} width={30} height={30} src={"/agent.svg"} />
+                            {/* <strong>Assistantt:</strong> */}
+                            <Loader ml={20} type='dots' size="sm" />
+                        </Flex>
+                    )}
+                </ScrollArea>
                 <Flex mt={"xl"}>
                     <TextInput
                         disabled={isLoading}
@@ -317,7 +320,7 @@ const ChatModal = ({
                         Send
                     </Button>
                 </Flex>
-            </Modal>
+            </Modal >
         </>
     )
 }
