@@ -154,6 +154,7 @@ const ChatModal = ({
     return (
         <>
             <Modal
+                visibleFrom='md'
                 radius={'lg'}
                 padding={"xl"}
                 size={"xl"}
@@ -230,6 +231,88 @@ const ChatModal = ({
                         style={{ flexGrow: 1 }}
                     />
                     <Button autoContrast bg={"eden.5"} px={"xl"} size='md' loading={isLoading} onClick={handleSendChatMessage} style={{ marginLeft: '8px' }}>
+                        Send
+                    </Button>
+                </Flex>
+            </Modal>
+            <Modal
+                hiddenFrom='md'
+                radius={'lg'}
+                fullScreen
+                size={"xl"}
+                opened={opened}
+                onClose={() => setOpened(false)}
+                title={
+                    <Flex align="center">
+                        <Text size='xs' fw={'700'} mr={10}>Chat about transaction: </Text>
+                        <Anchor size='xs' fw={'700'} href={`${explorerUrl}${txHash}`} target="_blank">
+                            {ellipsis(txHash)}
+                        </Anchor>
+                    </Flex>}
+                lockScroll={false}
+                overlayProps={{
+                    backgroundOpacity: 0.55,
+                    blur: 3,
+                }}
+                closeButtonProps={{
+                    icon: <CrossCircledIcon width={30} height={30} />,
+                }}
+            >
+                <Center pb={20}>
+                    <ScrollArea pt={20} viewportRef={viewport} style={{ height: '70vh' }}>
+                        {explanation && (
+                            <Flex>
+                                <Image mr={10} style={{ mixBlendMode: 'screen' }} mb={'auto'} width={30} height={30} src={"/agent.svg"} />
+                                <Box mb={20} py={10} px={20} style={{ borderRadius: '10px', border: '1px solid  rgb(89 89 108)' }}>
+                                    <Text mb={30} size='xs' component="pre" style={{ whiteSpace: 'pre-wrap' }}>
+                                        {explanation}
+                                    </Text>
+                                </Box>
+                            </Flex>
+                        )}
+                        {messages.map((msg, index) => (
+                            <Box key={index} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                                {msg.role === 'user' ? (
+                                    <Box c={'eden.5'} mb={20} py={10} px={10} style={{ borderRadius: '10px', maxWidth: '70%', border: '1px solid  #bfff38' }}>
+                                        <Text size='xs' component="pre" style={{ whiteSpace: 'pre-wrap' }}>
+                                            {msg.content}
+                                        </Text>
+                                    </Box>
+                                ) : (
+                                    <>
+                                        <Image mr={10} style={{ mixBlendMode: 'screen' }} mb={'auto'} width={40} height={40} src={"/agent.svg"} />
+                                        <Box mb={20} style={{ borderRadius: '10px', padding: '10px', MaxWidth: '100%', border: '1px solid rgb(89 89 108)' }}>
+                                            <Text size='xs' component="pre" style={{ whiteSpace: 'pre-wrap' }}>
+                                                {msg.content}
+                                            </Text>
+                                        </Box>
+                                    </>
+                                )}
+                            </Box>
+                        ))}
+                        {isLoading && (
+                            <Flex mt={20} mb={20} align="center">
+                                <Image style={{ mixBlendMode: 'screen' }} mb={'auto'} width={40} height={40} src={"/agent.svg"} />
+                                {/* <strong>Assistantt:</strong> */}
+                                <Loader ml={20} type='dots' size="sm" />
+                            </Flex>
+                        )}
+                    </ScrollArea>
+                </Center>
+                <Flex mt={"xl"}>
+                    <TextInput
+                        disabled={isLoading}
+                        onKeyDown={getHotkeyHandler([
+                            ['Enter', handleSendChatMessage],
+                        ])}
+                        size='xs'
+                        h={"100%"}
+                        placeholder={isLoading ? 'Loading...' : 'Type your message'}
+                        value={message}
+                        onChange={(event) => setMessage(event.target.value)}
+                        style={{ flexGrow: 1 }}
+                    />
+                    <Button autoContrast bg={"eden.5"} px={"xl"} size='xs' loading={isLoading} onClick={handleSendChatMessage} style={{ marginLeft: '8px' }}>
                         Send
                     </Button>
                 </Flex>

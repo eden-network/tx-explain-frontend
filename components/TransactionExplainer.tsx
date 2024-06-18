@@ -690,6 +690,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                         handleSubmit={handleSearch}
                         categories={categoriesCache[`${network}:${txHash}`] || categories}
                         isCategoriesLoading={isCategoriesLoading}
+                        setChatModalOpened={() => setChatModalOpened(!chatModalOpened)}
                       />
                     </Tabs.Panel>
                   </Tabs>
