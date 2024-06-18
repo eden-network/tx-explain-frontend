@@ -235,7 +235,7 @@ const ChatModal = ({
                     </Button>
                 </Flex>
             </Modal>
-            <Modal
+            sxCopy<Modal
                 hiddenFrom='md'
                 radius={'lg'}
                 fullScreen
@@ -248,7 +248,8 @@ const ChatModal = ({
                         <Anchor size='xs' fw={'700'} href={`${explorerUrl}${txHash}`} target="_blank">
                             {ellipsis(txHash)}
                         </Anchor>
-                    </Flex>}
+                    </Flex>
+                }
                 lockScroll={false}
                 overlayProps={{
                     backgroundOpacity: 0.55,
@@ -259,34 +260,34 @@ const ChatModal = ({
                 }}
             >
                 <Center pb={20}>
-                    <ScrollArea pt={20} viewportRef={viewport} style={{ height: '70vh' }}>
+                    <ScrollArea pt={20} viewportRef={viewport} style={{ height: '65vh', width: '100%' }}>
                         {explanation && (
                             <Flex>
                                 <Image mr={10} style={{ mixBlendMode: 'screen' }} mb={'auto'} width={30} height={30} src={"/agent.svg"} />
-                                <Box mb={20} py={10} px={20} style={{ borderRadius: '10px', border: '1px solid  rgb(89 89 108)' }}>
-                                    <Text mb={30} size='xs' component="pre" style={{ whiteSpace: 'pre-wrap' }}>
+                                <Box py={10} px={20} style={{ borderRadius: '10px', border: '1px solid rgb(89 89 108)', width: '100%' }}>
+                                    <Text size='xs' style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
                                         {explanation}
                                     </Text>
                                 </Box>
                             </Flex>
                         )}
                         {messages.map((msg, index) => (
-                            <Box key={index} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                            <Box key={index} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start', width: '100%' }}>
                                 {msg.role === 'user' ? (
-                                    <Box c={'eden.5'} mb={20} py={10} px={10} style={{ borderRadius: '10px', maxWidth: '70%', border: '1px solid  #bfff38' }}>
-                                        <Text size='xs' component="pre" style={{ whiteSpace: 'pre-wrap' }}>
+                                    <Box c={'eden.5'} my={10} py={10} px={10} style={{ borderRadius: '10px', maxWidth: '70%', border: '1px solid #bfff38' }}>
+                                        <Text size='xs' component="pre" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
                                             {msg.content}
                                         </Text>
                                     </Box>
                                 ) : (
-                                    <>
+                                    <Flex mb={20} style={{ width: '100%' }}>
                                         <Image mr={10} style={{ mixBlendMode: 'screen' }} mb={'auto'} width={40} height={40} src={"/agent.svg"} />
-                                        <Box mb={20} style={{ borderRadius: '10px', padding: '10px', MaxWidth: '100%', border: '1px solid rgb(89 89 108)' }}>
-                                            <Text size='xs' component="pre" style={{ whiteSpace: 'pre-wrap' }}>
+                                        <Box style={{ borderRadius: '10px', padding: '10px', width: '100%', border: '1px solid rgb(89 89 108)' }}>
+                                            <Text size='xs' component="pre" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
                                                 {msg.content}
                                             </Text>
                                         </Box>
-                                    </>
+                                    </Flex>
                                 )}
                             </Box>
                         ))}
