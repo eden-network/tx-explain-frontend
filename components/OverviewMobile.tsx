@@ -40,7 +40,7 @@ const OverviewMobile = React.memo(({
                     <Center display="flex" style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
                         <Box mt="xl">
                             <Image alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={400} width={5} />
-                            <Button size="lg" autoContrast fullWidth onClick={handleFormSubmit}>
+                            <Button bg={'eden.5'} size="lg" autoContrast fullWidth onClick={handleFormSubmit}>
                                 Explain Transaction
                             </Button>
                         </Box>
@@ -56,9 +56,7 @@ const OverviewMobile = React.memo(({
                                     <Center>
                                         <Button
                                             my={10}
-                                            leftSection={<Image style={{}} mb={'auto'} width={30} height={30} src={"/agent.svg"} />
-                                            }
-
+                                            w={'fit-content'}
                                             autoContrast
                                             bg={"eden.5"}
                                             onClick={setChatModalOpened}>
