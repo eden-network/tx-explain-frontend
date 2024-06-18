@@ -54,9 +54,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [categories, setCategories] = useState<Categories>({ labels: [], probabilities: [] });
   const [isCategoriesLoading, setIsCategoriesLoading] = useState<boolean>(false)
   const [categoriesCache, setCategoriesCache] = useState<Record<string, Categories>>({});
+
   const [transactionDetails, setTransactionDetails] = useState<TransactionDetails | null>(null);
   const [chatModalOpened, setChatModalOpened] = useState(false)
-
 
   const openModal = () => setIsSimulateModalOpened(true);
   const closeModal = () => setIsSimulateModalOpened(false);

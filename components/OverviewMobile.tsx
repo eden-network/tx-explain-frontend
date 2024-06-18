@@ -77,6 +77,7 @@ const OverviewMobile = React.memo(({
                                 </>
                             )}
                         </Box>
+
                         <Text size="sm">{explanation}</Text>
 
                         {explanation && (
