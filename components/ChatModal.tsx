@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Modal, Button, TextInput, Center, Flex, ScrollArea, Text, Box, Loader, Image, Anchor, em } from '@mantine/core';
+import { Modal, Button, TextInput, Center, Flex, ScrollArea, Text, Box, Loader, Image, Anchor, em, Textarea, ActionIcon } from '@mantine/core';
 import { getHotkeyHandler } from '@mantine/hooks';
 import { TransactionSimulation } from '../types';
 import { TransactionDetails } from '../types';
 const { v4: uuidv4 } = require('uuid');
-import { CrossCircledIcon } from '@modulz/radix-icons';
+import { CrossCircledIcon, ArrowUpIcon } from '@modulz/radix-icons';
 import { ellipsis } from '../lib/ellipsis';
 import { useMediaQuery } from '@mantine/hooks';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
@@ -60,8 +60,6 @@ const ChatModal = ({
     }, [messages, isLoading]);
 
     const handleSendChatMessage = async () => {
-        setIsLoading(true)
-
         if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
 
         const token = await executeRecaptcha('chat');
@@ -163,23 +161,34 @@ const ChatModal = ({
                 onClose={() => setOpened(false)}
                 title={
                     <Flex align="center">
-                        <Text fw={'700'} mr={10} size={isMobile ? 'xs' : 'md'}>
-                            Chat about transaction:{' '}
-                        </Text>
+                        <Image
+                            mr={15}
+                            style={{ mixBlendMode: 'screen' }}
+                            width={isMobile ? 30 : 40}
+                            height={isMobile ? 30 : 40}
+                            src={'/tx_explain.svg'}
+                        />
+
                         <Anchor
+                            mr={5}
+                            mb={1}
+                            mt={'auto'}
                             fw={'700'}
                             href={`${explorerUrl}${txHash}`}
                             target="_blank"
-                            size={isMobile ? 'xs' : 'md'}
+                            size={isMobile ? 'xs' : 'lg'}
                         >
                             {ellipsis(txHash)}
                         </Anchor>
+                        <Text mb={1} mt={'auto'} fw={'700'} mr={10} size={isMobile ? 'xs' : 'lg'}>
+
+                        </Text>
                     </Flex>
                 }
                 lockScroll={false}
                 overlayProps={{
-                    backgroundOpacity: 0.55,
-                    blur: 3,
+                    backgroundOpacity: 0.35,
+                    blur: 2,
                 }}
                 closeButtonProps={{
                     icon: <CrossCircledIcon width={30} height={30} />,
@@ -188,9 +197,9 @@ const ChatModal = ({
                 padding={isMobile ? 'md' : 'xl'}
                 size={isMobile ? 'full' : 'xl'}
                 fullScreen={isMobile}
+                styles={{ header: { backgroundColor: '#121525', borderBottom: '1px solid #59596C' }, body: { backgroundColor: '#121525' }, content: { backgroundColor: '#121525' } }}
             >
                 <ScrollArea
-                    pt={20}
                     viewportRef={viewport}
                     styles={{
                         viewport: {
@@ -201,21 +210,22 @@ const ChatModal = ({
                     pr={isMobile ? 15 : 30}
                 >
                     {explanation && (
-                        <Flex>
+                        <Flex pt={20}>
                             <Image
                                 mr={10}
                                 style={{ mixBlendMode: 'screen' }}
                                 mb={'auto'}
-                                width={isMobile ? 30 : 40}
-                                height={isMobile ? 30 : 40}
+                                width={isMobile ? 50 : 70}
+                                height={isMobile ? 50 : 70}
                                 src={'/agent.svg'}
                             />
                             <Box
+                                bg={'#1B1F32'}
                                 py={10}
                                 px={20}
                                 style={{
                                     borderRadius: '10px',
-                                    border: '1px solid rgb(89 89 108)',
+                                    border: '1px solid #59596C',
                                     width: isMobile ? '60vw' : 'auto',
                                 }}
                             >
@@ -241,17 +251,18 @@ const ChatModal = ({
                         >
                             {msg.role === 'user' ? (
                                 <Box
-                                    c={'eden.5'}
-                                    my={isMobile ? 10 : 20}
-                                    py={isMobile ? 5 : 10}
+                                    bg={'#bfff38'}
+                                    c={'dark.5'}
+                                    my={isMobile ? 10 : 10}
+                                    py={isMobile ? 5 : 5}
                                     px={isMobile ? 10 : 20}
                                     style={{
                                         borderRadius: '10px',
                                         maxWidth: '70%',
-                                        border: '1px solid #bfff38',
                                     }}
                                 >
                                     <Text
+                                        fw={'700'}
                                         size={isMobile ? 'xs' : 'sm'}
                                         component="pre"
                                         style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}
@@ -265,16 +276,17 @@ const ChatModal = ({
                                         mr={10}
                                         style={{ mixBlendMode: 'screen' }}
                                         mb={'auto'}
-                                        width={isMobile ? 30 : 40}
-                                        height={isMobile ? 30 : 40}
+                                        width={isMobile ? 50 : 70}
+                                        height={isMobile ? 50 : 70}
                                         src={'/agent.svg'}
                                     />
                                     <Box
+                                        bg={'#1B1F32'}
                                         style={{
                                             borderRadius: '10px',
                                             padding: '10px',
                                             width: '100%',
-                                            border: '1px solid rgb(89 89 108)',
+                                            border: '1px solid #59596C',
                                         }}
                                     >
                                         <Text
@@ -294,8 +306,8 @@ const ChatModal = ({
                             <Image
                                 style={{ mixBlendMode: 'screen' }}
                                 mb={'auto'}
-                                width={isMobile ? 30 : 40}
-                                height={isMobile ? 30 : 40}
+                                width={isMobile ? 50 : 70}
+                                height={isMobile ? 50 : 70}
                                 src={'/agent.svg'}
                             />
                             <Loader ml={20} type="dots" size="sm" />
@@ -303,27 +315,22 @@ const ChatModal = ({
                     )}
                 </ScrollArea>
                 <Flex mt={'xl'}>
-                    <TextInput
+                    <Textarea
+                        onSubmitCapture={handleSendChatMessage}
                         disabled={isLoading}
-                        onKeyDown={getHotkeyHandler([['Enter', handleSendChatMessage]])}
+                        onKeyDown={getHotkeyHandler([['Enter+mod', handleSendChatMessage]])}
                         size={isMobile ? 'xs' : 'md'}
                         h={'100%'}
                         placeholder={isLoading ? 'Loading...' : 'Type your message'}
                         value={message}
                         onChange={(event) => setMessage(event.target.value)}
                         style={{ flexGrow: 1 }}
+                        rightSection={
+                            <ActionIcon autoContrast loading={isLoading} radius={'sm'} color='eden.5' my={'auto'} mr={20} variant='filled'>
+                                <ArrowUpIcon style={{ color: "#2b2b46" }} onClick={handleSendChatMessage} width={20} height={20} />
+                            </ActionIcon>
+                        }
                     />
-                    <Button
-                        autoContrast
-                        bg={'eden.5'}
-                        px={'xl'}
-                        size={isMobile ? 'xs' : 'md'}
-                        loading={isLoading}
-                        onClick={handleSendChatMessage}
-                        style={{ marginLeft: '8px' }}
-                    >
-                        Send
-                    </Button>
                 </Flex>
             </Modal>
         </>
