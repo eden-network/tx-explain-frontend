@@ -7,6 +7,8 @@ const { v4: uuidv4 } = require('uuid');
 import { CrossCircledIcon } from '@modulz/radix-icons';
 import { ellipsis } from '../lib/ellipsis';
 import { useMediaQuery } from '@mantine/hooks';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+
 
 interface Message {
     id: number;
@@ -36,6 +38,7 @@ const ChatModal = ({
     const [messages, setMessages] = useState<Message[]>([]);
     const viewport = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
+    const { executeRecaptcha } = useGoogleReCaptcha();
 
     const explorerUrls: { [key: string]: string } = {
         '1': 'https://etherscan.io/tx/',
@@ -58,6 +61,13 @@ const ChatModal = ({
 
     const handleSendChatMessage = async () => {
         setIsLoading(true)
+
+        if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
+
+        const token = await executeRecaptcha('chat');
+
+        console.log(token);
+
 
         const userMessage = {
             id: Date.now(),
@@ -104,7 +114,8 @@ const ChatModal = ({
                     }))
                 },
                 network_id: networkId,
-                session_id: sessionId
+                session_id: sessionId,
+                recaptcha_token: token
             });
 
             const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/chat`, {
