@@ -3,6 +3,7 @@ import { Box, Button, Flex, Space, Text, Textarea, Loader, Anchor, CopyButton } 
 import { formatUnits } from "viem";
 import { useTransaction, useBlock, useTransactionReceipt, useTransactionCount } from 'wagmi';
 import { CopyIcon, CheckIcon } from '@modulz/radix-icons';
+import { TransactionDetails } from '../types';
 
 const explorerUrls: Record<number, string> = {
     1: 'https://etherscan.io/tx/',
@@ -62,15 +63,20 @@ const TxDetails = ({
     transactionHash,
     chainId,
     currentTxIndex,
+    onTransactionDetails,
 }: {
     transactionHash: `0x${string}` | undefined;
     chainId: number;
-    currentTxIndex: number | null
+    currentTxIndex: number | null;
+    onTransactionDetails: (details: TransactionDetails) => void;
 }) => {
+
+
     // Fetch transaction details based on the provided hash
     const { data: transaction, isLoading: isTransactionLoading, error: error } = useTransaction({
         hash: transactionHash,
-        chainId: chainId
+        chainId: chainId,
+
     });
 
 
@@ -94,6 +100,31 @@ const TxDetails = ({
         chainId: chainId,
         blockTag: "latest",
     })
+
+    useEffect(() => {
+        if (transactionReceipt && currentTx) {
+            const transactionDetails: TransactionDetails = {
+                status: transactionReceipt.status,
+                block_number: currentTx.blockNumber.toString(),
+                chain_id: currentTx.chainId,
+                tx_hash: currentTx?.hash,
+                position_in_block: txIndex,
+                from: currentTx.from,
+                to: currentTx.to,
+                value: value,
+                nonce: currentTx.nonce,
+                gas_used: gasUsed,
+                type_hex: currentTx.typeHex,
+                type: currentTx.type,
+                transaction_fee: gasUsedInEth,
+                gas_price: gasPrice,
+                base: baseFee,
+                max_gas: maxFee,
+                max_priority: maxPriorityFee
+            };
+            onTransactionDetails(transactionDetails);
+        }
+    }, [transactionReceipt, currentTx, onTransactionDetails]);
 
     if (isTransactionLoading) return <Loader size="xl" display="flex" style={{ margin: 'auto' }} />
     if (!transaction) return <Text>Transaction hash invalid or transaction not found.</Text>;
@@ -129,6 +160,7 @@ const TxDetails = ({
         { label: "Max Priority:", value: maxPriorityFee },
     ];
 
+
     return (
         <Box>
             {transactionDetails.map((detail, index) => (
@@ -143,12 +175,12 @@ const TxDetails = ({
                 />
             ))}
             <Box visibleFrom='md' display="flex">
-                <Text style={{ color: 'gray' }} w="20%" size="sm">Input Data:</Text>
+                <Text component='span' style={{ color: 'gray' }} w="20%" size="sm">Input Data:</Text>
                 <Textarea maxRows={1} w="80%" resize='vertical' readOnly name='input' value={currentTx?.input}>
                 </Textarea>
             </Box>
             <Box hiddenFrom='md'>
-                <Text style={{ color: 'gray' }} w="20%" size="sm">Input Data:</Text>
+                <Text component='span' style={{ color: 'gray' }} w="20%" size="sm">Input Data:</Text>
                 <Textarea maxRows={1} w="80%" resize='vertical' readOnly name='input' value={currentTx?.input}>
                 </Textarea>
             </Box>

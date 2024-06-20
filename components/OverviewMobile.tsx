@@ -11,7 +11,8 @@ const OverviewMobile = React.memo(({
     setFeedbackModalOpen,
     handleSubmit,
     categories,
-    isCategoriesLoading
+    isCategoriesLoading,
+    setChatModalOpened
 }: {
     explanation: string | undefined
     isExplanationLoading: boolean,
@@ -19,7 +20,8 @@ const OverviewMobile = React.memo(({
     setFeedbackModalOpen: (v: React.SetStateAction<boolean>) => void,
     handleSubmit: (e: React.FormEvent, token: string) => Promise<void>,
     categories: Categories,
-    isCategoriesLoading: boolean
+    isCategoriesLoading: boolean,
+    setChatModalOpened: () => void;
 }) => {
     const { executeRecaptcha } = useGoogleReCaptcha();
 
@@ -38,7 +40,7 @@ const OverviewMobile = React.memo(({
                     <Center display="flex" style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
                         <Box mt="xl">
                             <Image alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={400} width={5} />
-                            <Button size="lg" autoContrast fullWidth onClick={handleFormSubmit}>
+                            <Button bg={'eden.5'} size="lg" autoContrast fullWidth onClick={handleFormSubmit}>
                                 Explain Transaction
                             </Button>
                         </Box>
@@ -47,21 +49,40 @@ const OverviewMobile = React.memo(({
                             <Loader ml={10} color="eden" size="xl" />
                         </Box>) : (
                     <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Bw Modelica, sans-serif' }}>
+                        {categories &&
+                            <Center m={'auto'} mb={20}>
+                                <Box px={20} py={10} style={{ border: '1px solid #bfff38', borderRadius: '10px' }}>
+                                    <Text ta={"center"} fw={600}>Would you like to chat about this transaction?</Text>
+                                    <Center>
+                                        <Button
+                                            my={10}
+                                            w={'fit-content'}
+                                            autoContrast
+                                            bg={"eden.5"}
+                                            onClick={setChatModalOpened}>
+                                            Open Chat
+                                        </Button>
+                                    </Center>
+                                </Box>
+                            </Center>}
                         <Box mb={20}>
-                            <Text mr={10}>Categories:</Text>
+                            <Text size="sm" mr={10}>Categories:</Text>
                             {isCategoriesLoading ? (
                                 <Loader type='dots' size={"xs"} />
                             ) : (
                                 <>
                                     {categories.labels.map((category: string, index: number) => (
-                                        <Badge mr={5} mb={5} variant="outline" autoContrast key={index}>{category}</Badge>
+                                        <Badge size="sm" mr={5} mb={5} variant="outline" autoContrast key={index}>{category}</Badge>
                                     ))}
                                 </>
                             )}
                         </Box>
-                        {explanation}
+
+                        <Text size="sm">{explanation}</Text>
+
                         {explanation && (
                             <Button
+                                bg={"eden.5"}
                                 display="flex"
                                 m="auto"
                                 mt={50}

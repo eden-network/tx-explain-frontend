@@ -24,6 +24,8 @@ import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import OverviewMobile from './OverviewMobile';
 import SimulateTransaction from './SimulateTx';
 import SimulationInputs from './SimulationInputs';
+import ChatModal from './ChatModal';
+import { TransactionDetails } from '../types';
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
@@ -53,8 +55,18 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [isCategoriesLoading, setIsCategoriesLoading] = useState<boolean>(false)
   const [categoriesCache, setCategoriesCache] = useState<Record<string, Categories>>({});
 
+  const [transactionDetails, setTransactionDetails] = useState<TransactionDetails | null>(null);
+  const [chatModalOpened, setChatModalOpened] = useState(false)
+
   const openModal = () => setIsSimulateModalOpened(true);
   const closeModal = () => setIsSimulateModalOpened(false);
+
+  // useEffect(() => {
+  //   if (transactionDetails) {
+  //     console.log(transactionDetails);
+  //   }
+  // }, [txHash]); 
+
 
   const {
     data: simulationData,
@@ -505,6 +517,10 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     txHash3: '0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95',
   };
 
+  const handleTransactionDetails = (details: TransactionDetails) => {
+    setTransactionDetails(details);
+  };
+
   return (
     <Wrapper>
       <Header
@@ -534,6 +550,15 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         />
       ) : (
         <Box>
+          <ChatModal
+            transactionSimulation={simulationDataCache[`${network}:${txHash}`]}
+            explanation={explanation === '' ? explanationCache[`${network}:${txHash}`] : explanation}
+            transactionOverview={transactionDetails}
+            txHash={txHash}
+            networkId={network}
+            opened={chatModalOpened}
+            setOpened={setChatModalOpened}
+          />
           {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>
               <Flex gap={10} mb={{ md: "20" }}>
@@ -610,6 +635,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                           chainId={chainId}
                           transactionHash={txHash as `0x${string}`}
                           currentTxIndex={currentTxIndex}
+                          onTransactionDetails={handleTransactionDetails}
                         />
                       )}
                     </Tabs.Panel>
@@ -651,6 +677,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                           chainId={chainId}
                           transactionHash={txHash as `0x${string}`}
                           currentTxIndex={currentTxIndex}
+                          onTransactionDetails={handleTransactionDetails}
                         />
                       )}
                     </Tabs.Panel>
@@ -663,6 +690,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                         handleSubmit={handleSearch}
                         categories={categoriesCache[`${network}:${txHash}`] || categories}
                         isCategoriesLoading={isCategoriesLoading}
+                        setChatModalOpened={() => setChatModalOpened(!chatModalOpened)}
                       />
                     </Tabs.Panel>
                   </Tabs>
@@ -680,6 +708,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                 categories={categoriesCache[`${network}:${txHash}`] || categories}
                 isCategoriesLoading={isCategoriesLoading}
                 isAnalyzedTx={isValidTxHash(txHash)}
+                setChatModalOpened={() => setChatModalOpened(!chatModalOpened)}
               />
             )}
           </Flex>

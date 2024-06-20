@@ -13,7 +13,8 @@ const Overview = React.memo(({
     isTxSimulationLoading,
     categories,
     isCategoriesLoading,
-    isAnalyzedTx
+    isAnalyzedTx,
+    setChatModalOpened
 }: {
     explanation: string | undefined
     isExplanationLoading: boolean,
@@ -23,7 +24,8 @@ const Overview = React.memo(({
     isTxSimulationLoading: boolean,
     categories: Categories
     isCategoriesLoading: boolean,
-    isAnalyzedTx: boolean
+    isAnalyzedTx: boolean,
+    setChatModalOpened: () => void;
 }) => {
     const { executeRecaptcha } = useGoogleReCaptcha();
 
@@ -57,18 +59,39 @@ const Overview = React.memo(({
                         </Box>) : (
                     <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Bw Modelica, sans-serif' }}>
                         {isAnalyzedTx &&
-                            <Flex align={"center"} mb={20}>
-                                <Text mr={10}>Categories:</Text>
-                                {isCategoriesLoading ? (
-                                    <Loader type='dots' size={"xs"} />
-                                ) : (
-                                    <>
-                                        {categories.labels.map((category: string, index: number) => (
-                                            <Badge variant="outline" autoContrast mr={10} key={index}>{category}</Badge>
-                                        ))}
-                                    </>
-                                )}
-                            </Flex>}
+                            <>
+                                {categories &&
+                                    <Center m={'auto'} mb={20}>
+                                        <Box px={20} py={10} style={{ border: '1px solid #bfff38', borderRadius: '10px' }}>
+                                            <Text fw={600}>Would you like to chat about this transaction?</Text>
+                                            <Center>
+                                                <Button
+                                                    my={10}
+                                                    leftSection={<Image style={{}} mb={'auto'} width={30} height={30} src={"/agent.svg"} />
+                                                    }
+
+                                                    autoContrast
+                                                    bg={"eden.5"}
+                                                    onClick={setChatModalOpened}>
+                                                    Open Chat
+                                                </Button>
+                                            </Center>
+                                        </Box>
+                                    </Center>}
+
+                                <Flex align={"center"} mb={20}>
+                                    <Text mr={10}>Categories:</Text>
+                                    {isCategoriesLoading ? (
+                                        <Loader type='dots' size={"xs"} />
+                                    ) : (
+                                        <>
+                                            {categories.labels.map((category: string, index: number) => (
+                                                <Badge variant="outline" autoContrast mr={10} key={index}>{category}</Badge>
+                                            ))}
+                                        </>
+                                    )}
+                                </Flex>
+                            </>}
                         {explanation}
                         {explanation && (
                             <Button
