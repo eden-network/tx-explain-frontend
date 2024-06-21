@@ -36,6 +36,7 @@ const ChatModal = ({
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [messages, setMessages] = useState<Message[]>([]);
+    const [questions, setQuestions] = useState<string[]>([]);
     const viewport = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
     const { executeRecaptcha } = useGoogleReCaptcha();
@@ -52,6 +53,89 @@ const ChatModal = ({
 
     const explorerUrl = explorerUrls[networkId] || ''
 
+    console.log(messages);
+
+
+    const fetchQuestions = async () => {
+        console.log("fetch question");
+        setMessages(prevMessages => [...prevMessages]);
+
+        if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
+
+        const token = await executeRecaptcha('chat');
+        try {
+            const sessionId = `${uuidv4()}-${txHash}`;
+            const updatedMessages = [
+                ...messages,
+                {
+                    id: Date.now(),
+                    role: 'user',
+                    content: 'test'
+                }
+            ];
+
+
+            const body = JSON.stringify({
+                input_json: {
+                    "model": "",
+                    "max_tokens": 0,
+                    "temperature": 0,
+                    "system": {
+                        "system_prompt": "",
+                        "transaction_details": transactionSimulation,
+                        "transaction_overivew": transactionOverview,
+                        "transaction_explanation": explanation,
+                    },
+                    "messages": updatedMessages.map(msg => ({
+                        "role": msg.role,
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": msg.content
+                            }
+                        ]
+                    }))
+                },
+                network_id: networkId,
+                session_id: sessionId,
+                recaptcha_token: token
+            });
+            console.log(body);
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/questions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+                },
+                body: body,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log(data[0]);
+                console.log(typeof data[0]);
+                console.log(JSON.parse(data[0]));
+                const parsedData = JSON.parse(data[0]);
+                const questionsArray = parsedData.questions ? parsedData.questions.map((item: { question: string }) => item.question) : [];
+                setQuestions(questionsArray);
+                // setMessages(prevMessages => [
+                //     ...prevMessages,
+                //     {
+                //         id: Date.now(),
+                //         role: 'user',
+                //         content: questionsArray
+                //     }
+                // ]);
+            } else {
+                console.error('Error:', response.status);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+
     useEffect(() => {
         if (viewport.current) {
             viewport.current.scrollTo({ top: viewport.current.scrollHeight, behavior: 'smooth' });
@@ -64,31 +148,24 @@ const ChatModal = ({
 
         const token = await executeRecaptcha('chat');
 
-        console.log(token);
-
-
-        const userMessage = {
-            id: Date.now(),
-            role: 'user' as 'user',
-            content: message,
-        };
-
-        setMessages((prevMessages) => [...prevMessages, userMessage]);
         setMessage('');
         setIsLoading(true);
 
         try {
+            const userMessage = {
+                id: Date.now(),
+                role: 'user' as 'user',
+                content: message,
+            };
             // Append the new user message to the full conversation
             const updatedMessages = [
                 ...messages,
-                {
-                    id: Date.now(),
-                    role: 'user',
-                    content: message
-                }
+                userMessage
             ];
 
             const sessionId = `${uuidv4()}-${txHash}`;
+
+            setMessages(prevMessages => [...prevMessages, userMessage]);
 
             const body = JSON.stringify({
                 input_json: {
@@ -126,6 +203,7 @@ const ChatModal = ({
             });
             setIsLoading(false)
             if (response.ok) {
+                setQuestions([])
 
                 const data = await response.json();
 
@@ -139,7 +217,6 @@ const ChatModal = ({
                         content: assistantResponse
                     }
                 ]);
-
                 setMessage(''); // Clear the input field
             } else {
                 console.error('Error:', response.status);
@@ -151,6 +228,7 @@ const ChatModal = ({
 
     useEffect(() => {
         setMessages([])
+        // setQuestions([])
     }, [txHash])
 
 
@@ -240,6 +318,7 @@ const ChatModal = ({
                             </Box>
                         </Flex>
                     )}
+
                     {messages.map((msg, index) => (
                         <Box
                             key={index}
@@ -301,6 +380,10 @@ const ChatModal = ({
                             )}
                         </Box>
                     ))}
+                    <Button onClick={fetchQuestions}>questions</Button>
+                    {questions.map((question, index) =>
+                        <Box onClick={() => { setMessage(question) }} key={index}>{question}</Box>
+                    )}
                     {isLoading && (
                         <Flex mt={20} mb={20} align="center">
                             <Image

@@ -517,9 +517,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     txHash3: '0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95',
   };
 
-  const handleTransactionDetails = (details: TransactionDetails) => {
+  const handleTransactionDetails = useCallback((details: TransactionDetails) => {
     setTransactionDetails(details);
-  };
+  }, [txHash, network]);
 
   return (
     <Wrapper>
