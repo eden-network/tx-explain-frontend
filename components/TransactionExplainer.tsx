@@ -61,6 +61,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const openModal = () => setIsSimulateModalOpened(true);
   const closeModal = () => setIsSimulateModalOpened(false);
 
+  const [addressTransactions, setAddressTransactions] = useState<string[]>([]);
+  const [currentAddressTxIndex, setCurrentAddressTxIndex] = useState<number>(0);
+
   // useEffect(() => {
   //   if (transactionDetails) {
   //     console.log(transactionDetails);
@@ -459,6 +462,17 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     chainId: chainId,
   });
 
+  useEffect(() => {
+    const fetchAccountData = async () => {
+      if (transaction?.from) {
+        console.log(transaction?.from);
+
+        await fetchAddressTransactions(transaction.from);
+      }
+    }
+    fetchAccountData();
+  }, [txHash]);
+
   const [currentTxIndex, setCurrentTxIndex] = useState<number | null>(transaction?.transactionIndex ?? null);
 
   const handleNavigateTx = (direction: 'next' | 'prev') => {
@@ -485,6 +499,27 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       return newIndex;
     });
   };
+
+  const handleNavigateAccountTx = (direction: 'next' | 'prev') => {
+    setActiveTab('overview');
+    setMobileActiveTab('overview');
+    setIsExplanationLoading(true);
+    setIsDetailsLoading(true);
+    setExplanation('');
+
+    const newIndex = direction === 'next'
+      ? (currentAddressTxIndex + 1) % addressTransactions.length
+      : (currentAddressTxIndex - 1 + addressTransactions.length) % addressTransactions.length;
+
+    const newTxHash = addressTransactions[newIndex];
+    if (newTxHash) {
+      setTxHash(newTxHash);
+      setCurrentAddressTxIndex(newIndex);
+      updateUrlParams({ network: network, txHash: newTxHash });
+    }
+  };
+
+
 
   useEffect(() => {
     if (txHash === '') {
@@ -519,6 +554,40 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   const handleTransactionDetails = (details: TransactionDetails) => {
     setTransactionDetails(details);
+  };
+
+  const fetchAddressTransactions = async (address: string) => {
+    if (!address) return;
+
+    try {
+      const response = await axios.get(`https://api.etherscan.io/api`, {
+        params: {
+          module: 'account',
+          action: 'txlist',
+          address: address,
+          startblock: 0,
+          endblock: 99999999,
+          sort: 'desc',
+          apikey: process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY
+        }
+      });
+
+      if (response.data.status === '1') {
+        const transactions = response.data.result.map((tx: any) => tx.hash);
+        setAddressTransactions(transactions);
+        setCurrentAddressTxIndex(transactions.indexOf(txHash));
+        console.log(addressTransactions);
+        console.log(addressTransactions.length);
+
+      } else {
+        console.error('Error fetching transactions:', response.data.message);
+        setError('Failed to fetch address transactions');
+      }
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      setError('Failed to fetch address transactions');
+    } finally {
+    }
   };
 
   return (
@@ -562,7 +631,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>
               <Flex gap={10} mb={{ md: "20" }}>
-                <Image
+                <Button bg={"dark.5"} size='xs' onClick={() => handleNavigateAccountTx('prev')}>Previous Tx by Account</Button>                <Image
                   alt="navigate-tx"
                   style={{ cursor: 'pointer' }}
                   onClick={() => handleNavigateTx('prev')}
@@ -576,6 +645,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                   src="/next_tx.svg"
                   height={30}
                 />
+                <Button bg={"dark.5"} size='xs' onClick={() => handleNavigateAccountTx('next')}>Next Tx by Account</Button>
               </Flex>
             </Center>
           )}

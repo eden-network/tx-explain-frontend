@@ -1,5 +1,12 @@
 import { Flex, Box, Image, ActionIcon, Button } from "@mantine/core";
 import InputForm from './InputForm';
+import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
+import { useAccount } from 'wagmi'
+import { useState } from "react";
+import TransactionHistoryModal from './TransactionHistoryModal';
+
+
+
 
 interface HeaderProps {
   handleSubmit: (e: React.FormEvent, token: string) => Promise<void>;
@@ -26,6 +33,10 @@ const Header: React.FC<HeaderProps> = ({
     { icon: "blog.svg", href: "https://www.edennetwork.io/blog", target: "_blank" },
   ];
 
+  const [modalOpened, setModalOpened] = useState(false);
+  const { isConnected } = useAccount();
+
+
   return (
     <>
       <Flex visibleFrom="md" py="1rem" align="center" justify="space-between">
@@ -49,9 +60,14 @@ const Header: React.FC<HeaderProps> = ({
           />
         </Box>
         <Flex ml={20} gap={20}>
+          <ConnectButton />
+          {isConnected && (
+            <Button onClick={() => setModalOpened(true)}>
+              View Transactions
+            </Button>
+          )}
           {iconData.map((icon, index) => (
             <ActionIcon
-
               key={index}
               component="a"
               href={icon.href}
@@ -88,6 +104,10 @@ const Header: React.FC<HeaderProps> = ({
           />
         </Box>
       </Box>
+      <TransactionHistoryModal
+        opened={modalOpened}
+        onClose={() => setModalOpened(false)}
+      />
     </>
   );
 };
