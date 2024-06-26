@@ -59,7 +59,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [chatModalOpened, setChatModalOpened] = useState(false)
 
   const openModal = () => setIsSimulateModalOpened(true);
+  const openChatModal = () => setChatModalOpened(true);
   const closeModal = () => setIsSimulateModalOpened(false);
+  const closeChatModal = () => setChatModalOpened(false);
 
   // useEffect(() => {
   //   if (transactionDetails) {
@@ -557,7 +559,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             txHash={txHash}
             networkId={network}
             opened={chatModalOpened}
-            setOpened={setChatModalOpened}
+            onClose={closeChatModal}
           />
           {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>
@@ -610,23 +612,19 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                     <Tabs.List mb={20}>
                       {isValidTxHash(txHash) && (
                         <Tabs.Tab value="overview">
-                          <Text size='sm'>
-                            Overview
-                          </Text>
+                          {"Overview"}
                         </Tabs.Tab>
                       )}
                       {isSimulationTxHash(txHash) && (
                         <Tabs.Tab value="overview">
-                          <Text size='sm'>
-                            Simulation Inputs
-                          </Text>
+                          {"Simulation Inputs"}
                         </Tabs.Tab>
                       )}
                       <Tabs.Tab value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
-                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Details</Text>}
+                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : "Details"}
                       </Tabs.Tab>
                       <Tabs.Tab value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
-                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Function Calls</Text>}
+                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : "Function Calls"}
                       </Tabs.Tab>
                     </Tabs.List>
                     <Tabs.Panel value="overview">
@@ -661,14 +659,10 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                   <Tabs value={mobileActiveTab} onChange={setMobileActiveTab} defaultValue="overview">
                     <Tabs.List justify='center' mb={20}>
                       <Tabs.Tab value="overview">
-                        <Text size='sm'>
-                          Overview
-                        </Text>
+                        Overview
                       </Tabs.Tab>
                       <Tabs.Tab hiddenFrom='md' value='analysis'>
-                        <Text size='sm'>
-                          {isExplanationLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Analysis</Text>}
-                        </Text>
+                        {isExplanationLoading ? <Loader type='dots' size={"xs"} /> : "Analysis"}
                       </Tabs.Tab>
                     </Tabs.List>
                     <Tabs.Panel value="overview">
@@ -708,7 +702,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                 categories={categoriesCache[`${network}:${txHash}`] || categories}
                 isCategoriesLoading={isCategoriesLoading}
                 isAnalyzedTx={isValidTxHash(txHash)}
-                setChatModalOpened={() => setChatModalOpened(!chatModalOpened)}
+                openChatModal={openChatModal}
               />
             )}
           </Flex>

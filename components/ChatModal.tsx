@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Modal, Button, TextInput, Center, Flex, ScrollArea, Text, Box, Loader, Image, Anchor, em, Textarea, ActionIcon } from '@mantine/core';
+import { Modal, Button, TextInput, Center, Flex, ScrollArea, Text, Box, Loader, Image, Anchor, em, Textarea, ActionIcon, UnstyledButton } from '@mantine/core';
 import { getHotkeyHandler } from '@mantine/hooks';
 import { TransactionSimulation } from '../types';
 import { TransactionDetails } from '../types';
@@ -23,7 +23,7 @@ const ChatModal = ({
     txHash,
     networkId,
     opened,
-    setOpened
+    onClose
 }: {
     transactionSimulation: TransactionSimulation,
     explanation: string | undefined,
@@ -31,7 +31,7 @@ const ChatModal = ({
     txHash: string,
     networkId: string,
     opened: boolean,
-    setOpened: (v: React.SetStateAction<boolean>) => void,
+    onClose: () => void
 }) => {
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -40,6 +40,7 @@ const ChatModal = ({
     const viewport = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
     const { executeRecaptcha } = useGoogleReCaptcha();
+    const hasOpened = useRef(false);
 
     const explorerUrls: { [key: string]: string } = {
         '1': 'https://etherscan.io/tx/',
@@ -53,7 +54,17 @@ const ChatModal = ({
 
     const explorerUrl = explorerUrls[networkId] || ''
 
-    console.log(messages);
+    useEffect(() => {
+        if (opened) {
+            // fetchQuestions();
+
+        }
+    }, [opened])
+
+    useEffect(() => {
+        setMessages([])
+        setQuestions([])
+    }, [txHash])
 
 
     const fetchQuestions = async () => {
@@ -63,17 +74,23 @@ const ChatModal = ({
         if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
 
         const token = await executeRecaptcha('chat');
+
+        // console.log(messages);
+
         try {
             const sessionId = `${uuidv4()}-${txHash}`;
             const updatedMessages = [
                 ...messages,
                 {
                     id: Date.now(),
-                    role: 'user',
-                    content: 'test'
+                    role: 'user' as 'user',
+                    content: ""
                 }
             ];
 
+            setMessage('')
+
+            console.log(updatedMessages);
 
             const body = JSON.stringify({
                 input_json: {
@@ -141,7 +158,7 @@ const ChatModal = ({
             viewport.current.scrollTo({ top: viewport.current.scrollHeight, behavior: 'smooth' });
         }
 
-    }, [messages, isLoading]);
+    }, [messages, isLoading, questions]);
 
     const handleSendChatMessage = async () => {
         if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
@@ -193,13 +210,16 @@ const ChatModal = ({
                 recaptcha_token: token
             });
 
+            console.log(body);
+
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
                 },
-                body: body,
+                body: body
             });
             setIsLoading(false)
             if (response.ok) {
@@ -217,7 +237,8 @@ const ChatModal = ({
                         content: assistantResponse
                     }
                 ]);
-                setMessage(''); // Clear the input field
+                fetchQuestions()
+                setQuestions([])
             } else {
                 console.error('Error:', response.status);
             }
@@ -226,17 +247,11 @@ const ChatModal = ({
         }
     };
 
-    useEffect(() => {
-        setMessages([])
-        // setQuestions([])
-    }, [txHash])
-
-
     return (
         <>
             <Modal
                 opened={opened}
-                onClose={() => setOpened(false)}
+                onClose={onClose}
                 title={
                     <Flex align="center">
                         <Image
@@ -380,10 +395,61 @@ const ChatModal = ({
                             )}
                         </Box>
                     ))}
-                    <Button onClick={fetchQuestions}>questions</Button>
-                    {questions.map((question, index) =>
-                        <Box onClick={() => { setMessage(question) }} key={index}>{question}</Box>
-                    )}
+                    {questions.length === 0 &&
+                        <Flex mt={10}>
+                            <Image
+                                mr={10}
+                                style={{ mixBlendMode: 'screen' }}
+                                mb={'auto'}
+                                width={isMobile ? 50 : 70}
+                                height={isMobile ? 50 : 70}
+                                src={'/agent.svg'}
+                            />
+                            <Box bg={'#1B1F32'}
+                                style={{
+                                    borderRadius: '10px',
+                                    padding: '10px',
+                                    width: '100%',
+                                    border: '1px solid #59596C',
+                                }}>
+                                <Text ta={"center"}>Would you like to generate questions about this transaction?</Text>
+                                <Button onClick={fetchQuestions} mt={10} bg={"eden.5"} autoContrast display={"flex"} m={"auto"}>Generate questions</Button>
+                            </Box>
+                        </Flex>
+                    }
+                    {questions.map((question, index) => (
+                        <Box
+                            key={index}
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'flex-end',
+                                width: '100%',
+                            }}
+                        >
+                            <Box
+                                bg={'#bfff38'}
+                                c={'dark.5'}
+                                mt={isMobile ? 10 : 10}
+                                py={isMobile ? 5 : 5}
+                                px={isMobile ? 10 : 20}
+                                style={{
+                                    borderRadius: '10px',
+                                    maxWidth: '70%',
+                                    cursor: 'pointer',
+                                }}
+                                onClick={() => setMessage(question)}
+                            >
+                                <Text
+                                    fw={'700'}
+                                    size={isMobile ? 'xs' : 'sm'}
+                                    component="pre"
+                                    style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}
+                                >
+                                    {question}
+                                </Text>
+                            </Box>
+                        </Box>
+                    ))}
                     {isLoading && (
                         <Flex mt={20} mb={20} align="center">
                             <Image

@@ -14,7 +14,7 @@ const Overview = React.memo(({
     categories,
     isCategoriesLoading,
     isAnalyzedTx,
-    setChatModalOpened
+    openChatModal
 }: {
     explanation: string | undefined
     isExplanationLoading: boolean,
@@ -25,7 +25,7 @@ const Overview = React.memo(({
     categories: Categories
     isCategoriesLoading: boolean,
     isAnalyzedTx: boolean,
-    setChatModalOpened: () => void;
+    openChatModal: () => void;
 }) => {
     const { executeRecaptcha } = useGoogleReCaptcha();
 
@@ -72,7 +72,7 @@ const Overview = React.memo(({
 
                                                     autoContrast
                                                     bg={"eden.5"}
-                                                    onClick={setChatModalOpened}>
+                                                    onClick={openChatModal}>
                                                     Open Chat
                                                 </Button>
                                             </Center>
