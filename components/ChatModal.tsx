@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Modal, Button, TextInput, Center, Flex, ScrollArea, Text, Box, Loader, Image, Anchor, em, Textarea, ActionIcon, UnstyledButton } from '@mantine/core';
 import { getHotkeyHandler } from '@mantine/hooks';
 import { TransactionSimulation } from '../types';
@@ -8,6 +8,7 @@ import { CrossCircledIcon, ArrowUpIcon } from '@modulz/radix-icons';
 import { ellipsis } from '../lib/ellipsis';
 import { useMediaQuery } from '@mantine/hooks';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { debounce } from 'lodash';
 
 
 interface Message {
@@ -41,6 +42,9 @@ const ChatModal = ({
     const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
     const { executeRecaptcha } = useGoogleReCaptcha();
     const hasOpened = useRef(false);
+    const [isQuestionsLoading, setIsQuestionsLoading] = useState<boolean>(false);
+    const [questionsGenerated, setQuestionsGenerated] = useState(false);
+    const [isQuestionsLoaded, setIsQuestionsLoaded] = useState(false);
 
     const explorerUrls: { [key: string]: string } = {
         '1': 'https://etherscan.io/tx/',
@@ -55,27 +59,24 @@ const ChatModal = ({
     const explorerUrl = explorerUrls[networkId] || ''
 
     useEffect(() => {
-        if (opened) {
-            // fetchQuestions();
-
-        }
-    }, [opened])
-
-    useEffect(() => {
         setMessages([])
         setQuestions([])
+        setIsQuestionsLoading(false)
+        setQuestionsGenerated(false)
+        setMessage('')
+        hasOpened.current = false;
+        setIsQuestionsLoaded(false)
     }, [txHash])
 
 
     const fetchQuestions = async () => {
+        setIsQuestionsLoading(true)
         console.log("fetch question");
         setMessages(prevMessages => [...prevMessages]);
 
         if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
 
         const token = await executeRecaptcha('chat');
-
-        // console.log(messages);
 
         try {
             const sessionId = `${uuidv4()}-${txHash}`;
@@ -136,6 +137,8 @@ const ChatModal = ({
                 const parsedData = JSON.parse(data[0]);
                 const questionsArray = parsedData.questions ? parsedData.questions.map((item: { question: string }) => item.question) : [];
                 setQuestions(questionsArray);
+                setQuestionsGenerated(true);
+                setIsQuestionsLoading(false);
                 // setMessages(prevMessages => [
                 //     ...prevMessages,
                 //     {
@@ -144,14 +147,19 @@ const ChatModal = ({
                 //         content: questionsArray
                 //     }
                 // ]);
+
             } else {
                 console.error('Error:', response.status);
+                setIsQuestionsLoading(false);
             }
         } catch (error) {
             console.error('Error:', error);
         }
-    };
+    }
 
+    useEffect(() => {
+        fetchQuestions()
+    }, [opened]);
 
     useEffect(() => {
         if (viewport.current) {
@@ -161,6 +169,8 @@ const ChatModal = ({
     }, [messages, isLoading, questions]);
 
     const handleSendChatMessage = async () => {
+        setQuestions([])
+
         if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
 
         const token = await executeRecaptcha('chat');
@@ -237,8 +247,6 @@ const ChatModal = ({
                         content: assistantResponse
                     }
                 ]);
-                fetchQuestions()
-                setQuestions([])
             } else {
                 console.error('Error:', response.status);
             }
@@ -395,7 +403,8 @@ const ChatModal = ({
                             )}
                         </Box>
                     ))}
-                    {questions.length === 0 &&
+                    {!questionsGenerated && (
+
                         <Flex mt={10}>
                             <Image
                                 mr={10}
@@ -405,51 +414,75 @@ const ChatModal = ({
                                 height={isMobile ? 50 : 70}
                                 src={'/agent.svg'}
                             />
-                            <Box bg={'#1B1F32'}
-                                style={{
-                                    borderRadius: '10px',
-                                    padding: '10px',
-                                    width: '100%',
-                                    border: '1px solid #59596C',
-                                }}>
-                                <Text ta={"center"}>Would you like to generate questions about this transaction?</Text>
-                                <Button onClick={fetchQuestions} mt={10} bg={"eden.5"} autoContrast display={"flex"} m={"auto"}>Generate questions</Button>
-                            </Box>
+                            {isQuestionsLoading ?
+                                <Box bg={'#1B1F32'} style={{ borderRadius: '10px', padding: '10px', width: '100%', border: '1px solid #59596C' }}>
+                                    <Text ta={"center"}>Generating questions...</Text>
+                                    <Center>
+                                        <Loader type='dots' mt={5} size={"sm"} />
+                                    </Center>
+                                </Box>
+                                :
+                                <Box bg={'#1B1F32'} style={{ borderRadius: '10px', padding: '10px', width: '100%', border: '1px solid #59596C' }}>
+                                    <Text fw={700} ta={"center"}>Would you like to generate questions about this transaction?</Text>
+                                    <Button onClick={fetchQuestions} mt={10} bg={"eden.5"} autoContrast display={"flex"} m={"auto"}>
+                                        Generate questions
+                                    </Button>
+                                </Box>
+                            }
+
                         </Flex>
-                    }
-                    {questions.map((question, index) => (
-                        <Box
-                            key={index}
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'flex-end',
-                                width: '100%',
-                            }}
-                        >
-                            <Box
-                                bg={'#bfff38'}
-                                c={'dark.5'}
-                                mt={isMobile ? 10 : 10}
-                                py={isMobile ? 5 : 5}
-                                px={isMobile ? 10 : 20}
-                                style={{
-                                    borderRadius: '10px',
-                                    maxWidth: '70%',
-                                    cursor: 'pointer',
-                                }}
-                                onClick={() => setMessage(question)}
-                            >
-                                <Text
-                                    fw={'700'}
-                                    size={isMobile ? 'xs' : 'sm'}
-                                    component="pre"
-                                    style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}
-                                >
-                                    {question}
-                                </Text>
-                            </Box>
+                    )}
+                    {questionsGenerated && (
+                        <Box>
+                            <Flex >
+                                {/* <Image
+                                mr={10}
+                                style={{ mixBlendMode: 'screen' }}
+                                mb={'auto'}
+                                width={isMobile ? 50 : 70}
+                                height={isMobile ? 50 : 70}
+                                src={'/agent.svg'}
+                            /> */}
+                                <Box>
+                                    {questions.map((question, index) => (
+                                        <Box
+                                            key={index}
+                                            style={{
+                                                display: 'flex',
+                                                justifyContent: 'flex-end',
+                                                width: '100%',
+                                            }}
+                                        >
+                                            <Box
+
+                                                bg={'dark.5'}
+                                                c={'#bfff38'}
+                                                mt={isMobile ? 10 : 10}
+                                                py={isMobile ? 5 : 5}
+                                                px={isMobile ? 10 : 20}
+                                                style={{
+                                                    borderRadius: '10px',
+                                                    maxWidth: '70%',
+                                                    cursor: 'pointer',
+                                                    border: '1px solid #59596C'
+                                                }}
+                                                onClick={() => setMessage(question)}
+                                            >
+                                                <Text
+                                                    fw={'700'}
+                                                    size={isMobile ? 'xs' : 'sm'}
+                                                    component="pre"
+                                                    style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}
+                                                >
+                                                    {question}
+                                                </Text>
+                                            </Box>
+                                        </Box>
+                                    ))}
+                                </Box>
+                            </Flex>
                         </Box>
-                    ))}
+                    )}
                     {isLoading && (
                         <Flex mt={20} mb={20} align="center">
                             <Image
