@@ -1,4 +1,4 @@
-import { http, createConfig } from 'wagmi'
+import { http } from 'wagmi'
 import { mainnet, sepolia, optimism, arbitrum, blast, mantle, base, avalanche } from 'wagmi/chains'
 import '@rainbow-me/rainbowkit/styles.css';
 import {

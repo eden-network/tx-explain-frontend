@@ -1,12 +1,9 @@
 import { Flex, Box, Image, ActionIcon, Button } from "@mantine/core";
 import InputForm from './InputForm';
-import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
+import { ConnectButton, useChainModal } from "@rainbow-me/rainbowkit";
 import { useAccount } from 'wagmi'
 import { useState } from "react";
 import TransactionHistoryModal from './TransactionHistoryModal';
-
-
-
 
 interface HeaderProps {
   handleSubmit: (e: React.FormEvent, token: string) => Promise<void>;
@@ -35,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({
 
   const [modalOpened, setModalOpened] = useState(false);
   const { isConnected } = useAccount();
-
+  const { openChainModal } = useChainModal()
 
   return (
     <>
@@ -107,6 +104,7 @@ const Header: React.FC<HeaderProps> = ({
       <TransactionHistoryModal
         opened={modalOpened}
         onClose={() => setModalOpened(false)}
+        network={network}
       />
     </>
   );

@@ -15,12 +15,15 @@ interface Transaction {
 interface TransactionHistoryModalProps {
     opened: boolean;
     onClose: () => void;
+    network: string
 }
 
-const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = ({ opened, onClose }) => {
+const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = ({ opened, onClose, network }) => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { address } = useAccount();
+
+    const RPC_URL = `https://rpc.walletconnect.com/v1?chainId=eip155:${network}&projectId${process.env.NEXT_PUBLIC_WALLET_CONNECT_KEY}`
 
     useEffect(() => {
         const fetchTransactionHistory = async () => {
