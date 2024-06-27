@@ -532,13 +532,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
     try {
       const sessionId = `${uuidv4()}-${txHash}`;
-      const updatedMessages = [
-        {
-          id: Date.now(),
-          role: 'user' as 'user',
-          content: ""
-        }
-      ];
 
       const body = JSON.stringify({
         input_json: {
