@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Modal, Button, TextInput, Center, Flex, ScrollArea, Text, Box, Loader, Image, Anchor, em, Textarea, ActionIcon, UnstyledButton } from '@mantine/core';
 import { getHotkeyHandler } from '@mantine/hooks';
 import { TransactionSimulation } from '../types';
@@ -8,13 +8,26 @@ import { CrossCircledIcon, ArrowUpIcon } from '@modulz/radix-icons';
 import { ellipsis } from '../lib/ellipsis';
 import { useMediaQuery } from '@mantine/hooks';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
-import { debounce } from 'lodash';
-
 
 interface Message {
     id: number;
     role: 'user' | 'assistant';
     content: string;
+}
+
+interface ChatModalProps {
+    transactionSimulation: TransactionSimulation,
+    explanation: string | undefined,
+    transactionOverview: TransactionDetails | null,
+    txHash: string,
+    networkId: string,
+    opened: boolean,
+    onClose: () => void,
+    questions: string[],
+    isQuestionsLoading: boolean,
+    questionsGenerated: boolean,
+    setQuestions: React.Dispatch<React.SetStateAction<string[]>>;
+    errorGeneratingQuestions: boolean
 }
 
 const ChatModal = ({
@@ -24,27 +37,19 @@ const ChatModal = ({
     txHash,
     networkId,
     opened,
-    onClose
-}: {
-    transactionSimulation: TransactionSimulation,
-    explanation: string | undefined,
-    transactionOverview: TransactionDetails | null,
-    txHash: string,
-    networkId: string,
-    opened: boolean,
-    onClose: () => void
-}) => {
+    onClose,
+    questions,
+    isQuestionsLoading,
+    questionsGenerated,
+    setQuestions,
+    errorGeneratingQuestions
+}: ChatModalProps) => {
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [messages, setMessages] = useState<Message[]>([]);
-    const [questions, setQuestions] = useState<string[]>([]);
     const viewport = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
     const { executeRecaptcha } = useGoogleReCaptcha();
-    const hasOpened = useRef(false);
-    const [isQuestionsLoading, setIsQuestionsLoading] = useState<boolean>(false);
-    const [questionsGenerated, setQuestionsGenerated] = useState(false);
-    const [isQuestionsLoaded, setIsQuestionsLoaded] = useState(false);
 
     const explorerUrls: { [key: string]: string } = {
         '1': 'https://etherscan.io/tx/',
@@ -58,108 +63,12 @@ const ChatModal = ({
 
     const explorerUrl = explorerUrls[networkId] || ''
 
+
     useEffect(() => {
         setMessages([])
-        setQuestions([])
-        setIsQuestionsLoading(false)
-        setQuestionsGenerated(false)
         setMessage('')
-        hasOpened.current = false;
-        setIsQuestionsLoaded(false)
     }, [txHash])
 
-
-    const fetchQuestions = async () => {
-        setIsQuestionsLoading(true)
-        console.log("fetch question");
-        setMessages(prevMessages => [...prevMessages]);
-
-        if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
-
-        const token = await executeRecaptcha('chat');
-
-        try {
-            const sessionId = `${uuidv4()}-${txHash}`;
-            const updatedMessages = [
-                ...messages,
-                {
-                    id: Date.now(),
-                    role: 'user' as 'user',
-                    content: ""
-                }
-            ];
-
-            setMessage('')
-
-            console.log(updatedMessages);
-
-            const body = JSON.stringify({
-                input_json: {
-                    "model": "",
-                    "max_tokens": 0,
-                    "temperature": 0,
-                    "system": {
-                        "system_prompt": "",
-                        "transaction_details": transactionSimulation,
-                        "transaction_overivew": transactionOverview,
-                        "transaction_explanation": explanation,
-                    },
-                    "messages": updatedMessages.map(msg => ({
-                        "role": msg.role,
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": msg.content
-                            }
-                        ]
-                    }))
-                },
-                network_id: networkId,
-                session_id: sessionId,
-                recaptcha_token: token
-            });
-            console.log(body);
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/questions`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
-                },
-                body: body,
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log(data[0]);
-                console.log(typeof data[0]);
-                console.log(JSON.parse(data[0]));
-                const parsedData = JSON.parse(data[0]);
-                const questionsArray = parsedData.questions ? parsedData.questions.map((item: { question: string }) => item.question) : [];
-                setQuestions(questionsArray);
-                setQuestionsGenerated(true);
-                setIsQuestionsLoading(false);
-                // setMessages(prevMessages => [
-                //     ...prevMessages,
-                //     {
-                //         id: Date.now(),
-                //         role: 'user',
-                //         content: questionsArray
-                //     }
-                // ]);
-
-            } else {
-                console.error('Error:', response.status);
-                setIsQuestionsLoading(false);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-
-    useEffect(() => {
-        fetchQuestions()
-    }, [opened]);
 
     useEffect(() => {
         if (viewport.current) {
@@ -168,23 +77,21 @@ const ChatModal = ({
 
     }, [messages, isLoading, questions]);
 
-    const handleSendChatMessage = async () => {
-        setQuestions([])
+    const handleSendChatMessage = async (selectedQuestion?: string) => {
+        setMessage('');
+        setQuestions([]);
 
         if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
 
         const token = await executeRecaptcha('chat');
-
-        setMessage('');
         setIsLoading(true);
 
         try {
             const userMessage = {
                 id: Date.now(),
                 role: 'user' as 'user',
-                content: message,
+                content: selectedQuestion || message,
             };
-            // Append the new user message to the full conversation
             const updatedMessages = [
                 ...messages,
                 userMessage
@@ -220,9 +127,6 @@ const ChatModal = ({
                 recaptcha_token: token
             });
 
-            console.log(body);
-
-
             const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/chat`, {
                 method: 'POST',
                 headers: {
@@ -233,7 +137,7 @@ const ChatModal = ({
             });
             setIsLoading(false)
             if (response.ok) {
-                setQuestions([])
+                // setQuestions([])
 
                 const data = await response.json();
 
@@ -254,6 +158,7 @@ const ChatModal = ({
             console.error('Error:', error);
         }
     };
+
 
     return (
         <>
@@ -403,8 +308,7 @@ const ChatModal = ({
                             )}
                         </Box>
                     ))}
-                    {!questionsGenerated && (
-
+                    {!questionsGenerated && messages.length === 0 && (
                         <Flex mt={10}>
                             <Image
                                 mr={10}
@@ -414,35 +318,24 @@ const ChatModal = ({
                                 height={isMobile ? 50 : 70}
                                 src={'/agent.svg'}
                             />
-                            {isQuestionsLoading ?
+                            {isQuestionsLoading &&
                                 <Box bg={'#1B1F32'} style={{ borderRadius: '10px', padding: '10px', width: '100%', border: '1px solid #59596C' }}>
                                     <Text ta={"center"}>Generating questions...</Text>
                                     <Center>
                                         <Loader type='dots' mt={5} size={"sm"} />
                                     </Center>
                                 </Box>
-                                :
+                            }
+                            {errorGeneratingQuestions &&
                                 <Box bg={'#1B1F32'} style={{ borderRadius: '10px', padding: '10px', width: '100%', border: '1px solid #59596C' }}>
-                                    <Text fw={700} ta={"center"}>Would you like to generate questions about this transaction?</Text>
-                                    <Button onClick={fetchQuestions} mt={10} bg={"eden.5"} autoContrast display={"flex"} m={"auto"}>
-                                        Generate questions
-                                    </Button>
+                                    <Text ta={"center"}>Error while generating questions. Please type your question in the box.</Text>
                                 </Box>
                             }
-
                         </Flex>
                     )}
                     {questionsGenerated && (
                         <Box>
                             <Flex >
-                                {/* <Image
-                                mr={10}
-                                style={{ mixBlendMode: 'screen' }}
-                                mb={'auto'}
-                                width={isMobile ? 50 : 70}
-                                height={isMobile ? 50 : 70}
-                                src={'/agent.svg'}
-                            /> */}
                                 <Box>
                                     {questions.map((question, index) => (
                                         <Box
@@ -466,7 +359,18 @@ const ChatModal = ({
                                                     cursor: 'pointer',
                                                     border: '1px solid #59596C'
                                                 }}
-                                                onClick={() => setMessage(question)}
+                                                onClick={() => {
+                                                    setQuestions([]);
+                                                    // setMessages(prevMessages => [
+                                                    //     ...prevMessages,
+                                                    //     {
+                                                    //         id: Date.now(),
+                                                    //         role: 'user',
+                                                    //         content: question
+                                                    //     }
+                                                    // ]);
+                                                    handleSendChatMessage(question);
+                                                }}
                                             >
                                                 <Text
                                                     fw={'700'}
@@ -498,9 +402,9 @@ const ChatModal = ({
                 </ScrollArea>
                 <Flex mt={'xl'}>
                     <Textarea
-                        onSubmitCapture={handleSendChatMessage}
+                        onSubmitCapture={() => handleSendChatMessage()}
                         disabled={isLoading}
-                        onKeyDown={getHotkeyHandler([['Enter+mod', handleSendChatMessage]])}
+                        onKeyDown={getHotkeyHandler([['Enter+mod', () => handleSendChatMessage()]])}
                         size={isMobile ? 'xs' : 'md'}
                         h={'100%'}
                         placeholder={isLoading ? 'Loading...' : 'Type your message'}
@@ -509,7 +413,7 @@ const ChatModal = ({
                         style={{ flexGrow: 1 }}
                         rightSection={
                             <ActionIcon autoContrast loading={isLoading} radius={'sm'} color='eden.5' my={'auto'} mr={20} variant='filled'>
-                                <ArrowUpIcon style={{ color: "#2b2b46" }} onClick={handleSendChatMessage} width={20} height={20} />
+                                <ArrowUpIcon style={{ color: "#2b2b46" }} onClick={() => handleSendChatMessage()} width={20} height={20} />
                             </ActionIcon>
                         }
                     />

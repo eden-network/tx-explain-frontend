@@ -5,7 +5,7 @@ import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text, Button } fr
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
-import { isValidTxHash, getNetworkName, isSimulationTxHash } from '../lib/utils';
+import { isValidTxHash, getNetworkName, isSimulationTxHash, isValidJSON } from '../lib/utils';
 import ModelEditor from './ModelEditor';
 import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
@@ -26,6 +26,8 @@ import SimulateTransaction from './SimulateTx';
 import SimulationInputs from './SimulationInputs';
 import ChatModal from './ChatModal';
 import { TransactionDetails } from '../types';
+const { v4: uuidv4 } = require('uuid');
+
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
@@ -57,18 +59,16 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   const [transactionDetails, setTransactionDetails] = useState<TransactionDetails | null>(null);
   const [chatModalOpened, setChatModalOpened] = useState(false)
+  const [questions, setQuestions] = useState<string[]>([]);
+  const [isQuestionsLoading, setIsQuestionsLoading] = useState<boolean>(false);
+  const [questionsGenerated, setQuestionsGenerated] = useState(false);
+  const [errorGeneratingQuestions, setErrorGeneratingQuestions] = useState(false)
+
 
   const openModal = () => setIsSimulateModalOpened(true);
   const openChatModal = () => setChatModalOpened(true);
   const closeModal = () => setIsSimulateModalOpened(false);
   const closeChatModal = () => setChatModalOpened(false);
-
-  // useEffect(() => {
-  //   if (transactionDetails) {
-  //     console.log(transactionDetails);
-  //   }
-  // }, [txHash]); 
-
 
   const {
     data: simulationData,
@@ -523,6 +523,94 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     setTransactionDetails(details);
   }, [txHash, network]);
 
+  const fetchQuestions = useCallback(async () => {
+    setIsQuestionsLoading(true)
+
+    if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
+
+    const token = await executeRecaptcha('questions');
+
+    try {
+      const sessionId = `${uuidv4()}-${txHash}`;
+      const updatedMessages = [
+        {
+          id: Date.now(),
+          role: 'user' as 'user',
+          content: ""
+        }
+      ];
+
+      const body = JSON.stringify({
+        input_json: {
+          "model": "",
+          "max_tokens": 0,
+          "temperature": 0,
+          "system": {
+            "system_prompt": "",
+            "transaction_details": simulationData,
+            "transaction_overivew": transactionDetails,
+            "transaction_explanation": explanation,
+          },
+          "messages": updatedMessages.map(msg => ({
+            "role": msg.role,
+            "content": [
+              {
+                "type": "text",
+                "text": msg.content
+              }
+            ]
+          }))
+        },
+        network_id: network,
+        session_id: sessionId,
+        recaptcha_token: token
+      });
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/questions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+        },
+        body: body,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const parsedData = JSON.parse(data[0]);
+
+        const questionsArray = parsedData.questions ? parsedData.questions.map((item: { question: string }) => item.question) : [];
+        setQuestions(questionsArray);
+        setQuestionsGenerated(true);
+        setIsQuestionsLoading(false);
+
+      } else {
+        console.error('Error:', response.status);
+        setErrorGeneratingQuestions(true);
+        setQuestionsGenerated(false);
+        setIsQuestionsLoading(false);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setErrorGeneratingQuestions(true);
+      setQuestionsGenerated(false);
+      setIsQuestionsLoading(false);
+    }
+  }, [executeRecaptcha, network, simulationData, transactionDetails, explanation, txHash]);
+
+  useEffect(() => {
+    if (chatModalOpened && !questionsGenerated) {
+      fetchQuestions();
+    }
+  }, [chatModalOpened, questionsGenerated, fetchQuestions]);
+
+  useEffect(() => {
+    setQuestions([])
+    setIsQuestionsLoading(false)
+    setQuestionsGenerated(false)
+    setErrorGeneratingQuestions(false)
+  }, [txHash])
+
   return (
     <Wrapper>
       <Header
@@ -560,6 +648,11 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             networkId={network}
             opened={chatModalOpened}
             onClose={closeChatModal}
+            questions={questions}
+            isQuestionsLoading={isQuestionsLoading}
+            questionsGenerated={questionsGenerated}
+            setQuestions={setQuestions}
+            errorGeneratingQuestions={errorGeneratingQuestions}
           />
           {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>
