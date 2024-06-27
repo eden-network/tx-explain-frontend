@@ -552,11 +552,19 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             "transaction_explanation": explanation,
           },
           "messages": updatedMessages.map(msg => ({
-            "role": msg.role,
+            "role": "user",
             "content": [
               {
                 "type": "text",
-                "text": msg.content
+                "text": `generate 3 questions about this specific transaction that will be relevant to this transaction and will allow user to explore details of this transaction.
+                         only reply with JSON object in this format:
+                         {
+                            questions:[
+                              {question:"$QUESTION1$},
+                              {question:"$QUESTION2$},
+                              {question:"$QUESTION3$}]
+                          }, 
+                        where you will replace variables like $QUESTION1$ with actuall question text.`
               }
             ]
           }))

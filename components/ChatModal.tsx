@@ -361,14 +361,6 @@ const ChatModal = ({
                                                 }}
                                                 onClick={() => {
                                                     setQuestions([]);
-                                                    // setMessages(prevMessages => [
-                                                    //     ...prevMessages,
-                                                    //     {
-                                                    //         id: Date.now(),
-                                                    //         role: 'user',
-                                                    //         content: question
-                                                    //     }
-                                                    // ]);
                                                     handleSendChatMessage(question);
                                                 }}
                                             >
