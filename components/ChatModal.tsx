@@ -1,19 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Modal, Button, TextInput, Center, Flex, ScrollArea, Text, Box, Loader, Image, Anchor, em, Textarea, ActionIcon, UnstyledButton } from '@mantine/core';
 import { getHotkeyHandler } from '@mantine/hooks';
-import { TransactionSimulation } from '../types';
+import { TransactionSimulation, Message } from '../types';
 import { TransactionDetails } from '../types';
 const { v4: uuidv4 } = require('uuid');
 import { CrossCircledIcon, ArrowUpIcon } from '@modulz/radix-icons';
 import { ellipsis } from '../lib/ellipsis';
 import { useMediaQuery } from '@mantine/hooks';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
-
-interface Message {
-    id: number;
-    role: 'user' | 'assistant';
-    content: string;
-}
 
 interface ChatModalProps {
     transactionSimulation: TransactionSimulation,
@@ -27,7 +21,10 @@ interface ChatModalProps {
     isQuestionsLoading: boolean,
     questionsGenerated: boolean,
     setQuestions: React.Dispatch<React.SetStateAction<string[]>>;
-    errorGeneratingQuestions: boolean
+    errorGeneratingQuestions: boolean,
+    fetchQuestions: () => void,
+    messages: Message[];
+    setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
 const ChatModal = ({
@@ -42,11 +39,13 @@ const ChatModal = ({
     isQuestionsLoading,
     questionsGenerated,
     setQuestions,
-    errorGeneratingQuestions
+    errorGeneratingQuestions,
+    fetchQuestions,
+    messages,
+    setMessages
 }: ChatModalProps) => {
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState<boolean>(false)
-    const [messages, setMessages] = useState<Message[]>([]);
     const viewport = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
     const { executeRecaptcha } = useGoogleReCaptcha();
@@ -137,7 +136,7 @@ const ChatModal = ({
             });
             setIsLoading(false)
             if (response.ok) {
-                // setQuestions([])
+                setQuestions([])
 
                 const data = await response.json();
 
@@ -151,6 +150,7 @@ const ChatModal = ({
                         content: assistantResponse
                     }
                 ]);
+                fetchQuestions()
             } else {
                 console.error('Error:', response.status);
             }
@@ -187,7 +187,6 @@ const ChatModal = ({
                             {ellipsis(txHash)}
                         </Anchor>
                         <Text mb={1} mt={'auto'} fw={'700'} mr={10} size={isMobile ? 'xs' : 'lg'}>
-
                         </Text>
                     </Flex>
                 }
@@ -308,7 +307,7 @@ const ChatModal = ({
                             )}
                         </Box>
                     ))}
-                    {!questionsGenerated && messages.length === 0 && (
+                    {!questionsGenerated && (
                         <Flex mt={10}>
                             <Image
                                 mr={10}

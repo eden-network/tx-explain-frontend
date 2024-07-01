@@ -9,7 +9,7 @@ import { isValidTxHash, getNetworkName, isSimulationTxHash, isValidJSON } from '
 import ModelEditor from './ModelEditor';
 import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
-import { TransactionSimulation, Categories } from '../types';
+import { TransactionSimulation, Categories, Message } from '../types';
 import Wrapper from './Wrapper';
 import { isDevEnvironment, isLocalEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
@@ -63,6 +63,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [isQuestionsLoading, setIsQuestionsLoading] = useState<boolean>(false);
   const [questionsGenerated, setQuestionsGenerated] = useState(false);
   const [errorGeneratingQuestions, setErrorGeneratingQuestions] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([]);
 
 
   const openModal = () => setIsSimulateModalOpened(true);
@@ -525,6 +526,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   const fetchQuestions = useCallback(async () => {
     setIsQuestionsLoading(true)
+    setQuestions([]);
+    setQuestionsGenerated(false)
+
 
     if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
 
@@ -532,6 +536,31 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
     try {
       const sessionId = `${uuidv4()}-${txHash}`;
+
+      const generateQuestionsUserMessage = {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: `generate 3 questions about this specific transaction that will be relevant to this transaction and will allow user to explore details of this transaction.
+                   only reply with JSON object in this format:
+                   {
+                      questions:[
+                        {question:"$QUESTION1$},
+                        {question:"$QUESTION2$},
+                        {question:"$QUESTION3$}]
+                    }, 
+                  where you will replace variables like $QUESTION1$ with actual question text.`
+          }
+        ]
+      };
+
+      const chatMessages = messages.length > 0
+        ? [...messages.map(msg => ({
+          role: msg.role,
+          content: [{ type: "text", text: msg.content }]
+        })), generateQuestionsUserMessage]
+        : [generateQuestionsUserMessage];
 
       const body = JSON.stringify({
         input_json: {
@@ -544,25 +573,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             "transaction_overivew": transactionDetails,
             "transaction_explanation": explanation,
           },
-          "messages": [
-            {
-              "role": "user",
-              "content": [
-                {
-                  "type": "text",
-                  "text": `generate 3 questions about this specific transaction that will be relevant to this transaction and will allow user to explore details of this transaction.
-                         only reply with JSON object in this format:
-                         {
-                            questions:[
-                              {question:"$QUESTION1$},
-                              {question:"$QUESTION2$},
-                              {question:"$QUESTION3$}]
-                          }, 
-                        where you will replace variables like $QUESTION1$ with actual question text.`
-                }
-              ]
-            }
-          ]
+          "messages": chatMessages
         },
         network_id: network,
         session_id: sessionId,
@@ -586,6 +597,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         setQuestions(questionsArray);
         setQuestionsGenerated(true);
         setIsQuestionsLoading(false);
+        console.log("questions", questionsArray);
+
 
       } else {
         console.error('Error:', response.status);
@@ -599,7 +612,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       setQuestionsGenerated(false);
       setIsQuestionsLoading(false);
     }
-  }, [executeRecaptcha, network, simulationData, transactionDetails, explanation, txHash]);
+  }, [executeRecaptcha, network, simulationData, transactionDetails, explanation, txHash, messages]);
 
   useEffect(() => {
     if (chatModalOpened && !questionsGenerated) {
@@ -656,6 +669,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             questionsGenerated={questionsGenerated}
             setQuestions={setQuestions}
             errorGeneratingQuestions={errorGeneratingQuestions}
+            fetchQuestions={fetchQuestions}
+            messages={messages}
+            setMessages={setMessages}
           />
           {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>
@@ -707,7 +723,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                   <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
                     <Tabs.List mb={20}>
                       {isValidTxHash(txHash) && (
-                        <Tabs.Tab value="overview">
+                        <Tabs.Tab size={"xs"} value="overview">
                           {"Overview"}
                         </Tabs.Tab>
                       )}
@@ -716,10 +732,10 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                           {"Simulation Inputs"}
                         </Tabs.Tab>
                       )}
-                      <Tabs.Tab value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
+                      <Tabs.Tab size={"xs"} value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
                         {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : "Details"}
                       </Tabs.Tab>
-                      <Tabs.Tab value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
+                      <Tabs.Tab size={"xs"} value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
                         {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : "Function Calls"}
                       </Tabs.Tab>
                     </Tabs.List>

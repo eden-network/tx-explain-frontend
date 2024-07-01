@@ -76,3 +76,9 @@ export interface TransactionDetails {
     max_gas: string | undefined;
     max_priority: string | undefined;
 };
+
+export interface Message {
+    id: number;
+    role: 'user' | 'assistant';
+    content: string;
+}
