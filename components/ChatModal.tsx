@@ -77,6 +77,7 @@ const ChatModal = ({
     }, [messages, isLoading, questions]);
 
     const handleSendChatMessage = async (selectedQuestion?: string) => {
+
         setMessage('');
         setQuestions([]);
 

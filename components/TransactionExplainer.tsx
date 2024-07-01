@@ -64,7 +64,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [questionsGenerated, setQuestionsGenerated] = useState(false);
   const [errorGeneratingQuestions, setErrorGeneratingQuestions] = useState(false)
   const [messages, setMessages] = useState<Message[]>([]);
-
+  const [firstQuestionsFetched, setFirstQuestionsFetched] = useState(false)
 
   const openModal = () => setIsSimulateModalOpened(true);
   const openChatModal = () => setChatModalOpened(true);
@@ -528,6 +528,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     setIsQuestionsLoading(true)
     setQuestions([]);
     setQuestionsGenerated(false)
+    setFirstQuestionsFetched(true)
 
 
     if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
@@ -614,17 +615,20 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     }
   }, [executeRecaptcha, network, simulationData, transactionDetails, explanation, txHash, messages]);
 
+
   useEffect(() => {
-    if (chatModalOpened && !questionsGenerated) {
+    if (chatModalOpened && !questionsGenerated && !firstQuestionsFetched) {
       fetchQuestions();
     }
-  }, [chatModalOpened, questionsGenerated, fetchQuestions]);
+  }, [chatModalOpened, questionsGenerated, fetchQuestions, firstQuestionsFetched]);
 
   useEffect(() => {
     setQuestions([])
     setIsQuestionsLoading(false)
     setQuestionsGenerated(false)
     setErrorGeneratingQuestions(false)
+    setFirstQuestionsFetched(false)
+    setMessages([])
   }, [txHash])
 
   return (
