@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Modal, Button, TextInput, Center, Flex, ScrollArea, Text, Box, Loader, Image, Anchor, em, Textarea, ActionIcon, UnstyledButton } from '@mantine/core';
+import { Modal, Button, Center, Flex, ScrollArea, Text, Box, Loader, Image, Anchor, em, Textarea, ActionIcon } from '@mantine/core';
 import { getHotkeyHandler } from '@mantine/hooks';
 import { TransactionSimulation, Message } from '../types';
 import { TransactionDetails } from '../types';
 const { v4: uuidv4 } = require('uuid');
-import { CrossCircledIcon, ArrowUpIcon } from '@modulz/radix-icons';
+import { CrossCircledIcon, ArrowUpIcon, SymbolIcon } from '@modulz/radix-icons';
 import { ellipsis } from '../lib/ellipsis';
 import { useMediaQuery } from '@mantine/hooks';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
@@ -396,15 +396,22 @@ const ChatModal = ({
                         </Box>
                     )}
                     {questionsGenerated && !isLoading && (
-                        <Box mt={10}>
+                        <Flex mt={10} justify={"flex-end"}>
                             <Button
+                                size='xs'
+                                leftSection={
+                                    <ActionIcon autoContrast loading={isLoading} radius={'sm'} color='eden.5' my={'auto'} variant='filled'>
+                                        <SymbolIcon style={{ color: "#2b2b46" }} onClick={() => handleSendChatMessage()} width={20} height={20} />
+                                    </ActionIcon>}
+                                autoContrast
+                                bg={"eden.5"}
                                 onClick={handleRegenerateQuestions}
                                 disabled={isQuestionsLoading}
                                 loading={isQuestionsLoading}
                             >
                                 Regenerate Questions
                             </Button>
-                        </Box>
+                        </Flex>
                     )}
                     {isLoading && (
                         <Flex mt={20} mb={20} align="center">
