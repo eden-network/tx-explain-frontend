@@ -524,44 +524,62 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     setTransactionDetails(details);
   }, [txHash, network]);
 
-  const fetchQuestions = useCallback(async () => {
+  const fetchQuestions = useCallback(async (messages: Message[], isRegenerate = false) => {
     setIsQuestionsLoading(true)
     setQuestions([]);
     setQuestionsGenerated(false)
-    setFirstQuestionsFetched(true)
+    if (!isRegenerate) {
+      setFirstQuestionsFetched(true);
+    }
 
 
     if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
 
     const token = await executeRecaptcha('questions');
 
-    try {
-      const sessionId = `${uuidv4()}-${txHash}`;
+    const generateQuestionsUserMessage = {
+      role: "user",
+      content: [
+        {
+          type: "text",
+          text: isRegenerate
+            ? `Regenerate 3 new and different questions about this specific transaction. These questions should be distinct from the previous ones and allow the user to explore different aspects or details of this transaction.
+               Only reply with a JSON object in this format:
+               {
+                  "questions": [
+                    {"question": "$QUESTION1$"},
+                    {"question": "$QUESTION2$"},
+                    {"question": "$QUESTION3$"}
+                  ]
+               }
+               Replace $QUESTION1$, $QUESTION2$, and $QUESTION3$ with the actual question text. Ensure each question is unique and provides a new perspective on the transaction.`
+            : `Generate 3 questions about this specific transaction that are relevant and will allow the user to explore important details of this transaction.
+               Only reply with a JSON object in this format:
+               {
+                  "questions": [
+                    {"question": "$QUESTION1$"},
+                    {"question": "$QUESTION2$"},
+                    {"question": "$QUESTION3$"}
+                  ]
+               }
+               Replace $QUESTION1$, $QUESTION2$, and $QUESTION3$ with the actual question text. Each question should focus on a different aspect of the transaction.`
+        }
+      ]
+    };
 
-      const generateQuestionsUserMessage = {
-        role: "user",
+    const chatMessages =
+      [...messages.map(msg => ({
+        role: msg.role,
         content: [
           {
             type: "text",
-            text: `generate 3 questions about this specific transaction that will be relevant to this transaction and will allow user to explore details of this transaction.
-                   only reply with JSON object in this format:
-                   {
-                      questions:[
-                        {question:"$QUESTION1$},
-                        {question:"$QUESTION2$},
-                        {question:"$QUESTION3$}]
-                    }, 
-                  where you will replace variables like $QUESTION1$ with actual question text.`
+            text: msg.content
           }
         ]
-      };
+      })), generateQuestionsUserMessage]
+    try {
+      const sessionId = `${uuidv4()}-${txHash}`;
 
-      const chatMessages = messages.length > 0
-        ? [...messages.map(msg => ({
-          role: msg.role,
-          content: [{ type: "text", text: msg.content }]
-        })), generateQuestionsUserMessage]
-        : [generateQuestionsUserMessage];
 
       const body = JSON.stringify({
         input_json: {
@@ -572,7 +590,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             "system_prompt": "",
             "transaction_details": simulationData,
             "transaction_overivew": transactionDetails,
-            "transaction_explanation": explanation,
+            "transaction_explanation": explanation === '' ? explanationCache[`${network}:${txHash}`] : explanation,
           },
           "messages": chatMessages
         },
@@ -580,6 +598,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         session_id: sessionId,
         recaptcha_token: token
       });
+
+      console.log(body);
+
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/questions`, {
         method: 'POST',
@@ -598,8 +619,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         setQuestions(questionsArray);
         setQuestionsGenerated(true);
         setIsQuestionsLoading(false);
-        console.log("questions", questionsArray);
-
 
       } else {
         console.error('Error:', response.status);
@@ -615,10 +634,14 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     }
   }, [executeRecaptcha, network, simulationData, transactionDetails, explanation, txHash, messages]);
 
+  const handleRegenerateQuestions = useCallback(() => {
+    fetchQuestions(messages, true);
+  }, [fetchQuestions]);
+
 
   useEffect(() => {
     if (chatModalOpened && !questionsGenerated && !firstQuestionsFetched) {
-      fetchQuestions();
+      fetchQuestions(messages);
     }
   }, [chatModalOpened, questionsGenerated, fetchQuestions, firstQuestionsFetched]);
 
@@ -676,6 +699,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             fetchQuestions={fetchQuestions}
             messages={messages}
             setMessages={setMessages}
+            handleRegenerateQuestions={handleRegenerateQuestions}
           />
           {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>

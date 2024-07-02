@@ -22,9 +22,10 @@ interface ChatModalProps {
     questionsGenerated: boolean,
     setQuestions: React.Dispatch<React.SetStateAction<string[]>>;
     errorGeneratingQuestions: boolean,
-    fetchQuestions: () => void,
+    fetchQuestions: (messages: Message[]) => void;
     messages: Message[];
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+    handleRegenerateQuestions: () => void
 }
 
 const ChatModal = ({
@@ -42,7 +43,8 @@ const ChatModal = ({
     errorGeneratingQuestions,
     fetchQuestions,
     messages,
-    setMessages
+    setMessages,
+    handleRegenerateQuestions
 }: ChatModalProps) => {
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -78,20 +80,27 @@ const ChatModal = ({
 
     const handleSendChatMessage = async (selectedQuestion?: string) => {
 
-        setMessage('');
+        const userMessage = {
+            id: Date.now(),
+            role: 'user' as 'user',
+            content: selectedQuestion || message,
+        };
+
+        setMessages(prevMessages => [...prevMessages, userMessage]);
         setQuestions([]);
+        setMessage('');
+        setIsLoading(true);
 
         if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
 
         const token = await executeRecaptcha('chat');
-        setIsLoading(true);
 
         try {
-            const userMessage = {
-                id: Date.now(),
-                role: 'user' as 'user',
-                content: selectedQuestion || message,
-            };
+            // const userMessage = {
+            //     id: Date.now(),
+            //     role: 'user' as 'user',
+            //     content: selectedQuestion || message,
+            // };
             const updatedMessages = [
                 ...messages,
                 userMessage
@@ -99,7 +108,7 @@ const ChatModal = ({
 
             const sessionId = `${uuidv4()}-${txHash}`;
 
-            setMessages(prevMessages => [...prevMessages, userMessage]);
+            // setMessages(prevMessages => [...prevMessages, userMessage]);
 
             const body = JSON.stringify({
                 input_json: {
@@ -137,7 +146,7 @@ const ChatModal = ({
             });
             setIsLoading(false)
             if (response.ok) {
-                setQuestions([])
+                // setQuestions([])
 
                 const data = await response.json();
 
@@ -151,7 +160,16 @@ const ChatModal = ({
                         content: assistantResponse
                     }
                 ]);
-                fetchQuestions()
+
+                const newMessages: Message[] = [
+                    ...updatedMessages,
+                    {
+                        id: Date.now(),
+                        role: 'assistant',
+                        content: assistantResponse
+                    }
+                ];
+                fetchQuestions(newMessages)
             } else {
                 console.error('Error:', response.status);
             }
@@ -159,7 +177,6 @@ const ChatModal = ({
             console.error('Error:', error);
         }
     };
-
 
     return (
         <>
@@ -175,7 +192,6 @@ const ChatModal = ({
                             height={isMobile ? 30 : 40}
                             src={'/tx_explain.svg'}
                         />
-
                         <Anchor
                             mr={5}
                             mb={1}
@@ -377,6 +393,17 @@ const ChatModal = ({
                                     ))}
                                 </Box>
                             </Flex>
+                        </Box>
+                    )}
+                    {questionsGenerated && !isLoading && (
+                        <Box mt={10}>
+                            <Button
+                                onClick={handleRegenerateQuestions}
+                                disabled={isQuestionsLoading}
+                                loading={isQuestionsLoading}
+                            >
+                                Regenerate Questions
+                            </Button>
                         </Box>
                     )}
                     {isLoading && (
