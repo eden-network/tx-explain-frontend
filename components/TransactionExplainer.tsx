@@ -544,9 +544,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       content: [
         {
           type: "text",
-          text: isRegenerate
-            ? previousQuestions.toString() + regenerateQuestions
-            : generateQuestions
+          text:
+            previousQuestions.toString() + regenerateQuestions
         }
       ]
     };
