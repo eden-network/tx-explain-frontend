@@ -581,7 +581,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         session_id: sessionId,
         recaptcha_token: token
       });
-      console.log(chatMessages);
+      console.log(body);
 
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/questions`, {
@@ -595,16 +595,10 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Raw data from API:', data);
+
 
         const parsedData = JSON.parse(data[0]);
-        console.log('Parsed data:', parsedData);
-        console.log('parsedData.questions:', parsedData.questions);
 
-        if (parsedData.questions) {
-          const mappedQuestions = parsedData.questions.map((item: { question: string }) => item.question);
-          console.log('Mapped questions:', mappedQuestions);
-        }
 
         const questionsArray = parsedData.questions ? parsedData.questions.map((item: { question: string }) => item.question) : [];
         console.log(questionsArray);

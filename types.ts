@@ -83,7 +83,7 @@ export interface Message {
     content: string;
 }
 
-export const regenerateQuestions = `Generate 3 entirely new and unique questions about this specific transaction. These questions must be completely different from the 3 questions provided earlier and should explore alternative aspects or details of the transaction not previously addressed.
+export const regenerateQuestions = `Generate 3 entirely new and unique questions about this specific transaction. These questions must be completely different from the 3 questions provided earlier and should explore alternative aspects or details of the transaction not previously addressed. Utilize the provided simulation data, transaction details, and transaction explanation to formulate these questions.
 
 Respond only with a JSON object in this format:
 
@@ -97,7 +97,7 @@ Respond only with a JSON object in this format:
 
 Replace $QUESTION1$, $QUESTION2$, and $QUESTION3$ with the actual question text. Ensure that:
 1. Each question is distinct from the others and from the original questions.
-2. The questions offer fresh perspectives on the transaction.
+2. The questions offer fresh perspectives on the transaction, drawing from the simulation data, transaction details, or transaction explanation.
 3. No part of the original questions is repeated or rephrased.
 4. The questions delve into different aspects of the transaction that weren't covered before.
 

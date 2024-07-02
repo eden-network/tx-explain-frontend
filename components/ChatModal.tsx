@@ -363,7 +363,6 @@ const ChatModal = ({
                                             }}
                                         >
                                             <Box
-
                                                 bg={'dark.5'}
                                                 c={'#bfff38'}
                                                 mt={isMobile ? 10 : 10}
@@ -398,13 +397,14 @@ const ChatModal = ({
                     {questionsGenerated && !isLoading && (
                         <Flex mt={10} justify={"flex-end"}>
                             <Button
+                                style={{ borderRadius: '10px' }}
+                                variant='light'
                                 size='xs'
                                 leftSection={
-                                    <ActionIcon autoContrast loading={isLoading} radius={'sm'} color='eden.5' my={'auto'} variant='filled'>
-                                        <SymbolIcon style={{ color: "#2b2b46" }} onClick={() => handleSendChatMessage()} width={20} height={20} />
+                                    <ActionIcon loading={isLoading} radius={'sm'} color='eden.5' my={'auto'} variant='transparent'>
+                                        <SymbolIcon onClick={() => handleSendChatMessage()} width={15} height={15} />
                                     </ActionIcon>}
-                                autoContrast
-                                bg={"eden.5"}
+                                // bg={"eden.5"}
                                 onClick={handleRegenerateQuestions}
                                 disabled={isQuestionsLoading}
                                 loading={isQuestionsLoading}
