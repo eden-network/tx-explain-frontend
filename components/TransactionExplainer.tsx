@@ -9,7 +9,7 @@ import { isValidTxHash, getNetworkName, isSimulationTxHash, isValidJSON } from '
 import ModelEditor from './ModelEditor';
 import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
-import { TransactionSimulation, Categories, Message } from '../types';
+import { TransactionSimulation, Categories, Message, regenerateQuestions, generateQuestions } from '../types';
 import Wrapper from './Wrapper';
 import { isDevEnvironment, isLocalEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
@@ -60,6 +60,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [transactionDetails, setTransactionDetails] = useState<TransactionDetails | null>(null);
   const [chatModalOpened, setChatModalOpened] = useState(false)
   const [questions, setQuestions] = useState<string[]>([]);
+  const [previousQuestions, setPreviousQuestions] = useState<string[]>([])
   const [isQuestionsLoading, setIsQuestionsLoading] = useState<boolean>(false);
   const [questionsGenerated, setQuestionsGenerated] = useState(false);
   const [errorGeneratingQuestions, setErrorGeneratingQuestions] = useState(false)
@@ -537,32 +538,15 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
     const token = await executeRecaptcha('questions');
 
+
     const generateQuestionsUserMessage = {
       role: "user",
       content: [
         {
           type: "text",
           text: isRegenerate
-            ? `Regenerate 3 new and different questions about this specific transaction. These questions should be distinct from the previous ones and allow the user to explore different aspects or details of this transaction.
-               Only reply with a JSON object in this format:
-               {
-                  "questions": [
-                    {"question": "$QUESTION1$"},
-                    {"question": "$QUESTION2$"},
-                    {"question": "$QUESTION3$"}
-                  ]
-               }
-               Replace $QUESTION1$, $QUESTION2$, and $QUESTION3$ with the actual question text. Ensure each question is unique and provides a new perspective on the transaction.`
-            : `Generate 3 questions about this specific transaction that are relevant and will allow the user to explore important details of this transaction.
-               Only reply with a JSON object in this format:
-               {
-                  "questions": [
-                    {"question": "$QUESTION1$"},
-                    {"question": "$QUESTION2$"},
-                    {"question": "$QUESTION3$"}
-                  ]
-               }
-               Replace $QUESTION1$, $QUESTION2$, and $QUESTION3$ with the actual question text. Each question should focus on a different aspect of the transaction.`
+            ? previousQuestions.toString() + regenerateQuestions
+            : generateQuestions
         }
       ]
     };
@@ -613,10 +597,15 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
       if (response.ok) {
         const data = await response.json();
+        console.log(data);
+
         const parsedData = JSON.parse(data[0]);
 
         const questionsArray = parsedData.questions ? parsedData.questions.map((item: { question: string }) => item.question) : [];
         setQuestions(questionsArray);
+        console.log(questionsArray);
+
+        setPreviousQuestions(questionsArray)
         setQuestionsGenerated(true);
         setIsQuestionsLoading(false);
 
@@ -632,7 +621,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       setQuestionsGenerated(false);
       setIsQuestionsLoading(false);
     }
-  }, [executeRecaptcha, network, simulationData, transactionDetails, explanation, txHash, messages]);
+  }, [executeRecaptcha, network, simulationData, transactionDetails, explanation, txHash, messages, previousQuestions]);
 
   const handleRegenerateQuestions = useCallback(() => {
     fetchQuestions(messages, true);
@@ -652,6 +641,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     setErrorGeneratingQuestions(false)
     setFirstQuestionsFetched(false)
     setMessages([])
+    setPreviousQuestions([])
   }, [txHash])
 
   return (
