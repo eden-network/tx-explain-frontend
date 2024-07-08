@@ -1,12 +1,9 @@
-import { Flex, Box, Image } from "@mantine/core";
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Flex, Box, Image, Button } from "@mantine/core";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount, useSignMessage } from 'wagmi';
 import InputForm from './InputForm';
-import { ConnectButton, useChainModal } from "@rainbow-me/rainbowkit";
-import { useAccount } from 'wagmi'
-import { useState } from "react";
-import { useDisclosure } from "@mantine/hooks";
-import { useEffect } from "react";
 import SignMessageModal from "./SignMessageModal";
-import { add } from "lodash";
 
 interface HeaderProps {
   handleSubmit: (e: React.FormEvent, token: string) => Promise<void>;
@@ -14,7 +11,7 @@ interface HeaderProps {
   handleNetworkChange: (s: string) => void;
   txHash: string;
   handleTxHashChange: (s: string) => void;
-  showOnBoarding: () => void,
+  showOnBoarding: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -25,21 +22,41 @@ const Header: React.FC<HeaderProps> = ({
   handleTxHashChange,
   showOnBoarding
 }) => {
-
-  const [modalOpened, setModalOpened] = useState(false);
   const { isConnected, address } = useAccount();
-  const { openChainModal } = useChainModal()
-  const [opened, { open, close }] = useDisclosure(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { signMessage, isSuccess, reset, data: signature } = useSignMessage();
+  const hasAttemptedSignRef = useRef(false);
+
+  const handleSignMessage = useCallback(() => {
+    if (address && !hasAttemptedSignRef.current) {
+      const message = `I am the owner of this address and want to sign in to Tx-Explain:${address}`;
+      setIsModalOpen(true);
+      signMessage({ message });
+      hasAttemptedSignRef.current = true;
+    }
+  }, [address, signMessage]);
 
   useEffect(() => {
-    if (isConnected && address) {
-      open();
+    if (isConnected && address && !hasAttemptedSignRef.current) {
+      setTimeout(handleSignMessage, 0);
     }
-  }, [isConnected, address, open]);
+  }, [isConnected, address, handleSignMessage]);
 
+  useEffect(() => {
+    if (isSuccess) {
+      const timer = setTimeout(() => {
+        setIsModalOpen(false);
+        console.log("Signature:", signature);
+        // Here you can handle the successful signature, e.g., send it to your backend
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess, signature]);
 
-  console.log(opened);
-
+  const closeModal = () => {
+    setIsModalOpen(false);
+    reset();
+  };
 
   return (
     <>
@@ -70,15 +87,9 @@ const Header: React.FC<HeaderProps> = ({
             chainStatus="none"
             showBalance={false}
           />
-          {/* // View account transactions */}
-
-          {/* {isConnected && (
-            <Button onClick={() => setModalOpened(true)}>
-              View Transactions
-            </Button>
-          )} */}
         </Flex>
       </Flex>
+
       <Box hiddenFrom="md">
         <Image
           mt={20}
@@ -102,7 +113,12 @@ const Header: React.FC<HeaderProps> = ({
           />
         </Box>
       </Box>
-      <SignMessageModal isOpen={opened} onClose={close} address={address} />
+
+      <SignMessageModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        address={address}
+      />
     </>
   );
 };
