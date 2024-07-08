@@ -5,11 +5,11 @@ import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text, Button } fr
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
-import { isValidTxHash, getNetworkName, isSimulationTxHash } from '../lib/utils';
+import { isValidTxHash, getNetworkName, isSimulationTxHash, isValidJSON } from '../lib/utils';
 import ModelEditor from './ModelEditor';
 import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
-import { TransactionSimulation, Categories } from '../types';
+import { TransactionSimulation, Categories, Message, regenerateQuestions, generateQuestions } from '../types';
 import Wrapper from './Wrapper';
 import { isDevEnvironment, isLocalEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
@@ -26,6 +26,8 @@ import SimulateTransaction from './SimulateTx';
 import SimulationInputs from './SimulationInputs';
 import ChatModal from './ChatModal';
 import { TransactionDetails } from '../types';
+const { v4: uuidv4 } = require('uuid');
+
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
@@ -57,8 +59,16 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   const [transactionDetails, setTransactionDetails] = useState<TransactionDetails | null>(null);
   const [chatModalOpened, setChatModalOpened] = useState(false)
+  const [questions, setQuestions] = useState<string[]>([]);
+  const [previousQuestions, setPreviousQuestions] = useState<string[]>([])
+  const [isQuestionsLoading, setIsQuestionsLoading] = useState<boolean>(false);
+  const [questionsGenerated, setQuestionsGenerated] = useState(false);
+  const [errorGeneratingQuestions, setErrorGeneratingQuestions] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [firstQuestionsFetched, setFirstQuestionsFetched] = useState(false)
 
   const openModal = () => setIsSimulateModalOpened(true);
+  const openChatModal = () => setChatModalOpened(true);
   const closeModal = () => setIsSimulateModalOpened(false);
 
   const [addressTransactions, setAddressTransactions] = useState<string[]>([]);
@@ -69,6 +79,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   //     console.log(transactionDetails);
   //   }
   // }, [txHash]); 
+  const closeChatModal = () => setChatModalOpened(false);
 
 
   const {
@@ -552,9 +563,127 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     txHash3: '0x931ab8f6c3566a75d3e487035af0e0d653ed404581f0b0169807e7ebbebc1e95',
   };
 
-  const handleTransactionDetails = (details: TransactionDetails) => {
+  const handleTransactionDetails = useCallback((details: TransactionDetails) => {
     setTransactionDetails(details);
-  };
+  }, [txHash, network]);
+
+  const fetchQuestions = useCallback(async (messages: Message[], isRegenerate = false) => {
+    setIsQuestionsLoading(true)
+    setQuestions([]);
+    setQuestionsGenerated(false)
+    if (!isRegenerate) {
+      setFirstQuestionsFetched(true);
+    }
+
+
+    if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
+
+    const token = await executeRecaptcha('questions');
+
+
+    const generateQuestionsUserMessage = {
+      role: "user",
+      content: [
+        {
+          type: "text",
+          text:
+            previousQuestions.toString() + regenerateQuestions
+        }
+      ]
+    };
+
+    const chatMessages =
+      [...messages.map(msg => ({
+        role: msg.role,
+        content: [
+          {
+            type: "text",
+            text: msg.content
+          }
+        ]
+      })), generateQuestionsUserMessage]
+    try {
+      const sessionId = `${uuidv4()}-${txHash}`;
+
+
+      const body = JSON.stringify({
+        input_json: {
+          "model": "",
+          "max_tokens": 0,
+          "temperature": 0,
+          "system": {
+            "system_prompt": "",
+            "transaction_details": simulationData,
+            "transaction_overivew": transactionDetails,
+            "transaction_explanation": explanation === '' ? explanationCache[`${network}:${txHash}`] : explanation,
+          },
+          "messages": chatMessages
+        },
+        network_id: network,
+        session_id: sessionId,
+        recaptcha_token: token
+      });
+      console.log(body);
+
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/questions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+        },
+        body: body,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+
+        const parsedData = JSON.parse(data[0]);
+
+
+        const questionsArray = parsedData.questions ? parsedData.questions.map((item: { question: string }) => item.question) : [];
+        console.log(questionsArray);
+        setQuestions(questionsArray);
+
+        setPreviousQuestions(questionsArray)
+        setQuestionsGenerated(true);
+        setIsQuestionsLoading(false);
+
+      } else {
+        console.error('Error:', response.status);
+        setErrorGeneratingQuestions(true);
+        setQuestionsGenerated(false);
+        setIsQuestionsLoading(false);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setErrorGeneratingQuestions(true);
+      setQuestionsGenerated(false);
+      setIsQuestionsLoading(false);
+    }
+  }, [executeRecaptcha, network, simulationData, transactionDetails, explanation, txHash, messages, previousQuestions]);
+
+  const handleRegenerateQuestions = useCallback(() => {
+    fetchQuestions(messages, true);
+  }, [fetchQuestions]);
+
+
+  useEffect(() => {
+    if (chatModalOpened && !questionsGenerated && !firstQuestionsFetched) {
+      fetchQuestions(messages);
+    }
+  }, [chatModalOpened, questionsGenerated, fetchQuestions, firstQuestionsFetched]);
+
+  useEffect(() => {
+    setQuestions([])
+    setIsQuestionsLoading(false)
+    setQuestionsGenerated(false)
+    setErrorGeneratingQuestions(false)
+    setFirstQuestionsFetched(false)
+    setMessages([])
+    setPreviousQuestions([])
+  }, [txHash])
 
   const fetchAddressTransactions = async (address: string) => {
     if (!address) return;
@@ -626,7 +755,16 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
             txHash={txHash}
             networkId={network}
             opened={chatModalOpened}
-            setOpened={setChatModalOpened}
+            onClose={closeChatModal}
+            questions={questions}
+            isQuestionsLoading={isQuestionsLoading}
+            questionsGenerated={questionsGenerated}
+            setQuestions={setQuestions}
+            errorGeneratingQuestions={errorGeneratingQuestions}
+            fetchQuestions={fetchQuestions}
+            messages={messages}
+            setMessages={setMessages}
+            handleRegenerateQuestions={handleRegenerateQuestions}
           />
           {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>
@@ -679,24 +817,20 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                   <Tabs value={activeTab} onChange={setActiveTab} defaultValue="overview">
                     <Tabs.List mb={20}>
                       {isValidTxHash(txHash) && (
-                        <Tabs.Tab value="overview">
-                          <Text size='sm'>
-                            Overview
-                          </Text>
+                        <Tabs.Tab size={"xs"} value="overview">
+                          {"Overview"}
                         </Tabs.Tab>
                       )}
                       {isSimulationTxHash(txHash) && (
                         <Tabs.Tab value="overview">
-                          <Text size='sm'>
-                            Simulation Inputs
-                          </Text>
+                          {"Simulation Inputs"}
                         </Tabs.Tab>
                       )}
-                      <Tabs.Tab value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
-                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Details</Text>}
+                      <Tabs.Tab size={"xs"} value="details" disabled={!simulationDataCache[`${network}:${txHash}`]}>
+                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : "Details"}
                       </Tabs.Tab>
-                      <Tabs.Tab value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
-                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Function Calls</Text>}
+                      <Tabs.Tab size={"xs"} value="function-calls" disabled={!simulationDataCache[`${network}:${txHash}`]}>
+                        {isDetailsLoading ? <Loader type='dots' size={"xs"} /> : "Function Calls"}
                       </Tabs.Tab>
                     </Tabs.List>
                     <Tabs.Panel value="overview">
@@ -731,14 +865,10 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                   <Tabs value={mobileActiveTab} onChange={setMobileActiveTab} defaultValue="overview">
                     <Tabs.List justify='center' mb={20}>
                       <Tabs.Tab value="overview">
-                        <Text size='sm'>
-                          Overview
-                        </Text>
+                        Overview
                       </Tabs.Tab>
                       <Tabs.Tab hiddenFrom='md' value='analysis'>
-                        <Text size='sm'>
-                          {isExplanationLoading ? <Loader type='dots' size={"xs"} /> : <Text size='sm'>Analysis</Text>}
-                        </Text>
+                        {isExplanationLoading ? <Loader type='dots' size={"xs"} /> : "Analysis"}
                       </Tabs.Tab>
                     </Tabs.List>
                     <Tabs.Panel value="overview">
@@ -778,7 +908,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
                 categories={categoriesCache[`${network}:${txHash}`] || categories}
                 isCategoriesLoading={isCategoriesLoading}
                 isAnalyzedTx={isValidTxHash(txHash)}
-                setChatModalOpened={() => setChatModalOpened(!chatModalOpened)}
+                openChatModal={openChatModal}
               />
             )}
           </Flex>
