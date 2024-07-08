@@ -1,19 +1,31 @@
 import { useState, useEffect, useRef } from 'react';
-import { Modal, Button, TextInput, Center, Flex, ScrollArea, Text, Box, Loader, Image, Anchor, em, Textarea, ActionIcon } from '@mantine/core';
+import { Modal, Button, Center, Flex, ScrollArea, Text, Box, Loader, Image, Anchor, em, Textarea, ActionIcon } from '@mantine/core';
 import { getHotkeyHandler } from '@mantine/hooks';
-import { TransactionSimulation } from '../types';
+import { TransactionSimulation, Message } from '../types';
 import { TransactionDetails } from '../types';
 const { v4: uuidv4 } = require('uuid');
-import { CrossCircledIcon, ArrowUpIcon } from '@modulz/radix-icons';
+import { CrossCircledIcon, ArrowUpIcon, SymbolIcon } from '@modulz/radix-icons';
 import { ellipsis } from '../lib/ellipsis';
 import { useMediaQuery } from '@mantine/hooks';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
-
-interface Message {
-    id: number;
-    role: 'user' | 'assistant';
-    content: string;
+interface ChatModalProps {
+    transactionSimulation: TransactionSimulation,
+    explanation: string | undefined,
+    transactionOverview: TransactionDetails | null,
+    txHash: string,
+    networkId: string,
+    opened: boolean,
+    onClose: () => void,
+    questions: string[],
+    isQuestionsLoading: boolean,
+    questionsGenerated: boolean,
+    setQuestions: React.Dispatch<React.SetStateAction<string[]>>;
+    errorGeneratingQuestions: boolean,
+    fetchQuestions: (messages: Message[]) => void;
+    messages: Message[];
+    setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+    handleRegenerateQuestions: () => void
 }
 
 const ChatModal = ({
@@ -23,19 +35,19 @@ const ChatModal = ({
     txHash,
     networkId,
     opened,
-    setOpened
-}: {
-    transactionSimulation: TransactionSimulation,
-    explanation: string | undefined,
-    transactionOverview: TransactionDetails | null,
-    txHash: string,
-    networkId: string,
-    opened: boolean,
-    setOpened: (v: React.SetStateAction<boolean>) => void,
-}) => {
+    onClose,
+    questions,
+    isQuestionsLoading,
+    questionsGenerated,
+    setQuestions,
+    errorGeneratingQuestions,
+    fetchQuestions,
+    messages,
+    setMessages,
+    handleRegenerateQuestions
+}: ChatModalProps) => {
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState<boolean>(false)
-    const [messages, setMessages] = useState<Message[]>([]);
     const viewport = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
     const { executeRecaptcha } = useGoogleReCaptcha();
@@ -52,43 +64,51 @@ const ChatModal = ({
 
     const explorerUrl = explorerUrls[networkId] || ''
 
+
+    useEffect(() => {
+        setMessages([])
+        setMessage('')
+    }, [txHash])
+
+
     useEffect(() => {
         if (viewport.current) {
             viewport.current.scrollTo({ top: viewport.current.scrollHeight, behavior: 'smooth' });
         }
 
-    }, [messages, isLoading]);
+    }, [messages, isLoading, questions]);
 
-    const handleSendChatMessage = async () => {
-        if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
-
-        const token = await executeRecaptcha('chat');
-
-        console.log(token);
-
+    const handleSendChatMessage = async (selectedQuestion?: string) => {
 
         const userMessage = {
             id: Date.now(),
             role: 'user' as 'user',
-            content: message,
+            content: selectedQuestion || message,
         };
 
-        setMessages((prevMessages) => [...prevMessages, userMessage]);
+        setMessages(prevMessages => [...prevMessages, userMessage]);
+        setQuestions([]);
         setMessage('');
         setIsLoading(true);
 
+        if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
+
+        const token = await executeRecaptcha('chat');
+
         try {
-            // Append the new user message to the full conversation
+            // const userMessage = {
+            //     id: Date.now(),
+            //     role: 'user' as 'user',
+            //     content: selectedQuestion || message,
+            // };
             const updatedMessages = [
                 ...messages,
-                {
-                    id: Date.now(),
-                    role: 'user',
-                    content: message
-                }
+                userMessage
             ];
 
             const sessionId = `${uuidv4()}-${txHash}`;
+
+            // setMessages(prevMessages => [...prevMessages, userMessage]);
 
             const body = JSON.stringify({
                 input_json: {
@@ -122,10 +142,11 @@ const ChatModal = ({
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
                 },
-                body: body,
+                body: body
             });
             setIsLoading(false)
             if (response.ok) {
+                // setQuestions([])
 
                 const data = await response.json();
 
@@ -140,7 +161,15 @@ const ChatModal = ({
                     }
                 ]);
 
-                setMessage(''); // Clear the input field
+                const newMessages: Message[] = [
+                    ...updatedMessages,
+                    {
+                        id: Date.now(),
+                        role: 'assistant',
+                        content: assistantResponse
+                    }
+                ];
+                fetchQuestions(newMessages)
             } else {
                 console.error('Error:', response.status);
             }
@@ -149,16 +178,11 @@ const ChatModal = ({
         }
     };
 
-    useEffect(() => {
-        setMessages([])
-    }, [txHash])
-
-
     return (
         <>
             <Modal
                 opened={opened}
-                onClose={() => setOpened(false)}
+                onClose={onClose}
                 title={
                     <Flex align="center">
                         <Image
@@ -168,7 +192,6 @@ const ChatModal = ({
                             height={isMobile ? 30 : 40}
                             src={'/tx_explain.svg'}
                         />
-
                         <Anchor
                             mr={5}
                             mb={1}
@@ -181,7 +204,6 @@ const ChatModal = ({
                             {ellipsis(txHash)}
                         </Anchor>
                         <Text mb={1} mt={'auto'} fw={'700'} mr={10} size={isMobile ? 'xs' : 'lg'}>
-
                         </Text>
                     </Flex>
                 }
@@ -240,6 +262,7 @@ const ChatModal = ({
                             </Box>
                         </Flex>
                     )}
+
                     {messages.map((msg, index) => (
                         <Box
                             key={index}
@@ -301,6 +324,95 @@ const ChatModal = ({
                             )}
                         </Box>
                     ))}
+                    {!questionsGenerated && (
+                        <Flex mt={10}>
+                            <Image
+                                mr={10}
+                                style={{ mixBlendMode: 'screen' }}
+                                mb={'auto'}
+                                width={isMobile ? 50 : 70}
+                                height={isMobile ? 50 : 70}
+                                src={'/agent.svg'}
+                            />
+                            {isQuestionsLoading &&
+                                <Box bg={'#1B1F32'} style={{ borderRadius: '10px', padding: '10px', width: '100%', border: '1px solid #59596C' }}>
+                                    <Text ta={"center"}>Generating questions...</Text>
+                                    <Center>
+                                        <Loader type='dots' mt={5} size={"sm"} />
+                                    </Center>
+                                </Box>
+                            }
+                            {errorGeneratingQuestions &&
+                                <Box bg={'#1B1F32'} style={{ borderRadius: '10px', padding: '10px', width: '100%', border: '1px solid #59596C' }}>
+                                    <Text ta={"center"}>Error while generating questions. Please type your question in the box.</Text>
+                                </Box>
+                            }
+                        </Flex>
+                    )}
+                    {questionsGenerated && (
+                        <Box>
+                            <Flex >
+                                <Box>
+                                    {questions.map((question, index) => (
+                                        <Box
+                                            key={index}
+                                            style={{
+                                                display: 'flex',
+                                                justifyContent: 'flex-end',
+                                                width: '100%',
+                                            }}
+                                        >
+                                            <Box
+                                                bg={'dark.5'}
+                                                c={'#bfff38'}
+                                                mt={isMobile ? 10 : 10}
+                                                py={isMobile ? 5 : 5}
+                                                px={isMobile ? 10 : 20}
+                                                style={{
+                                                    borderRadius: '10px',
+                                                    maxWidth: '70%',
+                                                    cursor: 'pointer',
+                                                    border: '1px solid #59596C'
+                                                }}
+                                                onClick={() => {
+                                                    setQuestions([]);
+                                                    handleSendChatMessage(question);
+                                                }}
+                                            >
+                                                <Text
+                                                    fw={'700'}
+                                                    size={isMobile ? 'xs' : 'sm'}
+                                                    component="pre"
+                                                    style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}
+                                                >
+                                                    {question}
+                                                </Text>
+                                            </Box>
+                                        </Box>
+                                    ))}
+                                </Box>
+                            </Flex>
+                        </Box>
+                    )}
+                    {questionsGenerated && !isLoading && (
+                        <Flex mt={10} justify={"flex-end"}>
+                            <Button
+                                style={{ borderRadius: '10px' }}
+                                variant='light'
+                                size='xs'
+                                leftSection={
+                                    <ActionIcon loading={isLoading} radius={'sm'} color='eden.5' my={'auto'} variant='transparent'>
+                                        <SymbolIcon onClick={() => handleSendChatMessage()} width={15} height={15} />
+                                    </ActionIcon>}
+                                // bg={"eden.5"}
+                                onClick={handleRegenerateQuestions}
+                                disabled={isQuestionsLoading}
+                                loading={isQuestionsLoading}
+                            >
+                                Regenerate Questions
+                            </Button>
+                        </Flex>
+                    )}
                     {isLoading && (
                         <Flex mt={20} mb={20} align="center">
                             <Image
@@ -316,9 +428,9 @@ const ChatModal = ({
                 </ScrollArea>
                 <Flex mt={'xl'}>
                     <Textarea
-                        onSubmitCapture={handleSendChatMessage}
+                        onSubmitCapture={() => handleSendChatMessage()}
                         disabled={isLoading}
-                        onKeyDown={getHotkeyHandler([['Enter+mod', handleSendChatMessage]])}
+                        onKeyDown={getHotkeyHandler([['Enter+mod', () => handleSendChatMessage()]])}
                         size={isMobile ? 'xs' : 'md'}
                         h={'100%'}
                         placeholder={isLoading ? 'Loading...' : 'Type your message'}
@@ -327,7 +439,7 @@ const ChatModal = ({
                         style={{ flexGrow: 1 }}
                         rightSection={
                             <ActionIcon autoContrast loading={isLoading} radius={'sm'} color='eden.5' my={'auto'} mr={20} variant='filled'>
-                                <ArrowUpIcon style={{ color: "#2b2b46" }} onClick={handleSendChatMessage} width={20} height={20} />
+                                <ArrowUpIcon style={{ color: "#2b2b46" }} onClick={() => handleSendChatMessage()} width={20} height={20} />
                             </ActionIcon>
                         }
                     />
