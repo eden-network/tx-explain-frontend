@@ -1,9 +1,12 @@
-import { Flex, Box, Image, ActionIcon, Button } from "@mantine/core";
+import { Flex, Box, Image } from "@mantine/core";
 import InputForm from './InputForm';
 import { ConnectButton, useChainModal } from "@rainbow-me/rainbowkit";
 import { useAccount } from 'wagmi'
 import { useState } from "react";
-import TransactionHistoryModal from './TransactionHistoryModal';
+import { useDisclosure } from "@mantine/hooks";
+import { useEffect } from "react";
+import SignMessageModal from "./SignMessageModal";
+import { add } from "lodash";
 
 interface HeaderProps {
   handleSubmit: (e: React.FormEvent, token: string) => Promise<void>;
@@ -23,16 +26,20 @@ const Header: React.FC<HeaderProps> = ({
   showOnBoarding
 }) => {
 
-  const iconData = [
-    { icon: "discord.svg", href: "https://discord.com/invite/ZhB9mpWWG3", target: "_blank" },
-    { icon: "x.svg", href: "https://twitter.com/edennetwork", target: "_blank" },
-    { icon: "github.svg", href: "https://github.com/eden-network", target: "_blank" },
-    { icon: "blog.svg", href: "https://www.edennetwork.io/blog", target: "_blank" },
-  ];
-
   const [modalOpened, setModalOpened] = useState(false);
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { openChainModal } = useChainModal()
+  const [opened, { open, close }] = useDisclosure(false);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      open();
+    }
+  }, [isConnected, address, open]);
+
+
+  console.log(address);
+
 
   return (
     <>
@@ -57,25 +64,19 @@ const Header: React.FC<HeaderProps> = ({
           />
         </Box>
         <Flex ml={20} gap={20}>
-          <ConnectButton />
-          {isConnected && (
+          <ConnectButton
+            label="Connect Wallet"
+            accountStatus="address"
+            chainStatus="none"
+            showBalance={false}
+          />
+          {/* // View account transactions */}
+
+          {/* {isConnected && (
             <Button onClick={() => setModalOpened(true)}>
               View Transactions
             </Button>
-          )}
-          {iconData.map((icon, index) => (
-            <ActionIcon
-              key={index}
-              component="a"
-              href={icon.href}
-              target={icon.target}
-              size="lg"
-              radius="xl"
-              variant="transparent"
-            >
-              <Image src={icon.icon} />
-            </ActionIcon>
-          ))}
+          )} */}
         </Flex>
       </Flex>
       <Box hiddenFrom="md">
@@ -101,11 +102,7 @@ const Header: React.FC<HeaderProps> = ({
           />
         </Box>
       </Box>
-      <TransactionHistoryModal
-        opened={modalOpened}
-        onClose={() => setModalOpened(false)}
-        network={network}
-      />
+      <SignMessageModal isOpen={opened} onClose={close} address={address} />
     </>
   );
 };

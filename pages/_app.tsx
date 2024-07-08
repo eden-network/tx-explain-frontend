@@ -68,9 +68,9 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
         <RainbowKitProvider
           showRecentTransactions={true}
           theme={darkTheme({
-            accentColor: "#87c900",
-            accentColorForeground: "#000000",
-            borderRadius: "small",
+            accentColor: "#b6ff1c",
+            accentColorForeground: "#1B1F32",
+            borderRadius: "medium",
             fontStack: "system",
           })}>
           <MantineProvider forceColorScheme={"dark"} defaultColorScheme='dark' theme={theme}>

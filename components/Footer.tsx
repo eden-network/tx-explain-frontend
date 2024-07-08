@@ -12,7 +12,7 @@ const Footer = () => {
 
     return (
         <>
-            <Flex px="2rem" py="1rem" align="center" justify="space-between" mt="auto">
+            <Flex px="2rem" py="1rem" align="center" justify="center" mt="auto">
                 <Flex visibleFrom="md" style={{ alignItems: 'center' }}>
                     <Image
                         alt="eden-logo"
@@ -36,6 +36,22 @@ const Footer = () => {
                             src="/github.svg"
                         />
                     </Anchor>
+                </Flex>
+                <Flex>
+                    {iconData.map((icon, index) => (
+                        <ActionIcon
+                            mt={10}
+                            key={index}
+                            component="a"
+                            href={icon.href}
+                            target={icon.target}
+                            size="sm"
+                            radius="xl"
+                            variant="transparent"
+                        >
+                            <Image src={icon.icon} />
+                        </ActionIcon>
+                    ))}
                 </Flex>
             </Flex>
             <Flex px={20} hiddenFrom="md" w="100%" direction="column">

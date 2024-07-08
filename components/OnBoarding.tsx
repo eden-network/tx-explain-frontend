@@ -29,20 +29,20 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) =
 
     return (
         <Box>
-            <Flex visibleFrom="md" mt={20} mb={50} gap={20} justify="center">
+            <Flex visibleFrom="md" mt={10} mb={50} gap={20} justify="center">
                 <Center>
-                    <Text ta="center" c="gray">Explore our top intriguing transactions:</Text>
+                    <Text ta="center" c="gray" fw="700">Enter transaction hash or<br />Explore our top intriguing transactions:</Text>
                 </Center>
                 {transactions.map((tx, index) => (
-                    <Card key={index} style={{ cursor: 'pointer' }} onClick={tx.onClick} shadow="sm" p="sm" radius="md" withBorder>
+                    <Card key={index} style={{ cursor: 'pointer' }} onClick={tx.onClick} shadow="sm" py="xs" px="xl" radius="md" bg="eden.5">
                         <Box>
-                            <Text c="gray" ta="center" size="sm">{tx.label}</Text>
-                            <Text c="gray" ta="center" size="xs">Hash: {ellipsis(tx.txHash)}</Text>
+                            <Text c="dark" ta="center" size="sm" fw="700">{tx.label}</Text>
+                            <Text c="dark" ta="center" size="xs" fw="700">Hash: {ellipsis(tx.txHash)}</Text>
                         </Box>
                     </Card>
                 ))}
             </Flex>
-            <Box px={"3rem"} hiddenFrom="md" mt={20} mb={50}>
+            <Box px="3rem" hiddenFrom="md" mt={20} mb={50}>
                 <Center>
                     <Text ta="center" c="gray">Explore our top intriguing transactions:</Text>
                 </Center>
@@ -55,37 +55,30 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) =
                     </Card>
                 ))}
             </Box>
-            <Center display="flex" style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
-                <Text visibleFrom="md" size="xl">I understand.</Text>
-                <Image visibleFrom="md" alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={480} width={5} />
-                <Text visibleFrom="md" size="xl">I analyze.</Text>
-            </Center>
-            <Box visibleFrom="md" mt={20} mb={50}>
-                <Center>
-                    <Text ta="center" c="gray">Or simulate a <em>new unsigned</em> transaction (Preview):</Text>
-                </Center>
-                <Center mt={10}>
-                    <Button
-                        bg={"eden.5"}
-                        onClick={openModal}
-                        size="md"
-                        radius="md"
-                        variant="filled"
-                        autoContrast
-                    >
-                        Simulate Transaction
-                    </Button>
-                </Center>
-            </Box>
-            <Center>
-                <Box>
-                    <Text visibleFrom="md" mb={50} size="xl" style={{ textAlign: 'center' }}>The Future of Transaction Analysis</Text>
-                    <Image visibleFrom="md" alt="description" src="/text-desktop.svg" width="1000px" />
-                    <Image px={20} hiddenFrom="md" alt="description" src="/text-mobile.svg" width="1000px" />
+            <Center mt={30} style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
+                <Box w="50%">
+                    <Title c="#D8D8D8" style={{ fontSize: '60px' }}>Decode Your<br />Transactions with AI</Title>
+                    <Text>TX explain uses data from Tenderly and Claude AI to deliver precise, carefully constructed explanations of transaction details, continuously refined through open-source development. Powered by Eden research and AI.</Text>
+                    <Flex mt={20}>
+                        <Text mr={10}>New Feature:</Text>
+                        <Button
+                            onClick={openModal}
+                            size="xs"
+                            radius="md"
+                            variant="outline"
+                            autoContrast
+                        >
+                            Simulate Transaction
+                        </Button>
+                    </Flex>
                 </Box>
+                <Image visibleFrom="md" alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={560} width={5} />
             </Center>
+            <Box>
+                <Image px={20} hiddenFrom="md" alt="description" src="/text-mobile.svg" width="1000px" />
+            </Box>
         </Box>
     );
-};
+}
 
 export default OnBoarding;
