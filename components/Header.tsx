@@ -38,7 +38,7 @@ const Header: React.FC<HeaderProps> = ({
   }, [isConnected, address, open]);
 
 
-  console.log(address);
+  console.log(opened);
 
 
   return (

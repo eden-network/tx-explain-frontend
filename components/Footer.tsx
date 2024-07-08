@@ -3,7 +3,6 @@ import { Flex, Image, Text, Anchor, ActionIcon, Box } from "@mantine/core";
 const iconData = [
     { icon: "discord.svg", href: "https://discord.com/invite/ZhB9mpWWG3", target: "_blank" },
     { icon: "x.svg", href: "https://twitter.com/edennetwork", target: "_blank" },
-    { icon: "github.svg", href: "https://github.com/eden-network", target: "_blank" },
     { icon: "blog.svg", href: "https://www.edennetwork.io/blog", target: "_blank" },
 ];
 
@@ -12,7 +11,7 @@ const Footer = () => {
 
     return (
         <>
-            <Flex px="2rem" py="1rem" align="center" justify="center" mt="auto">
+            <Flex px="2rem" py="1rem" align="center" justify="space-between" mt="auto">
                 <Flex visibleFrom="md" style={{ alignItems: 'center' }}>
                     <Image
                         alt="eden-logo"
@@ -37,7 +36,7 @@ const Footer = () => {
                         />
                     </Anchor>
                 </Flex>
-                <Flex>
+                <Flex gap={50}>
                     {iconData.map((icon, index) => (
                         <ActionIcon
                             mt={10}
@@ -53,7 +52,7 @@ const Footer = () => {
                         </ActionIcon>
                     ))}
                 </Flex>
-            </Flex>
+            </Flex >
             <Flex px={20} hiddenFrom="md" w="100%" direction="column">
                 <Flex w="100%" justify="space-between" style={{ alignItems: 'center' }}>
                     <Image

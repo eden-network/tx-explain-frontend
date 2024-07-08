@@ -25,20 +25,19 @@ const SignMessageModal: React.FC<{
             }
         };
 
-
-        console.log(signature);
-
         return (
-            <Modal radius="lg" withCloseButton={false} size="md" opened={isOpen} onClose={onClose}>
+            <Modal radius="lg" withCloseButton={false} size="lg" opened={isOpen} onClose={onClose} style={{ border: '1px solid' }}>
                 <Box>
                     <Box m="auto" w="50%">
                         <Image src={"/user.svg"} />
                     </Box>
                     <Text mb={10} size='base' ta="center" c="#797979">{address}</Text>
                     <Text size='lg' ta="center" fw="700">Sign your wallet to confirm you are the owner of this address and want to sign in to TX explain</Text>
-                    <Button autoContrast onClick={handleSign} disabled={status === 'pending'} fullWidth>
-                        {status === 'pending' ? 'Signing...' : 'Sign Message'}
-                    </Button>
+                    <Center>
+                        <Button bg="eden.5" mt={20} autoContrast onClick={handleSign} disabled={status === 'pending'}>
+                            {status === 'pending' ? 'Signing...' : 'Sign Message'}
+                        </Button>
+                    </Center>
                     {error && <div>Error: {error.message}</div>}
                     {signature && <div>Signature: {signature}</div>}
                 </Box>

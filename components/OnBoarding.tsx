@@ -57,8 +57,8 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) =
             </Box>
             <Center mt={30} style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
                 <Box w="50%">
-                    <Title c="#D8D8D8" style={{ fontSize: '60px' }}>Decode Your<br />Transactions with AI</Title>
-                    <Text>TX explain uses data from Tenderly and Claude AI to deliver precise, carefully constructed explanations of transaction details, continuously refined through open-source development. Powered by Eden research and AI.</Text>
+                    <Title fw="normal" c="#D8D8D8" style={{ fontSize: '60px', lineHeight: '63px' }}>Decode Your<br />Transactions with AI</Title>
+                    <Text mt={20}>TX explain uses data from Tenderly and Claude AI to deliver precise, carefully constructed explanations of transaction details, continuously refined through open-source development. Powered by Eden research and AI.</Text>
                     <Flex mt={20}>
                         <Text mr={10}>New Feature:</Text>
                         <Button
