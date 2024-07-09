@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Rating, Textarea, Text, Button, Loader, Group } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { IconSend } from '@tabler/icons-react';
 
 interface FeedbackModalProps {
   opened: boolean;
@@ -35,24 +36,31 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ opened, onClose, onSubmit
   };
 
   return (
-    <Modal size="xl" opened={opened} onClose={onClose} title="Submit Feedback">
+    <Modal size="xl" opened={opened} onClose={onClose} title={<Text size="xl" c="#D7D7D7" fw='700'>Submit Feedback</Text>}>
       <form onSubmit={feedbackForm.onSubmit(handleSubmit)}>
         <Text size="md" mt="xs">Accuracy:</Text>
-        <Rating {...feedbackForm.getInputProps('accuracy')} size="md" mt="sm" />
+        <Rating {...feedbackForm.getInputProps('accuracy')} size="md" mt="sm" color="eden.5" />
         <Text size="md" mt="md">Quality:</Text>
-        <Rating {...feedbackForm.getInputProps('quality')} size="md" mt="sm" />
+        <Rating {...feedbackForm.getInputProps('quality')} size="md" mt="sm" color='eden.5' />
         <Textarea
           label="Comments:"
           size="md"
           styles={{ label: { marginBottom: 10 } }}
           {...feedbackForm.getInputProps('comments')}
           autosize
-          minRows={10}
+          minRows={3}
           mt="md"
         />
         <Group mt="md">
-          <Button autoContrast type="submit" fullWidth disabled={isSubmitting}>
-            {isSubmitting ? <Loader size="sm" /> : 'Submit Feedback'}
+          <Button
+            leftSection={<IconSend size={16} />}
+            autoContrast
+            bg="eden.5"
+            type="submit"
+            fullWidth
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? <Loader size="sm" /> : 'Send'}
           </Button>
         </Group>
       </form>

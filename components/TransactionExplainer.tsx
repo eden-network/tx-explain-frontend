@@ -726,32 +726,21 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   console.log(address, isConnected);
 
-  useEffect(() => {
-    if (isSuccess && signature && address) {
-      localStorage.setItem(`tx-explain-signature-${address}`, signature);
-      console.log("New signature stored:", signature);
-      setIsSignMessageModalOpen(false);
-    }
-  }, [isSuccess, signature, address]);
-
-  const initiateSignMessage = useCallback(() => {
-    if (isConnected && address) {
+  const initiateSignMessage = () => {
+    if (isConnected) {
       const message = `I am the owner of this address and want to sign in to Tx-Explain:${address}`;
       signMessage({ message });
     }
-  }, [isConnected, address, signMessage]);
+  };
 
   useEffect(() => {
-    if (isConnected && address) {
-      const storedSignature = localStorage.getItem(`tx-explain-signature-${address}`);
-      if (storedSignature) {
-        console.log("Stored signature:", storedSignature);
-      } else {
-        setIsSignMessageModalOpen(true);
-        initiateSignMessage();
-      }
+    if (isConnected) {
+      setIsSignMessageModalOpen(true);
+      initiateSignMessage();
     }
-  }, [isConnected, address]);
+  }, [isConnected]);
+
+  console.log(signature);
 
   return (
     <Wrapper>
