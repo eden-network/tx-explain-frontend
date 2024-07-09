@@ -16,7 +16,7 @@ import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import Header from './Header';
 import Overview from './Overview';
 import Details from './Details';
-import { useTransaction, useBlock } from 'wagmi';
+import { useTransaction, useBlock, useAccount, useSignMessage } from 'wagmi';
 import TxDetails from './TxDetails';
 import OnBoarding from './OnBoarding';
 import FunctionCalls from './FunctionCalls';
@@ -27,6 +27,7 @@ import SimulationInputs from './SimulationInputs';
 import ChatModal from './ChatModal';
 import { TransactionDetails } from '../types';
 const { v4: uuidv4 } = require('uuid');
+import SignMessageModal from './SignMessageModal';
 
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
@@ -66,6 +67,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [errorGeneratingQuestions, setErrorGeneratingQuestions] = useState(false)
   const [messages, setMessages] = useState<Message[]>([]);
   const [firstQuestionsFetched, setFirstQuestionsFetched] = useState(false)
+  const [isSignMessageModalOpen, setIsSignMessageModalOpen] = useState(false);
+
+
 
   const openModal = () => setIsSimulateModalOpened(true);
   const openChatModal = () => setChatModalOpened(true);
@@ -81,6 +85,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   // }, [txHash]); 
   const closeChatModal = () => setChatModalOpened(false);
 
+  const { address, isConnected } = useAccount();
+
+  const { signMessage, isSuccess, reset, data: signature, status } = useSignMessage();
 
   const {
     data: simulationData,
@@ -717,6 +724,35 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   //   }
   // };
 
+  console.log(address, isConnected);
+
+  useEffect(() => {
+    if (isSuccess && signature && address) {
+      localStorage.setItem(`tx-explain-signature-${address}`, signature);
+      console.log("New signature stored:", signature);
+      setIsSignMessageModalOpen(false);
+    }
+  }, [isSuccess, signature, address]);
+
+  const initiateSignMessage = useCallback(() => {
+    if (isConnected && address) {
+      const message = `I am the owner of this address and want to sign in to Tx-Explain:${address}`;
+      signMessage({ message });
+    }
+  }, [isConnected, address, signMessage]);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      const storedSignature = localStorage.getItem(`tx-explain-signature-${address}`);
+      if (storedSignature) {
+        console.log("Stored signature:", storedSignature);
+      } else {
+        setIsSignMessageModalOpen(true);
+        initiateSignMessage();
+      }
+    }
+  }, [isConnected, address]);
+
   return (
     <Wrapper>
       <Header
@@ -730,6 +766,15 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           setShowOnboarding(true);
           updateUrlParams({ network: network, txHash: '' });
         }}
+        address={address}
+        isConnected={isConnected}
+      />
+      <SignMessageModal
+        isOpen={isSignMessageModalOpen}
+        onClose={() => setIsSignMessageModalOpen(false)}
+        address={address}
+        isSuccess={isSuccess}
+        status={status}
       />
       <SimulateTransaction
         simulateTransaction={simulateTransaction}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Flex, Box, Image, Button } from "@mantine/core";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSignMessage } from 'wagmi';
@@ -12,6 +12,8 @@ interface HeaderProps {
   txHash: string;
   handleTxHashChange: (s: string) => void;
   showOnBoarding: () => void;
+  address: `0x${string}` | undefined;
+  isConnected: boolean
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -20,42 +22,22 @@ const Header: React.FC<HeaderProps> = ({
   handleNetworkChange,
   txHash,
   handleTxHashChange,
-  showOnBoarding
+  showOnBoarding,
+  address,
+  isConnected
 }) => {
-  const { isConnected, address } = useAccount();
+  // const { isConnected, address } = useAccount();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { signMessage, isSuccess, reset, data: signature } = useSignMessage();
   const hasAttemptedSignRef = useRef(false);
-
-  const handleSignMessage = useCallback(() => {
-    if (address && !hasAttemptedSignRef.current) {
-      const message = `I am the owner of this address and want to sign in to Tx-Explain:${address}`;
-      setIsModalOpen(true);
-      signMessage({ message });
-      hasAttemptedSignRef.current = true;
-    }
-  }, [address, signMessage]);
 
   useEffect(() => {
     if (isConnected && address && !hasAttemptedSignRef.current) {
-      setTimeout(handleSignMessage, 0);
+      setIsModalOpen(true);
     }
-  }, [isConnected, address, handleSignMessage]);
-
-  useEffect(() => {
-    if (isSuccess) {
-      const timer = setTimeout(() => {
-        setIsModalOpen(false);
-        console.log("Signature:", signature);
-        // Here you can handle the successful signature, e.g., send it to your backend
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [isSuccess, signature]);
+  }, [isConnected, address]);
 
   const closeModal = () => {
     setIsModalOpen(false);
-    reset();
   };
 
   return (
@@ -89,7 +71,6 @@ const Header: React.FC<HeaderProps> = ({
           />
         </Flex>
       </Flex>
-
       <Box hiddenFrom="md">
         <Image
           mt={20}
@@ -114,13 +95,13 @@ const Header: React.FC<HeaderProps> = ({
         </Box>
       </Box>
 
-      <SignMessageModal
+      {/* <SignMessageModal
         isOpen={isModalOpen}
         onClose={closeModal}
         address={address}
-      />
+      /> */}
     </>
   );
 };
 
-export default Header;
+export default React.memo(Header);
