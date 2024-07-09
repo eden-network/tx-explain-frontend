@@ -27,3 +27,13 @@ export const getNetworkName = (networkId: string): string => {
       return '';
   }
 };
+
+// Function to check if a string is valid JSON
+export const isValidJSON = (str: string): boolean => {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
