@@ -36,7 +36,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ opened, onClose, onSubmit
   };
 
   return (
-    <Modal size="xl" opened={opened} onClose={onClose} title={<Text size="xl" c="#D7D7D7" fw='700'>Submit Feedback</Text>}>
+    <Modal radius="lg" size="xl" opened={opened} onClose={onClose} title={<Text size="xl" c="#D7D7D7" fw='700'>Submit Feedback</Text>}>
       <form onSubmit={feedbackForm.onSubmit(handleSubmit)}>
         <Text size="md" mt="xs">Accuracy:</Text>
         <Rating {...feedbackForm.getInputProps('accuracy')} size="md" mt="sm" color="eden.5" />

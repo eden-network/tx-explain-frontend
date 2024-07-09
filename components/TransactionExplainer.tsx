@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text, Button } from '@mantine/core';
+import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Button } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
@@ -9,7 +9,7 @@ import { isValidTxHash, getNetworkName, isSimulationTxHash, isValidJSON } from '
 import ModelEditor from './ModelEditor';
 import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
-import { TransactionSimulation, Categories, Message, regenerateQuestions, generateQuestions } from '../types';
+import { TransactionSimulation, Categories, Message, generateQuestions } from '../types';
 import Wrapper from './Wrapper';
 import { isDevEnvironment, isLocalEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
@@ -68,8 +68,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [messages, setMessages] = useState<Message[]>([]);
   const [firstQuestionsFetched, setFirstQuestionsFetched] = useState(false)
   const [isSignMessageModalOpen, setIsSignMessageModalOpen] = useState(false);
-
-
+  const [userSignature, setUserSignature] = useState<string | null>(null);
 
   const openModal = () => setIsSimulateModalOpened(true);
   const openChatModal = () => setChatModalOpened(true);
@@ -78,16 +77,11 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [addressTransactions, setAddressTransactions] = useState<string[]>([]);
   const [currentAddressTxIndex, setCurrentAddressTxIndex] = useState<number>(0);
 
-  // useEffect(() => {
-  //   if (transactionDetails) {
-  //     console.log(transactionDetails);
-  //   }
-  // }, [txHash]); 
   const closeChatModal = () => setChatModalOpened(false);
 
   const { address, isConnected } = useAccount();
 
-  const { signMessage, isSuccess, reset, data: signature, status } = useSignMessage();
+  const { signMessage, isSuccess, data: signature } = useSignMessage();
 
   const {
     data: simulationData,
@@ -428,15 +422,21 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   const handleSubmitFeedback = async (values: any, token: string) => {
     const feedbackData = {
-      date: new Date().toISOString(),
-      network: getNetworkName(network),
-      txHash,
-      explanation: explanationCache[`${network}:${txHash}`],
-      model,
-      systemPrompt,
-      simulationData: JSON.stringify(simulationDataCache[`${network}:${txHash}`]),
-      ...values,
-      recaptcha_token: token,
+      "input_json": {
+        hash: txHash,
+        feedback: {
+          date: new Date().toISOString(),
+          network: getNetworkName(network),
+          explanation: explanationCache[`${network}:${txHash}`],
+          model,
+          systemPrompt,
+          simulationData: JSON.stringify(simulationDataCache[`${network}:${txHash}`]),
+          ...values,
+        },
+      },
+      "user": address,
+      signature: userSignature,
+      "recaptcha_token": token,
     };
 
     setFeedbackModalOpen(false);
@@ -447,7 +447,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       loading: true,
     });
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/feedback`, feedbackData);
+      console.log(feedbackData);
+
+      await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/user/feedback`, feedbackData);
       updateNotification({
         id,
         title: 'Success! Feedback sent',
@@ -592,7 +594,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         {
           type: "text",
           text:
-            previousQuestions.toString() + regenerateQuestions
+            previousQuestions.toString() + generateQuestions
         }
       ]
     };
@@ -724,23 +726,82 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   //   }
   // };
 
-  console.log(address, isConnected);
+  const setSignatureWithExpiry = (key: string, value: string, ttl: number) => {
+    const now = new Date();
+    const item = {
+      value: value,
+      expiry: now.getTime() + ttl,
+    };
+    localStorage.setItem(key, JSON.stringify(item));
+  };
 
-  const initiateSignMessage = () => {
-    if (isConnected) {
-      const message = `I am the owner of this address and want to sign in to Tx-Explain:${address}`;
-      signMessage({ message });
+  const getSignatureWithExpiry = (key: string): { value: string; expiry: number } | null => {
+    const itemStr = localStorage.getItem(key);
+    if (!itemStr) {
+      return null;
+    }
+
+    try {
+      const item = JSON.parse(itemStr);
+      const now = new Date();
+
+      if (!item.value || !item.expiry) {
+        localStorage.removeItem(key);
+        return null;
+      }
+
+      if (now.getTime() > item.expiry) {
+        localStorage.removeItem(key);
+        return null;
+      }
+      return { value: item.value, expiry: item.expiry };
+    } catch (e) {
+      console.error("Error parsing stored item:", e);
+      localStorage.removeItem(key);
+      return null;
     }
   };
 
+  const initiateSignMessage = useCallback(() => {
+    if (isConnected && address) {
+      const message = `I am the owner of this address and want to sign in to Tx-Explain:${address}`;
+      signMessage({ message });
+    }
+  }, [isConnected, address, signMessage]);
+
   useEffect(() => {
-    if (isConnected) {
-      setIsSignMessageModalOpen(true);
-      initiateSignMessage();
+    if (isConnected && address) {
+      const storedSignature = getSignatureWithExpiry(`tx-explain-signature-${address}`);
+      if (storedSignature) {
+        setUserSignature(storedSignature.value);
+      } else {
+        setUserSignature(null);
+        setIsSignMessageModalOpen(true);
+        initiateSignMessage();
+      }
+    } else {
+      setUserSignature(null);
+    }
+  }, [isConnected, address, initiateSignMessage]);
+
+  useEffect(() => {
+    if (isSuccess && signature && address) {
+      const expiryTime = 86400000; // 24 hours
+      setSignatureWithExpiry(`tx-explain-signature-${address}`, signature, expiryTime);
+      console.log("New signature stored:", signature);
+      setUserSignature(signature);
+      setIsSignMessageModalOpen(false);
+    }
+  }, [isSuccess, signature, address]);
+
+  useEffect(() => {
+    if (!isConnected) {
+      setUserSignature(null);
     }
   }, [isConnected]);
 
-  console.log(signature);
+  console.log(userSignature);
+
 
   return (
     <Wrapper>
@@ -758,12 +819,12 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         address={address}
         isConnected={isConnected}
       />
+      {/* <Button onClick={() => setIsSignMessageModalOpen(true)}>open sign modal</Button> */}
       <SignMessageModal
         isOpen={isSignMessageModalOpen}
         onClose={() => setIsSignMessageModalOpen(false)}
         address={address}
         isSuccess={isSuccess}
-        status={status}
       />
       <SimulateTransaction
         simulateTransaction={simulateTransaction}
@@ -801,20 +862,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>
               <Flex gap={10} mb={{ md: "20" }}>
-                <Image
-                  alt="navigate-tx"
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => handleNavigateTx('prev')}
-                  src="/previous_tx.svg"
-                  height={30}
-                />
-                <Image
-                  alt="navigate-tx"
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => handleNavigateTx('next')}
-                  src="/next_tx.svg"
-                  height={30}
-                />
+                <Button fw="400" style={{ minWidth: "200px" }} onClick={() => handleNavigateTx('prev')} variant='subtle' leftSection={<Image src="/caret-left.svg" width={20} height={20} />} color='#D7D7D7' bg="dark.6" size='sm'>Previous Transaction</Button>
+                <Button fw="400" style={{ minWidth: "200px" }} onClick={() => handleNavigateTx('next')} variant='subtle' rightSection={<Image src="/caret-right.svg" width={20} height={20} />} bg="dark.6" size='sm' color='#D7D7D7'>Next Transaction</Button>
               </Flex>
             </Center>
           )}

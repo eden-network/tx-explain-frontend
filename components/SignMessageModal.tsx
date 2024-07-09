@@ -1,13 +1,11 @@
-import React, { useEffect, useRef, useCallback } from 'react';
-import { Modal, Text, Image, Box, Button } from '@mantine/core';
-import { useSignMessage } from 'wagmi';
+import React, { useEffect } from 'react';
+import { Modal, Text, Image, Box } from '@mantine/core';
 
 interface SignMessageModalProps {
     isOpen: boolean;
     onClose: () => void;
     address: `0x${string}` | undefined;
     isSuccess: boolean,
-    status: string
 }
 
 const SignMessageModal: React.FC<SignMessageModalProps> = ({
@@ -15,7 +13,6 @@ const SignMessageModal: React.FC<SignMessageModalProps> = ({
     onClose,
     address,
     isSuccess,
-    status
 }) => {
 
     useEffect(() => {
@@ -30,21 +27,24 @@ const SignMessageModal: React.FC<SignMessageModalProps> = ({
     return (
         <Modal radius="lg" withCloseButton={false} size="lg" opened={isOpen} onClose={onClose}>
             <Box>
-                <Box m="auto" w="50%">
-                    <Image src={"/user.svg"} />
-                </Box>
-                <Text mb={10} size='base' ta="center" c="#797979">{address}</Text>
-                <Text size='lg' ta="center" fw="700">Sign your wallet to confirm you are the owner of this address and want to sign in to TX explain</Text>
-                {status === 'pending' && (
-                    <Text size='lg' ta="center" fw="700" c="blue" mt="xl">
-                        Please sign the message in your wallet...
-                    </Text>
-                )}
-                {isSuccess && (
-                    <Text size='lg' ta="center" fw="700" c="green" mt="xl">
-                        Signature successful!
-                    </Text>
-                )}
+                {isSuccess ?
+                    <Text mb={20} size='lg' ta="center" fw="700" c="#D7D7D7">Signature successful!</Text>
+                    :
+                    <>
+                        <Text mb={20} size='lg' ta="center" fw="700" c="#D7D7D7">Please sign the message in your wallet!</Text>
+                        <Text size='md' ta="center" c="#D7D7D7">Sign your wallet to confirm you are the owner of this address and want to sign in to TX explain. Valid for 1 day.</Text>
+                    </>
+                }
+                {isSuccess ?
+                    <Box py={20} m="auto" w="50%">
+                        <Image src={"/success.svg"} />
+                    </Box>
+                    :
+                    <Box py={20} m="auto" w="50%">
+                        <Image src={"/sign-message.svg"} />
+                    </Box>
+                }
+                <Text m={'auto'} px={30} w="fit-content" mb={10} size='base' ta="center" c="#797979" style={{ border: "1px solid #D7D7D7", borderRadius: '16px' }}>{address}</Text>
             </Box>
         </Modal>
     );

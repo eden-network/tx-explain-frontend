@@ -123,6 +123,7 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
+          modalSize="compact"
           showRecentTransactions={false}
           theme={RainbowTheme}>
           <MantineProvider forceColorScheme={"dark"} defaultColorScheme='dark' theme={theme}>
