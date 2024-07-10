@@ -61,7 +61,6 @@ const Overview = React.memo(({
                         {isAnalyzedTx &&
                             <>
                                 {categories &&
-
                                     <Button
                                         p={10}
                                         size="lg"
@@ -76,7 +75,6 @@ const Overview = React.memo(({
                                         onClick={openChatModal}>
                                         Open Chat about this Transaction
                                     </Button>
-
                                 }
                                 <Flex align={"center"} mb={20}>
                                     <Text mr={10}>Categories:</Text>

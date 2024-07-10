@@ -828,20 +828,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           )}
           <Center hiddenFrom='md'>
             <Flex gap={10} mb={{ md: "20" }}>
-              <Image
-                alt="navigate-tx"
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleNavigateTx('prev')}
-                src="/previoustx_mobile.svg"
-                height={30}
-              />
-              <Image
-                alt="navigate-tx"
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleNavigateTx('next')}
-                src="/next_tx_mobile.svg"
-                height={30}
-              />
+              <Button fw="400" style={{ minWidth: "150px" }} onClick={() => handleNavigateTx('prev')} variant='subtle' leftSection={<Image src="/caret-left.svg" width={10} height={10} />} color='#D7D7D7' bg="dark.6" size='xs'>Previous Transaction</Button>
+              <Button fw="400" style={{ minWidth: "150px" }} onClick={() => handleNavigateTx('next')} variant='subtle' rightSection={<Image src="/caret-right.svg" width={10} height={10} />} bg="dark.6" size='xs' color='#D7D7D7'>Next Transaction</Button>
             </Flex>
           </Center>
           {error && (
