@@ -771,6 +771,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         }}
         address={address}
         isConnected={isConnected}
+        isOnboarding={showOnboarding}
       />
       {/* <Button onClick={() => setIsSignMessageModalOpen(true)}>open sign modal</Button> */}
       <SignMessageModal
@@ -791,6 +792,11 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           loadTx2={() => handleLoadTxHash(examples.txHash2)}
           loadTx3={() => handleLoadTxHash(examples.txHash3)}
           openModal={openModal}
+          handleSubmit={handleSearch}
+          network={network}
+          txHash={txHash}
+          handleTxHashChange={handleTxHashChange}
+          handleNetworkChange={handleNetworkChange}
         />
       ) : (
         <Box>

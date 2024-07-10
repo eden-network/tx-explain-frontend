@@ -13,7 +13,8 @@ interface HeaderProps {
   handleTxHashChange: (s: string) => void;
   showOnBoarding: () => void;
   address: `0x${string}` | undefined;
-  isConnected: boolean
+  isConnected: boolean,
+  isOnboarding: boolean
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -24,7 +25,8 @@ const Header: React.FC<HeaderProps> = ({
   handleTxHashChange,
   showOnBoarding,
   address,
-  isConnected
+  isConnected,
+  isOnboarding
 }) => {
   // const { isConnected, address } = useAccount();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -72,27 +74,35 @@ const Header: React.FC<HeaderProps> = ({
         </Flex>
       </Flex>
       <Box hiddenFrom="md">
-        <Image
-          mt={20}
-          m={"auto"}
-          style={{ cursor: 'pointer' }}
-          onClick={showOnBoarding}
-          alt="tx-agent"
-          radius="md"
-          h={50}
-          w="auto"
-          fit="contain"
-          src="/tx_explain.svg"
-        />
-        <Box style={{ flexGrow: 1 }}>
-          <InputForm
-            handleSubmit={handleSubmit}
-            network={network}
-            handleNetworkChange={handleNetworkChange}
-            txHash={txHash}
-            handleTxHashChange={handleTxHashChange}
+        <Flex pt={20} justify={"space-between"} align={"center"}>
+          <Image
+            style={{ cursor: 'pointer' }}
+            onClick={showOnBoarding}
+            alt="tx-agent"
+            radius="md"
+            h={50}
+            w="auto"
+            fit="contain"
+            src="/tx_explain.svg"
           />
-        </Box>
+          <ConnectButton
+            label="Connect Wallet"
+            accountStatus="address"
+            chainStatus="none"
+            showBalance={false}
+          />
+        </Flex>
+        {!isOnboarding &&
+          <Box style={{ flexGrow: 1 }}>
+            <InputForm
+              handleSubmit={handleSubmit}
+              network={network}
+              handleNetworkChange={handleNetworkChange}
+              txHash={txHash}
+              handleTxHashChange={handleTxHashChange}
+            />
+          </Box>}
+
       </Box>
 
       {/* <SignMessageModal

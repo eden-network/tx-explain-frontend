@@ -36,7 +36,7 @@ const Footer = () => {
                         />
                     </Anchor>
                 </Flex>
-                <Flex gap={50}>
+                <Flex visibleFrom="md" gap={50}>
                     {iconData.map((icon, index) => (
                         <ActionIcon
                             mt={10}

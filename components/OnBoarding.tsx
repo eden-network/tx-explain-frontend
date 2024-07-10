@@ -1,15 +1,31 @@
-import { Box, Center, Text, Image, Flex, Card, Button, Title, Transition } from "@mantine/core";
+import { Box, Center, Text, Image, Flex, Card, Button, Title, Transition, em } from "@mantine/core";
 import { ellipsis } from "../lib/ellipsis";
 import { useEffect, useState } from "react";
+import { useMediaQuery } from '@mantine/hooks';
+import InputForm from './InputForm';  // Adjust the import path as needed
 
 interface OnBoardingProps {
     loadTx1: () => void;
     loadTx2: () => void;
     loadTx3: () => void;
     openModal: () => void;
+    handleSubmit: (e: React.FormEvent, token: string) => Promise<void>;
+    network: string;
+    handleNetworkChange: (s: string) => void;
+    txHash: string;
+    handleTxHashChange: (s: string) => void;
 }
 
-const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) => {
+const OnBoarding = ({
+    loadTx1,
+    loadTx2,
+    loadTx3,
+    openModal,
+    handleSubmit,
+    network,
+    handleNetworkChange,
+    txHash,
+    handleTxHashChange }: OnBoardingProps) => {
     const transactions = [
         {
             label: "Bridged swap",
@@ -30,6 +46,7 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) =
 
     const [showImage, setShowImage] = useState(false);
     const [showTitle, setShowTitle] = useState(false);
+    const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
 
     useEffect(() => {
         setShowImage(true);
@@ -61,21 +78,41 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) =
                     </Flex>
                 )}
             </Transition>
-            <Box px="3rem" hiddenFrom="md" mt={20} mb={50}>
+            <Box hiddenFrom="md" mt={20} mb={50}>
+                <Box w={"100%"} m={"auto"}>
+                    <Box w={"70%"} m={"auto"}>
+                        <Image
+                            alt="tx-agent"
+                            style={{ mixBlendMode: 'screen' }}
+                            src="/txagent.svg"
+                            height={"auto"}
+                            width={"auto"}
+                        />
+                    </Box>
+                    <Title ta={"center"} fw="normal" c="#D8D8D8" style={{ fontSize: '60px', lineHeight: '63px' }}>Decode Your<br />Transactions with AI</Title>
+                </Box>
+                <InputForm
+                    handleSubmit={handleSubmit}
+                    network={network}
+                    handleNetworkChange={handleNetworkChange}
+                    txHash={txHash}
+                    handleTxHashChange={handleTxHashChange}
+                />
                 <Center>
-                    <Text ta="center" c="gray">Explore our top intriguing transactions:</Text>
+                    <Text ta="center" c="gray" fw={"700"}>Enter transaction hash or <br /> Explore our top intriguing transactions:</Text>
                 </Center>
-                {transactions.map((tx, index) => (
-                    <Card mt={20} key={index} style={{ cursor: 'pointer' }} onClick={tx.onClick} shadow="sm" p="sm" radius="md" withBorder>
-                        <Box>
-                            <Text c="gray" ta="center" size="sm">{tx.label}</Text>
-                            <Text c="gray" ta="center" size="xs">Hash: {ellipsis(tx.txHash)}</Text>
-                        </Box>
-                    </Card>
-                ))}
+                <Flex justify={"center"} gap={10}>
+                    {transactions.map((tx, index) => (
+                        <Card w="100%" mt={20} key={index} style={{ cursor: 'pointer' }} onClick={tx.onClick} shadow="sm" p="xs" radius="md" bg="eden.5">
+                            <Box m="auto">
+                                <Text c="dark" fw="700" ta="center" size="sm">{tx.label}</Text>
+                            </Box>
+                        </Card>
+                    ))}
+                </Flex>
             </Box>
             <Center mt={30} style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
-                <Box w="50%">
+                <Box w={isMobile ? "100%" : "50%"}>
                     <Transition
                         mounted={showImage}
                         transition="fade-right"
@@ -83,9 +120,10 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) =
                         timingFunction="ease"
                     >
                         {(styles) => (
-                            <div style={{ ...styles }}>
-                                <Title fw="normal" c="#D8D8D8" style={{ fontSize: '60px', lineHeight: '63px' }}>Decode Your<br />Transactions with AI</Title>
-                                <Text mt={20}>TX explain uses data from Tenderly and Claude AI to deliver precise, carefully constructed explanations of transaction details, continuously refined through open-source development. Powered by Eden research and AI.</Text>
+                            <Box style={{ ...styles }}>
+                                <Title mb={20} c="eden.5" fw="normal" size="16" tt="uppercase">chat for deeper insights!</Title>
+                                {!isMobile && <Title fw="normal" c="#D8D8D8" style={{ fontSize: '60px', lineHeight: '63px' }}>Decode Your<br />Transactions with AI</Title>}
+                                <Text mt={20}> <Text fw="700" component="span">TX Explain</Text> uses data from Tenderly and Claude AI to deliver precise, carefully constructed explanations of transaction details, continuously refined through open-source development.<br /> Powered by <Text fw="700" component="span">Eden Research</Text> and AI.</Text>
                                 <Flex align="center" mt={20}>
                                     <Text mr={10}>New Feature:</Text>
                                     <Button
@@ -98,7 +136,7 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) =
                                         Simulate Transaction
                                     </Button>
                                 </Flex>
-                            </div>
+                            </Box>
                         )}
                     </Transition>
                 </Box>
@@ -120,9 +158,6 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) =
                     )}
                 </Transition>
             </Center>
-            <Box>
-                <Image px={20} hiddenFrom="md" alt="description" src="/text-mobile.svg" width="1000px" />
-            </Box>
         </Box>
     );
 }
