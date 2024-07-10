@@ -415,6 +415,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   }, [router.query]);
 
   const handleSubmitFeedback = async (values: any, token: string) => {
+    console.log("here");
+
     const feedbackData = {
       "input_json": {
         hash: txHash,
@@ -429,7 +431,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         },
       },
       "user": address,
-      signature: userSignature,
+      // "signature": userSignature,
       "recaptcha_token": token,
     };
 
