@@ -29,7 +29,7 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) =
 
     return (
         <Box>
-            <Flex visibleFrom="md" mt={10} mb={50} gap={20} justify="center">
+            <Flex visibleFrom="md" mt={0} mb={50} gap={20} justify="center">
                 <Center>
                     <Text ta="center" c="gray" fw="700">Enter transaction hash or<br />Explore our top intriguing transactions:</Text>
                 </Center>
@@ -59,7 +59,7 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) =
                 <Box w="50%">
                     <Title fw="normal" c="#D8D8D8" style={{ fontSize: '60px', lineHeight: '63px' }}>Decode Your<br />Transactions with AI</Title>
                     <Text mt={20}>TX explain uses data from Tenderly and Claude AI to deliver precise, carefully constructed explanations of transaction details, continuously refined through open-source development. Powered by Eden research and AI.</Text>
-                    <Flex mt={20}>
+                    <Flex align="center" mt={20}>
                         <Text mr={10}>New Feature:</Text>
                         <Button
                             onClick={openModal}

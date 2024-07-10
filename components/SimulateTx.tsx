@@ -100,7 +100,16 @@ const SimulateTransaction: React.FC<SimulateTx> = ({ simulateTransaction, opened
     };
 
     return (
-        <Modal radius={"md"} opened={opened} onClose={onClose} title="Simulate Unsigned Transaction">
+        <Modal
+            overlayProps={{
+                backgroundOpacity: 0.35,
+                blur: 2,
+            }}
+            radius={"md"}
+            opened={opened}
+            onClose={onClose}
+            title="Simulate Unsigned Transaction"
+        >
             <Box>
                 <Select
                     mb={10}

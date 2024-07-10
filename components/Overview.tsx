@@ -61,21 +61,22 @@ const Overview = React.memo(({
                         {isAnalyzedTx &&
                             <>
                                 {categories &&
-                                    <Center>
-                                        <Button
-                                            size="md"
-                                            mb={20}
-                                            radius={'lg'}
-                                            fullWidth
-                                            variant="outline"
-                                            my={10}
-                                            leftSection={<Image style={{ mixBlendMode: 'screen' }} mb={'auto'} width={40} height={40} src={"/agent.svg"} />
-                                            }
-                                            autoContrast
-                                            onClick={openChatModal}>
-                                            Open Chat about this Transaction
-                                        </Button>
-                                    </Center>
+
+                                    <Button
+                                        p={10}
+                                        size="md"
+                                        mb={20}
+                                        radius={'lg'}
+                                        fullWidth
+                                        variant="outline"
+                                        my={10}
+                                        leftSection={<Image style={{ mixBlendMode: 'screen' }} mb={'auto'} width={40} height={40} src={"/agent.svg"} />
+                                        }
+                                        autoContrast
+                                        onClick={openChatModal}>
+                                        Open Chat about this Transaction
+                                    </Button>
+
                                 }
                                 <Flex align={"center"} mb={20}>
                                     <Text mr={10}>Categories:</Text>
@@ -92,17 +93,19 @@ const Overview = React.memo(({
                             </>}
                         {explanation}
                         {explanation && (
-                            <Button
-                                bg={"eden.5"}
-                                display="flex"
-                                m="auto"
-                                mt={50}
-                                autoContrast
-                                onClick={() => setFeedbackModalOpen(true)}
-                                leftSection={<IconSend size={16} />}
-                            >
-                                Feedback
-                            </Button>
+                            <Box mt={30} style={{ borderTop: '1px solid #878787' }} w={"100%"}>
+                                <Button
+                                    mt={30}
+                                    mr={"auto"}
+                                    bg={"eden.5"}
+                                    display="flex"
+                                    autoContrast
+                                    onClick={() => setFeedbackModalOpen(true)}
+                                    leftSection={<IconSend size={16} />}
+                                >
+                                    Feedback
+                                </Button>
+                            </Box>
                         )}
                     </pre>
                 )

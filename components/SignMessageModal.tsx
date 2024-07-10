@@ -19,29 +19,38 @@ const SignMessageModal: React.FC<SignMessageModalProps> = ({
         if (isSuccess) {
             const timer = setTimeout(() => {
                 onClose();
-            }, 2000);
+            }, 4000);
             return () => clearTimeout(timer);
         }
     }, [isSuccess]);
 
     return (
-        <Modal radius="lg" withCloseButton={false} size="lg" opened={isOpen} onClose={onClose}>
+        <Modal
+            overlayProps={{
+                backgroundOpacity: 0.35,
+                blur: 2,
+            }}
+            radius="lg"
+            withCloseButton={false}
+            size="lg" opened={isOpen}
+            onClose={onClose}
+        >
             <Box>
                 {isSuccess ?
                     <Text mb={20} size='lg' ta="center" fw="700" c="#D7D7D7">Signature successful!</Text>
                     :
-                    <>
+                    <Box px={50}>
                         <Text mb={20} size='lg' ta="center" fw="700" c="#D7D7D7">Please sign the message in your wallet!</Text>
                         <Text size='md' ta="center" c="#D7D7D7">Sign your wallet to confirm you are the owner of this address and want to sign in to TX explain. Valid for 1 day.</Text>
-                    </>
+                    </Box>
                 }
                 {isSuccess ?
-                    <Box py={20} m="auto" w="50%">
+                    <Box py={20} m="auto" w="30%">
                         <Image src={"/success.svg"} />
                     </Box>
                     :
-                    <Box py={20} m="auto" w="50%">
-                        <Image src={"/sign-message.svg"} />
+                    <Box py={20} m="auto" w="30%">
+                        <Image src={"/sign.svg"} />
                     </Box>
                 }
                 <Text m={'auto'} px={30} w="fit-content" mb={10} size='base' ta="center" c="#797979" style={{ border: "1px solid #D7D7D7", borderRadius: '16px' }}>{address}</Text>

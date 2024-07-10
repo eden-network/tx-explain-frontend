@@ -23,7 +23,7 @@ const Footer = () => {
                     />
                     <Text c={"gray"} style={{ display: 'flex', marginTop: 'auto' }} ml={20} size="sm">© Goe Network Ltd {currentYear}</Text>
                 </Flex>
-                <Flex visibleFrom="md" gap={10} style={{ alignItems: 'center' }}>
+                <Flex mt="auto" visibleFrom="md" gap={10} style={{ alignItems: 'center' }}>
                     <Text size="xs">Explore the technology — our code is open-source on</Text>
                     <Anchor href="https://github.com/eden-network" target="_blank">
                         <Image

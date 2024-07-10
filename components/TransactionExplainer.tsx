@@ -726,40 +726,12 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   //   }
   // };
 
-  const setSignatureWithExpiry = (key: string, value: string, ttl: number) => {
-    const now = new Date();
-    const item = {
-      value: value,
-      expiry: now.getTime() + ttl,
-    };
-    localStorage.setItem(key, JSON.stringify(item));
+  const setSignature = (key: string, value: string) => {
+    localStorage.setItem(key, value);
   };
 
-  const getSignatureWithExpiry = (key: string): { value: string; expiry: number } | null => {
-    const itemStr = localStorage.getItem(key);
-    if (!itemStr) {
-      return null;
-    }
-
-    try {
-      const item = JSON.parse(itemStr);
-      const now = new Date();
-
-      if (!item.value || !item.expiry) {
-        localStorage.removeItem(key);
-        return null;
-      }
-
-      if (now.getTime() > item.expiry) {
-        localStorage.removeItem(key);
-        return null;
-      }
-      return { value: item.value, expiry: item.expiry };
-    } catch (e) {
-      console.error("Error parsing stored item:", e);
-      localStorage.removeItem(key);
-      return null;
-    }
+  const getSignature = (key: string): string | null => {
+    return localStorage.getItem(key);
   };
 
   const initiateSignMessage = useCallback(() => {
@@ -771,9 +743,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   useEffect(() => {
     if (isConnected && address) {
-      const storedSignature = getSignatureWithExpiry(`tx-explain-signature-${address}`);
+      const storedSignature = getSignature(`tx-explain-signature-${address}`);
       if (storedSignature) {
-        setUserSignature(storedSignature.value);
+        setUserSignature(storedSignature);
       } else {
         setUserSignature(null);
         setIsSignMessageModalOpen(true);
@@ -786,8 +758,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
   useEffect(() => {
     if (isSuccess && signature && address) {
-      const expiryTime = 86400000; // 24 hours
-      setSignatureWithExpiry(`tx-explain-signature-${address}`, signature, expiryTime);
+      setSignature(`tx-explain-signature-${address}`, signature);
       console.log("New signature stored:", signature);
       setUserSignature(signature);
       setIsSignMessageModalOpen(false);

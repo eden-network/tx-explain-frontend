@@ -255,7 +255,7 @@ const ChatModal = ({
                                     mb={isMobile ? 0 : 20}
                                     size={isMobile ? 'xs' : 'sm'}
                                     component="pre"
-                                    style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}
+                                    style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word', fontFamily: 'Bw Modelica, sans-serif' }}
                                 >
                                     {explanation}
                                 </Text>
@@ -288,7 +288,7 @@ const ChatModal = ({
                                         fw={'700'}
                                         size={isMobile ? 'xs' : 'sm'}
                                         component="pre"
-                                        style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}
+                                        style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word', fontFamily: 'Bw Modelica, sans-serif' }}
                                     >
                                         {msg.content}
                                     </Text>
@@ -315,7 +315,7 @@ const ChatModal = ({
                                         <Text
                                             size={isMobile ? 'xs' : 'sm'}
                                             component="pre"
-                                            style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}
+                                            style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word', fontFamily: 'Bw Modelica, sans-serif' }}
                                         >
                                             {msg.content}
                                         </Text>
@@ -383,7 +383,7 @@ const ChatModal = ({
                                                     fw={'700'}
                                                     size={isMobile ? 'xs' : 'sm'}
                                                     component="pre"
-                                                    style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}
+                                                    style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word', fontFamily: 'Bw Modelica, sans-serif' }}
                                                 >
                                                     {question}
                                                 </Text>
