@@ -128,7 +128,8 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
           theme={RainbowTheme}>
           <MantineProvider forceColorScheme={"dark"} defaultColorScheme='dark' theme={theme}>
             <ColorSchemeScript forceColorScheme={"dark"} defaultColorScheme='dark' />
-            <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}>
+            <GoogleReCaptchaProvider
+              reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}>
               <Head>
                 <title>Explain | Eden Network</title>
                 <meta name="description" content="Tx Explain is an agent-like open source service that takes a transaction and returns a human-readable description of what happened." />

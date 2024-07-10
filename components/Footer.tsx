@@ -21,9 +21,9 @@ const Footer = () => {
                         fit="contain"
                         src="/eden-logo.svg"
                     />
-                    <Text c={"gray"} style={{ display: 'flex', marginTop: 'auto' }} ml={20} size="sm">© Goe Network Ltd {currentYear}</Text>
+                    <Text lh={1} c={"gray"} style={{ display: 'flex', marginTop: 'auto' }} ml={20} size="sm">© Goe Network Ltd {currentYear}</Text>
                 </Flex>
-                <Flex mt="auto" visibleFrom="md" gap={10} style={{ alignItems: 'center' }}>
+                <Flex mt="auto" visibleFrom="md" gap={10} style={{ alignItems: 'end' }}>
                     <Text size="xs">Explore the technology — our code is open-source on</Text>
                     <Anchor href="https://github.com/eden-network" target="_blank">
                         <Image

@@ -64,7 +64,7 @@ const Overview = React.memo(({
 
                                     <Button
                                         p={10}
-                                        size="md"
+                                        size="lg"
                                         mb={20}
                                         radius={'lg'}
                                         fullWidth

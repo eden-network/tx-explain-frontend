@@ -29,7 +29,6 @@ import { TransactionDetails } from '../types';
 const { v4: uuidv4 } = require('uuid');
 import SignMessageModal from './SignMessageModal';
 
-
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
   const [network, setNetwork] = useStore((state) => [state.network, state.setNetwork]);
@@ -57,7 +56,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [categories, setCategories] = useState<Categories>({ labels: [], probabilities: [] });
   const [isCategoriesLoading, setIsCategoriesLoading] = useState<boolean>(false)
   const [categoriesCache, setCategoriesCache] = useState<Record<string, Categories>>({});
-
   const [transactionDetails, setTransactionDetails] = useState<TransactionDetails | null>(null);
   const [chatModalOpened, setChatModalOpened] = useState(false)
   const [questions, setQuestions] = useState<string[]>([]);
@@ -69,19 +67,15 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [firstQuestionsFetched, setFirstQuestionsFetched] = useState(false)
   const [isSignMessageModalOpen, setIsSignMessageModalOpen] = useState(false);
   const [userSignature, setUserSignature] = useState<string | null>(null);
-
   const openModal = () => setIsSimulateModalOpened(true);
-  const openChatModal = () => setChatModalOpened(true);
   const closeModal = () => setIsSimulateModalOpened(false);
+  const openChatModal = () => setChatModalOpened(true);
+  const closeChatModal = () => setChatModalOpened(false);
+  const { address, isConnected } = useAccount();
+  const { signMessage, isSuccess, data: signature } = useSignMessage();
 
   const [addressTransactions, setAddressTransactions] = useState<string[]>([]);
   const [currentAddressTxIndex, setCurrentAddressTxIndex] = useState<number>(0);
-
-  const closeChatModal = () => setChatModalOpened(false);
-
-  const { address, isConnected } = useAccount();
-
-  const { signMessage, isSuccess, data: signature } = useSignMessage();
 
   const {
     data: simulationData,
@@ -582,11 +576,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       setFirstQuestionsFetched(true);
     }
 
-
     if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
 
     const token = await executeRecaptcha('questions');
-
 
     const generateQuestionsUserMessage = {
       role: "user",
@@ -630,8 +622,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         session_id: sessionId,
         recaptcha_token: token
       });
-      console.log(body);
-
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/questions`, {
         method: 'POST',
@@ -644,15 +634,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
       if (response.ok) {
         const data = await response.json();
-
-
         const parsedData = JSON.parse(data[0]);
-
-
         const questionsArray = parsedData.questions ? parsedData.questions.map((item: { question: string }) => item.question) : [];
-        console.log(questionsArray);
         setQuestions(questionsArray);
-
         setPreviousQuestions(questionsArray)
         setQuestionsGenerated(true);
         setIsQuestionsLoading(false);
@@ -759,7 +743,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   useEffect(() => {
     if (isSuccess && signature && address) {
       setSignature(`tx-explain-signature-${address}`, signature);
-      console.log("New signature stored:", signature);
       setUserSignature(signature);
       setIsSignMessageModalOpen(false);
     }
@@ -770,9 +753,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       setUserSignature(null);
     }
   }, [isConnected]);
-
-  console.log(userSignature);
-
 
   return (
     <Wrapper>
