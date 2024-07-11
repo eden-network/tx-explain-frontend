@@ -73,6 +73,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const closeChatModal = () => setChatModalOpened(false);
   const { address, isConnected } = useAccount();
   const { signMessage, isSuccess, data: signature } = useSignMessage();
+  const [feedbackCount, setFeedbackCount] = useState(0)
 
   const [addressTransactions, setAddressTransactions] = useState<string[]>([]);
   const [currentAddressTxIndex, setCurrentAddressTxIndex] = useState<number>(0);
@@ -414,6 +415,30 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     }
   }, [router.query]);
 
+  const fetchFeedbackCount = async (address: string, signature: string, recaptchaToken: string) => {
+
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/user/feedbackCount`, {
+        user: address,
+        signature: signature,
+        recaptcha_token: recaptchaToken
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+        }
+      });
+      console.log('Feedback count:', response.data);
+      const count = response.data.response ? response.data.response : response.data;
+
+      // Ensure we're setting a number
+      setFeedbackCount(Number(count));
+      // You can handle the response data here, e.g., update state
+    } catch (error) {
+      console.error('Error fetching feedback count:', error);
+    }
+  };
+
   const handleSubmitFeedback = async (values: any, token: string) => {
 
     const feedbackData = {
@@ -429,7 +454,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           ...values,
         },
       },
-      "user": address ? address : '',
+      "user": address ? address : 'anon',
       "signature": signature ? signature : '',
       "recaptcha_token": token,
     };
@@ -459,6 +484,24 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         color: 'green',
         loading: false,
       });
+
+      console.log(address);
+      console.log(signature);
+
+
+      if (address && userSignature) {
+        console.log("Conditions met, preparing to fetch feedback count");
+        try {
+          if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
+          const recaptchaToken = await executeRecaptcha('feedbackCountAfterSubmittedFeedback');
+          console.log("Recaptcha token generated:", recaptchaToken);
+          await fetchFeedbackCount(address, userSignature, recaptchaToken);
+        } catch (error) {
+          console.error("Error in fetchFeedbackCount process:", error);
+        }
+      } else {
+        console.log("Conditions not met to fetch feedback count");
+      }
     } catch (error) {
       console.error('Error submitting feedback:', error);
       updateNotification({
@@ -757,6 +800,17 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   }, [isSuccess, signature, address]);
 
   useEffect(() => {
+    if (isConnected && address && userSignature) {
+      const fetchData = async () => {
+        if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
+        const recaptchaToken = await executeRecaptcha('feedbackCount');
+        await fetchFeedbackCount(address, userSignature, recaptchaToken);
+      };
+      fetchData();
+    }
+  }, [isConnected, address, userSignature, executeRecaptcha]);
+
+  useEffect(() => {
     if (!isConnected) {
       setUserSignature(null);
     }
@@ -778,6 +832,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         address={address}
         isConnected={isConnected}
         isOnboarding={showOnboarding}
+        feedbackCount={feedbackCount}
       />
       {/* <Button onClick={() => setIsSignMessageModalOpen(true)}>open sign modal</Button> */}
       <SignMessageModal

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Flex, Box, Image, Button } from "@mantine/core";
+import { Flex, Box, Image, Badge } from "@mantine/core";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSignMessage } from 'wagmi';
 import InputForm from './InputForm';
@@ -14,7 +14,8 @@ interface HeaderProps {
   showOnBoarding: () => void;
   address: `0x${string}` | undefined;
   isConnected: boolean,
-  isOnboarding: boolean
+  isOnboarding: boolean,
+  feedbackCount: number
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -26,7 +27,8 @@ const Header: React.FC<HeaderProps> = ({
   showOnBoarding,
   address,
   isConnected,
-  isOnboarding
+  isOnboarding,
+  feedbackCount
 }) => {
   // const { isConnected, address } = useAccount();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -64,13 +66,16 @@ const Header: React.FC<HeaderProps> = ({
             handleTxHashChange={handleTxHashChange}
           />
         </Box>
-        <Flex ml={20} gap={20}>
+        <Flex ml={20} gap={10}>
           <ConnectButton
             label="Connect Wallet"
             accountStatus="address"
             chainStatus="none"
             showBalance={false}
           />
+          {isConnected &&
+            <Box fw={'700'} c={"dark"} m={'auto'} px={20} py={10} bg={"eden.5"} style={{ alignItems: 'center', borderRadius: '16px' }}>{feedbackCount}</Box>
+          }
         </Flex>
       </Flex>
       <Box hiddenFrom="md">
