@@ -415,7 +415,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   }, [router.query]);
 
   const handleSubmitFeedback = async (values: any, token: string) => {
-    console.log("here");
 
     const feedbackData = {
       "input_json": {
@@ -431,7 +430,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         },
       },
       "user": address,
-      // "signature": userSignature,
+      "signature": userSignature,
       "recaptcha_token": token,
     };
 
@@ -445,7 +444,14 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     try {
       console.log(feedbackData);
 
-      await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/user/feedback`, feedbackData);
+      await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/user/feedback`, feedbackData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+          }
+        }
+      );
       updateNotification({
         id,
         title: 'Success! Feedback sent',
