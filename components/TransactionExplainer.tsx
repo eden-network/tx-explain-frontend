@@ -486,7 +486,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       });
 
       console.log(address);
-      console.log(signature);
+      console.log(userSignature);
 
 
       if (address && userSignature) {

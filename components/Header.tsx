@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Flex, Box, Image, Badge } from "@mantine/core";
+import { Flex, Box, Image, Tooltip } from "@mantine/core";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSignMessage } from 'wagmi';
 import InputForm from './InputForm';
@@ -74,7 +74,9 @@ const Header: React.FC<HeaderProps> = ({
             showBalance={false}
           />
           {isConnected &&
-            <Box fw={'700'} c={"dark"} m={'auto'} px={20} py={10} bg={"eden.5"} style={{ alignItems: 'center', borderRadius: '16px' }}>{feedbackCount}</Box>
+            <Tooltip fw={'700'} p={10} radius="lg" withArrow arrowOffset={0} arrowSize={10} color='#2b2b46' label="Number of provided feedback comments">
+              <Box fw={'700'} c={"dark"} m={'auto'} px={20} py={10} bg={"eden.5"} style={{ alignItems: 'center', borderRadius: '16px' }}>{feedbackCount}</Box>
+            </Tooltip>
           }
         </Flex>
       </Flex>
@@ -90,12 +92,20 @@ const Header: React.FC<HeaderProps> = ({
             fit="contain"
             src="/tx_explain.svg"
           />
-          <ConnectButton
-            label="Connect Wallet"
-            accountStatus="address"
-            chainStatus="none"
-            showBalance={false}
-          />
+          <Flex gap={5}>
+            <ConnectButton
+
+              label="Connect Wallet"
+              accountStatus="address"
+              chainStatus="none"
+              showBalance={false}
+            />
+            {isConnected &&
+              <Tooltip fw={'700'} p={10} radius="lg" withArrow arrowOffset={0} arrowSize={10} color='#2b2b46' label="Number of provided feedback comments">
+                <Box fw={'700'} c={"dark"} m={'auto'} px={20} py={10} bg={"eden.5"} style={{ alignItems: 'center', borderRadius: '16px' }}>{feedbackCount}</Box>
+              </Tooltip>
+            }
+          </Flex>
         </Flex>
         {!isOnboarding &&
           <Box style={{ flexGrow: 1 }}>
