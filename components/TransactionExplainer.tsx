@@ -429,8 +429,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           ...values,
         },
       },
-      "user": address,
-      "signature": userSignature,
+      "user": address ? address : '',
+      "signature": signature ? signature : '',
       "recaptcha_token": token,
     };
 
