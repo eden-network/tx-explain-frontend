@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Flex, Box, Image, Tooltip } from "@mantine/core";
+import { Flex, Box, Image, Tooltip, Loader } from "@mantine/core";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSignMessage } from 'wagmi';
 import InputForm from './InputForm';
@@ -15,7 +15,8 @@ interface HeaderProps {
   address: `0x${string}` | undefined;
   isConnected: boolean,
   isOnboarding: boolean,
-  feedbackCount: number
+  feedbackCount: number | null;
+  isFeedbackCountLoading: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -28,9 +29,9 @@ const Header: React.FC<HeaderProps> = ({
   address,
   isConnected,
   isOnboarding,
-  feedbackCount
+  feedbackCount,
+  isFeedbackCountLoading
 }) => {
-  // const { isConnected, address } = useAccount();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const hasAttemptedSignRef = useRef(false);
 
@@ -73,11 +74,19 @@ const Header: React.FC<HeaderProps> = ({
             chainStatus="none"
             showBalance={false}
           />
-          {isConnected &&
+          {isConnected && (
             <Tooltip fw={'700'} p={10} radius="lg" withArrow arrowOffset={0} arrowSize={10} color='#2b2b46' label="Number of provided feedback comments">
-              <Box fw={'700'} c={"dark"} m={'auto'} px={20} py={10} bg={"eden.5"} style={{ alignItems: 'center', borderRadius: '16px' }}>{feedbackCount}</Box>
+              <Box fw={'bolder'} c={"dark"} m={'auto'} px={25} py={10} bg={"eden.5"} style={{ alignItems: 'center', borderRadius: '16px' }}>
+                {isFeedbackCountLoading ? (
+                  <Loader variant='dots' size="xs" />
+                ) : feedbackCount === null ? (
+                  '0'
+                ) : (
+                  feedbackCount
+                )}
+              </Box>
             </Tooltip>
-          }
+          )}
         </Flex>
       </Flex>
       <Box hiddenFrom="md">
@@ -100,11 +109,19 @@ const Header: React.FC<HeaderProps> = ({
               chainStatus="none"
               showBalance={false}
             />
-            {isConnected &&
+            {isConnected && (
               <Tooltip fw={'700'} p={10} radius="lg" withArrow arrowOffset={0} arrowSize={10} color='#2b2b46' label="Number of provided feedback comments">
-                <Box fw={'700'} c={"dark"} m={'auto'} px={20} py={10} bg={"eden.5"} style={{ alignItems: 'center', borderRadius: '16px' }}>{feedbackCount}</Box>
+                <Box fw={'700'} c={"dark"} m={'auto'} px={20} py={10} bg={"eden.5"} style={{ alignItems: 'center', borderRadius: '16px' }}>
+                  {isFeedbackCountLoading ? (
+                    <Loader variant='dots' size="xs" />
+                  ) : feedbackCount === null ? (
+                    <Loader variant='dots' size="xs" />
+                  ) : (
+                    feedbackCount
+                  )}
+                </Box>
               </Tooltip>
-            }
+            )}
           </Flex>
         </Flex>
         {!isOnboarding &&
@@ -117,16 +134,9 @@ const Header: React.FC<HeaderProps> = ({
               handleTxHashChange={handleTxHashChange}
             />
           </Box>}
-
       </Box>
-
-      {/* <SignMessageModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        address={address}
-      /> */}
     </>
   );
 };
 
-export default React.memo(Header);
+export default Header;

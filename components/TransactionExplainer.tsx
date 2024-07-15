@@ -73,10 +73,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const closeChatModal = () => setChatModalOpened(false);
   const { address, isConnected } = useAccount();
   const { signMessage, isSuccess, data: signature } = useSignMessage();
-  const [feedbackCount, setFeedbackCount] = useState(0)
-
-  const [addressTransactions, setAddressTransactions] = useState<string[]>([]);
-  const [currentAddressTxIndex, setCurrentAddressTxIndex] = useState<number>(0);
+  const [feedbackCount, setFeedbackCount] = useState<number | null>(null);
+  const [isFeedbackCountLoading, setIsFeedbackCountLoading] = useState(false);
 
   const {
     data: simulationData,
@@ -416,7 +414,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   }, [router.query]);
 
   const fetchFeedbackCount = async (address: string, signature: string, recaptchaToken: string) => {
-
+    setIsFeedbackCountLoading(true);
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/user/feedbackCount`, {
         user: address,
@@ -428,14 +426,13 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
         }
       });
-      console.log('Feedback count:', response.data);
       const count = response.data.response ? response.data.response : response.data;
-
-      // Ensure we're setting a number
-      setFeedbackCount(Number(count));
-      // You can handle the response data here, e.g., update state
+      setFeedbackCount(isNaN(Number(count)) ? null : Number(count));
     } catch (error) {
       console.error('Error fetching feedback count:', error);
+      setFeedbackCount(null);
+    } finally {
+      setIsFeedbackCountLoading(false);
     }
   };
 
@@ -463,7 +460,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     const id = showNotification({
       title: 'Sending feedback...',
       message: 'Sending feedback...!',
-      color: 'green',
+      color: 'eden.5',
       loading: true,
     });
     try {
@@ -481,20 +478,15 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         id,
         title: 'Success! Feedback sent',
         message: 'Thank you for your feedback!',
-        color: 'green',
+        color: 'eden.5',
         loading: false,
+        autoClose: 300
       });
 
-      console.log(address);
-      console.log(userSignature);
-
-
       if (address && userSignature) {
-        console.log("Conditions met, preparing to fetch feedback count");
         try {
           if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
           const recaptchaToken = await executeRecaptcha('feedbackCountAfterSubmittedFeedback');
-          console.log("Recaptcha token generated:", recaptchaToken);
           await fetchFeedbackCount(address, userSignature, recaptchaToken);
         } catch (error) {
           console.error("Error in fetchFeedbackCount process:", error);
@@ -527,17 +519,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     chainId: chainId,
   });
 
-  // useEffect(() => {
-  //   const fetchAccountData = async () => {
-  //     if (transaction?.from) {
-  //       console.log(transaction?.from);
-
-  //       await fetchAddressTransactions(transaction.from);
-  //     }
-  //   }
-  //   fetchAccountData();
-  // }, [txHash]);
-
   const [currentTxIndex, setCurrentTxIndex] = useState<number | null>(transaction?.transactionIndex ?? null);
 
   const handleNavigateTx = (direction: 'next' | 'prev') => {
@@ -564,25 +545,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       return newIndex;
     });
   };
-
-  // const handleNavigateAccountTx = (direction: 'next' | 'prev') => {
-  //   setActiveTab('overview');
-  //   setMobileActiveTab('overview');
-  //   setIsExplanationLoading(true);
-  //   setIsDetailsLoading(true);
-  //   setExplanation('');
-
-  //   const newIndex = direction === 'next'
-  //     ? (currentAddressTxIndex + 1) % addressTransactions.length
-  //     : (currentAddressTxIndex - 1 + addressTransactions.length) % addressTransactions.length;
-
-  //   const newTxHash = addressTransactions[newIndex];
-  //   if (newTxHash) {
-  //     setTxHash(newTxHash);
-  //     setCurrentAddressTxIndex(newIndex);
-  //     updateUrlParams({ network: network, txHash: newTxHash });
-  //   }
-  // };
 
   useEffect(() => {
     if (txHash === '') {
@@ -727,40 +689,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     setPreviousQuestions([])
   }, [txHash])
 
-  // const fetchAddressTransactions = async (address: string) => {
-  //   if (!address) return;
-
-  //   try {
-  //     const response = await axios.get(`https://api.etherscan.io/api`, {
-  //       params: {
-  //         module: 'account',
-  //         action: 'txlist',
-  //         address: address,
-  //         startblock: 0,
-  //         endblock: 99999999,
-  //         sort: 'desc',
-  //         apikey: process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY
-  //       }
-  //     });
-
-  //     if (response.data.status === '1') {
-  //       const transactions = response.data.result.map((tx: any) => tx.hash);
-  //       setAddressTransactions(transactions);
-  //       setCurrentAddressTxIndex(transactions.indexOf(txHash));
-  //       console.log(addressTransactions);
-  //       console.log(addressTransactions.length);
-
-  //     } else {
-  //       console.error('Error fetching transactions:', response.data.message);
-  //       setError('Failed to fetch address transactions');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching transactions:', error);
-  //     setError('Failed to fetch address transactions');
-  //   } finally {
-  //   }
-  // };
-
   const setSignature = (key: string, value: string) => {
     localStorage.setItem(key, value);
   };
@@ -833,8 +761,8 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         isConnected={isConnected}
         isOnboarding={showOnboarding}
         feedbackCount={feedbackCount}
+        isFeedbackCountLoading={isFeedbackCountLoading}
       />
-      {/* <Button onClick={() => setIsSignMessageModalOpen(true)}>open sign modal</Button> */}
       <SignMessageModal
         isOpen={isSignMessageModalOpen}
         onClose={() => setIsSignMessageModalOpen(false)}
