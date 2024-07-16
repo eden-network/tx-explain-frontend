@@ -52,7 +52,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ opened, onClose, onSubmit
         <Text size="md" mt="md">Quality:</Text>
         <Rating {...feedbackForm.getInputProps('quality')} size="md" mt="sm" color='eden.5' />
         <Textarea
-          label="Comments:"
+          label="Comments and feedback:"
           size="md"
           styles={{ label: { marginBottom: 10 } }}
           {...feedbackForm.getInputProps('comments')}
