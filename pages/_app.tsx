@@ -156,7 +156,7 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
               <Notifications
                 pos="fixed"
                 right={'1rem'}
-                top={'1rem'}
+                top={'5rem'}
               />
             </GoogleReCaptchaProvider>
           </MantineProvider>

@@ -75,6 +75,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const { signMessage, isSuccess, data: signature } = useSignMessage();
   const [feedbackCount, setFeedbackCount] = useState<number | null>(null);
   const [isFeedbackCountLoading, setIsFeedbackCountLoading] = useState(false);
+  const [triggerFeedbackAnimation, setTriggerFeedbackAnimation] = useState(false);
 
   const {
     data: simulationData,
@@ -464,8 +465,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       loading: true,
     });
     try {
-      console.log(feedbackData);
-
       await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/user/feedback`, feedbackData,
         {
           headers: {
@@ -480,9 +479,14 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         message: 'Thank you for your feedback!',
         color: 'eden.5',
         loading: false,
-        autoClose: 300
-      });
-
+        autoClose: 3000,
+        onClose: () => {
+          setTimeout(() => {
+            setTriggerFeedbackAnimation(true);
+            setTimeout(() => setTriggerFeedbackAnimation(false), 300);
+          }, 1000);
+        }
+      })
       if (address && userSignature) {
         try {
           if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
@@ -762,6 +766,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         isOnboarding={showOnboarding}
         feedbackCount={feedbackCount}
         isFeedbackCountLoading={isFeedbackCountLoading}
+        triggerFeedbackAnimation={triggerFeedbackAnimation}
       />
       <SignMessageModal
         isOpen={isSignMessageModalOpen}
