@@ -4,13 +4,14 @@ import { AppProps } from 'next/app';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import '@mantine/core/styles.css';
-import { createTheme, MantineProvider, useMantineColorScheme, ColorSchemeScript } from '@mantine/core';
+import { createTheme, MantineProvider, useMantineColorScheme, ColorSchemeScript, em } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { WagmiProvider } from 'wagmi'
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import { config } from '../config'
 import { darkTheme, RainbowKitProvider, Theme } from '@rainbow-me/rainbowkit';
-
+import { useMediaQuery } from '@mantine/hooks';
+import { Analytics } from "@vercel/analytics/react"
 
 const queryClient = new QueryClient();
 
@@ -118,6 +119,7 @@ const RainbowTheme: Theme = {
 
 const App: React.FC<AppProps> = ({ Component, pageProps }) => {
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
 
   return (
     <WagmiProvider config={config}>
@@ -130,6 +132,7 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
             <ColorSchemeScript forceColorScheme={"dark"} defaultColorScheme='dark' />
             <GoogleReCaptchaProvider
               reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}>
+              <Analytics />
               <Head>
                 <title>Explain | Eden Network</title>
                 <meta name="description" content="Tx Explain is an agent-like open source service that takes a transaction and returns a human-readable description of what happened." />
@@ -156,7 +159,8 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
               <Notifications
                 pos="fixed"
                 right={'1rem'}
-                top={'5rem'}
+                top={isMobile ? '1rem' : '5rem'}
+                zIndex={1000}
               />
             </GoogleReCaptchaProvider>
           </MantineProvider>
