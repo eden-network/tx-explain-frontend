@@ -47,14 +47,15 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ opened, onClose, onSubmit
       onClose={onClose}
       title={<Text size="xl" c="#D7D7D7" fw='700'>Submit Feedback</Text>}>
       <form onSubmit={feedbackForm.onSubmit(handleSubmit)}>
-        <Text size="md" mt="xs">Accuracy:</Text>
+        <Text size="md" mt="xs" c="#EBEBEB">Accuracy:</Text>
         <Rating {...feedbackForm.getInputProps('accuracy')} size="md" mt="sm" color="eden.5" />
-        <Text size="md" mt="md">Quality:</Text>
+        <Text size="md" mt="md" c="#EBEBEB">Quality:</Text>
         <Rating {...feedbackForm.getInputProps('quality')} size="md" mt="sm" color='eden.5' />
         <Textarea
-          label="Comments and feedback:"
+          placeholder='Use this space to provide more detailed feedback on the transaction. E.g. should the summary provide more in-depth details? Are the categories correct?'
+          label="Comments and Feedback:"
           size="md"
-          styles={{ label: { marginBottom: 10 } }}
+          styles={{ label: { marginBottom: 10, color: "#EBEBEB" } }}
           {...feedbackForm.getInputProps('comments')}
           autosize
           minRows={3}
