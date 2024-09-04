@@ -1,14 +1,31 @@
-import { Box, Center, Text, Image, Flex, Card, Button, Title } from "@mantine/core";
+import { Box, Center, Text, Image, Flex, Card, Button, Title, Transition, em } from "@mantine/core";
 import { ellipsis } from "../lib/ellipsis";
+import { useEffect, useState } from "react";
+import { useMediaQuery } from '@mantine/hooks';
+import InputForm from './InputForm';  // Adjust the import path as needed
 
 interface OnBoardingProps {
     loadTx1: () => void;
     loadTx2: () => void;
     loadTx3: () => void;
     openModal: () => void;
+    handleSubmit: (e: React.FormEvent, token: string) => Promise<void>;
+    network: string;
+    handleNetworkChange: (s: string) => void;
+    txHash: string;
+    handleTxHashChange: (s: string) => void;
 }
 
-const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) => {
+const OnBoarding = ({
+    loadTx1,
+    loadTx2,
+    loadTx3,
+    openModal,
+    handleSubmit,
+    network,
+    handleNetworkChange,
+    txHash,
+    handleTxHashChange }: OnBoardingProps) => {
     const transactions = [
         {
             label: "Bridged swap",
@@ -27,65 +44,122 @@ const OnBoarding = ({ loadTx1, loadTx2, loadTx3, openModal }: OnBoardingProps) =
         },
     ];
 
+    const [showImage, setShowImage] = useState(false);
+    const [showTitle, setShowTitle] = useState(false);
+    const isMobile = useMediaQuery(`(max-width: ${em(750)})`);
+
+    useEffect(() => {
+        setShowImage(true);
+        setShowTitle(true)
+    }, []);
+
+
     return (
         <Box>
-            <Flex visibleFrom="md" mt={20} mb={50} gap={20} justify="center">
-                <Center>
-                    <Text ta="center" c="gray">Explore our top intriguing transactions:</Text>
-                </Center>
-                {transactions.map((tx, index) => (
-                    <Card key={index} style={{ cursor: 'pointer' }} onClick={tx.onClick} shadow="sm" p="sm" radius="md" withBorder>
-                        <Box>
-                            <Text c="gray" ta="center" size="sm">{tx.label}</Text>
-                            <Text c="gray" ta="center" size="xs">Hash: {ellipsis(tx.txHash)}</Text>
-                        </Box>
-                    </Card>
-                ))}
-            </Flex>
-            <Box px={"3rem"} hiddenFrom="md" mt={20} mb={50}>
-                <Center>
-                    <Text ta="center" c="gray">Explore our top intriguing transactions:</Text>
-                </Center>
-                {transactions.map((tx, index) => (
-                    <Card mt={20} key={index} style={{ cursor: 'pointer' }} onClick={tx.onClick} shadow="sm" p="sm" radius="md" withBorder>
-                        <Box>
-                            <Text c="gray" ta="center" size="sm">{tx.label}</Text>
-                            <Text c="gray" ta="center" size="xs">Hash: {ellipsis(tx.txHash)}</Text>
-                        </Box>
-                    </Card>
-                ))}
-            </Box>
-            <Center display="flex" style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
-                <Text visibleFrom="md" size="xl">I understand.</Text>
-                <Image visibleFrom="md" alt="tx-agent" style={{ mixBlendMode: 'screen' }} src="/txagent.svg" height={480} width={5} />
-                <Text visibleFrom="md" size="xl">I analyze.</Text>
-            </Center>
-            <Box visibleFrom="md" mt={20} mb={50}>
-                <Center>
-                    <Text ta="center" c="gray">Or simulate a <em>new unsigned</em> transaction (Preview):</Text>
-                </Center>
-                <Center mt={10}>
-                    <Button
-                        bg={"eden.5"}
-                        onClick={openModal}
-                        size="md"
-                        radius="md"
-                        variant="filled"
-                        autoContrast
-                    >
-                        Simulate Transaction
-                    </Button>
-                </Center>
-            </Box>
-            <Center>
-                <Box>
-                    <Text visibleFrom="md" mb={50} size="xl" style={{ textAlign: 'center' }}>The Future of Transaction Analysis</Text>
-                    <Image visibleFrom="md" alt="description" src="/text-desktop.svg" width="1000px" />
-                    <Image px={20} hiddenFrom="md" alt="description" src="/text-mobile.svg" width="1000px" />
+            <Transition
+                mounted={showImage}
+                transition="fade-up"
+                duration={800}
+                timingFunction="ease"
+            >
+                {(styles) => (
+                    <Flex style={{ ...styles }} visibleFrom="md" mt={0} mb={50} gap={20} justify="center">
+                        <Center>
+                            <Text ta="center" c="gray" fw="700">Enter transaction hash or<br />Explore our top intriguing transactions:</Text>
+                        </Center>
+                        {transactions.map((tx, index) => (
+                            <Card key={index} style={{ cursor: 'pointer' }} onClick={tx.onClick} shadow="sm" py="xs" px="xl" radius="md" bg="eden.5">
+                                <Box>
+                                    <Text c="dark" ta="center" size="sm" fw="700">{tx.label}</Text>
+                                    <Text c="dark" ta="center" size="xs" fw="700">Hash: {ellipsis(tx.txHash)}</Text>
+                                </Box>
+                            </Card>
+                        ))}
+                    </Flex>
+                )}
+            </Transition>
+            <Box hiddenFrom="md" mt={20} mb={50}>
+                <Box w={"100%"} m={"auto"}>
+                    <Box w={"70%"} m={"auto"}>
+                        <Image
+                            alt="tx-agent"
+                            style={{ mixBlendMode: 'screen' }}
+                            src="/txagent.svg"
+                            height={"auto"}
+                            width={"auto"}
+                        />
+                    </Box>
+                    <Title ta={"center"} fw="normal" c="#D8D8D8" style={{ fontSize: '60px', lineHeight: '63px' }}>Decode Your<br />Transactions with AI</Title>
                 </Box>
+                <InputForm
+                    handleSubmit={handleSubmit}
+                    network={network}
+                    handleNetworkChange={handleNetworkChange}
+                    txHash={txHash}
+                    handleTxHashChange={handleTxHashChange}
+                />
+                <Center>
+                    <Text ta="center" c="gray" fw={"700"}>Enter transaction hash or <br /> Explore our top intriguing transactions:</Text>
+                </Center>
+                <Flex justify={"center"} gap={10}>
+                    {transactions.map((tx, index) => (
+                        <Card w="100%" mt={20} key={index} style={{ cursor: 'pointer' }} onClick={tx.onClick} shadow="sm" p="xs" radius="md" bg="eden.5">
+                            <Box m="auto">
+                                <Text c="dark" fw="700" ta="center" size="sm">{tx.label}</Text>
+                            </Box>
+                        </Card>
+                    ))}
+                </Flex>
+            </Box>
+            <Center mt={30} style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
+                <Box w={isMobile ? "100%" : "50%"}>
+                    <Transition
+                        mounted={showImage}
+                        transition="fade-right"
+                        duration={800}
+                        timingFunction="ease"
+                    >
+                        {(styles) => (
+                            <Box style={{ ...styles }}>
+                                <Title mb={20} c="eden.5" fw="normal" size="16" tt="uppercase">chat for deeper insights!</Title>
+                                {!isMobile && <Title fw="normal" c="#D8D8D8" style={{ fontSize: '60px', lineHeight: '63px' }}>Decode Your<br />Transactions with AI</Title>}
+                                <Text mt={20}> <Text fw="700" component="span">TX Explain</Text> uses data from Tenderly and Claude AI to deliver precise, carefully constructed explanations of transaction details, continuously refined through open-source development.<br /> Powered by <Text fw="700" component="span">Eden Research</Text> and AI.</Text>
+                                <Flex align="center" mt={20}>
+                                    <Text mr={10}>New Feature:</Text>
+                                    <Button
+                                        onClick={openModal}
+                                        size="xs"
+                                        radius="md"
+                                        variant="outline"
+                                        autoContrast
+                                    >
+                                        Simulate Transaction
+                                    </Button>
+                                </Flex>
+                            </Box>
+                        )}
+                    </Transition>
+                </Box>
+                <Transition
+                    mounted={showImage}
+                    transition="fade-left"
+                    duration={800}
+                    timingFunction="ease"
+                >
+                    {(styles) => (
+                        <Image
+                            visibleFrom="md"
+                            alt="tx-agent"
+                            style={{ ...styles, mixBlendMode: 'screen' }}
+                            src="/txagent.svg"
+                            height={560}
+                            width={5}
+                        />
+                    )}
+                </Transition>
             </Center>
         </Box>
     );
-};
+}
 
 export default OnBoarding;

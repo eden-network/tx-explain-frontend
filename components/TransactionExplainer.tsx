@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Text, Button } from '@mantine/core';
+import { Box, Space, Alert, Flex, Tabs, Image, Center, Loader, Button } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import useStore from '../store';
@@ -9,14 +9,14 @@ import { isValidTxHash, getNetworkName, isSimulationTxHash, isValidJSON } from '
 import ModelEditor from './ModelEditor';
 import SystemPromptModal from './SystemPromptModal';
 import FeedbackModal from './FeedbackModal';
-import { TransactionSimulation, Categories, Message, regenerateQuestions, generateQuestions } from '../types';
+import { TransactionSimulation, Categories, Message, generateQuestions } from '../types';
 import Wrapper from './Wrapper';
 import { isDevEnvironment, isLocalEnvironment } from '../lib/env';
 import { DEFAULT_SYSTEM_PROMPT } from '../lib/prompts';
 import Header from './Header';
 import Overview from './Overview';
 import Details from './Details';
-import { useTransaction, useBlock } from 'wagmi';
+import { useTransaction, useBlock, useAccount, useSignMessage } from 'wagmi';
 import TxDetails from './TxDetails';
 import OnBoarding from './OnBoarding';
 import FunctionCalls from './FunctionCalls';
@@ -27,7 +27,7 @@ import SimulationInputs from './SimulationInputs';
 import ChatModal from './ChatModal';
 import { TransactionDetails } from '../types';
 const { v4: uuidv4 } = require('uuid');
-
+import SignMessageModal from './SignMessageModal';
 
 const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboarding: (value: boolean) => void }> = ({ showOnboarding, setShowOnboarding }) => {
   const router = useRouter();
@@ -56,7 +56,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [categories, setCategories] = useState<Categories>({ labels: [], probabilities: [] });
   const [isCategoriesLoading, setIsCategoriesLoading] = useState<boolean>(false)
   const [categoriesCache, setCategoriesCache] = useState<Record<string, Categories>>({});
-
   const [transactionDetails, setTransactionDetails] = useState<TransactionDetails | null>(null);
   const [chatModalOpened, setChatModalOpened] = useState(false)
   const [questions, setQuestions] = useState<string[]>([]);
@@ -66,11 +65,17 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
   const [errorGeneratingQuestions, setErrorGeneratingQuestions] = useState(false)
   const [messages, setMessages] = useState<Message[]>([]);
   const [firstQuestionsFetched, setFirstQuestionsFetched] = useState(false)
-
+  const [isSignMessageModalOpen, setIsSignMessageModalOpen] = useState(false);
+  const [userSignature, setUserSignature] = useState<string | null>(null);
   const openModal = () => setIsSimulateModalOpened(true);
-  const openChatModal = () => setChatModalOpened(true);
   const closeModal = () => setIsSimulateModalOpened(false);
+  const openChatModal = () => setChatModalOpened(true);
   const closeChatModal = () => setChatModalOpened(false);
+  const { address, isConnected } = useAccount();
+  const { signMessage, isSuccess, data: signature } = useSignMessage();
+  const [feedbackCount, setFeedbackCount] = useState<number | null>(null);
+  const [isFeedbackCountLoading, setIsFeedbackCountLoading] = useState(false);
+  const [triggerFeedbackAnimation, setTriggerFeedbackAnimation] = useState(false);
 
   const {
     data: simulationData,
@@ -409,35 +414,90 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     }
   }, [router.query]);
 
+  const fetchFeedbackCount = async (address: string, signature: string, recaptchaToken: string) => {
+    setIsFeedbackCountLoading(true);
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/user/feedbackCount`, {
+        user: address,
+        signature: signature,
+        recaptcha_token: recaptchaToken
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+        }
+      });
+      const count = response.data.response ? response.data.response : response.data;
+      setFeedbackCount(isNaN(Number(count)) ? null : Number(count));
+    } catch (error) {
+      console.error('Error fetching feedback count:', error);
+      setFeedbackCount(null);
+    } finally {
+      setIsFeedbackCountLoading(false);
+    }
+  };
+
   const handleSubmitFeedback = async (values: any, token: string) => {
+
     const feedbackData = {
-      date: new Date().toISOString(),
-      network: getNetworkName(network),
-      txHash,
-      explanation: explanationCache[`${network}:${txHash}`],
-      model,
-      systemPrompt,
-      simulationData: JSON.stringify(simulationDataCache[`${network}:${txHash}`]),
-      ...values,
-      recaptcha_token: token,
+      "input_json": {
+        hash: txHash,
+        feedback: {
+          date: new Date().toISOString(),
+          network: getNetworkName(network),
+          explanation: explanationCache[`${network}:${txHash}`],
+          model,
+          systemPrompt,
+          simulationData: JSON.stringify(simulationDataCache[`${network}:${txHash}`]),
+          ...values,
+        },
+      },
+      "user": address ? address : 'anon',
+      "signature": signature ? signature : '',
+      "recaptcha_token": token,
     };
 
     setFeedbackModalOpen(false);
     const id = showNotification({
       title: 'Sending feedback...',
       message: 'Sending feedback...!',
-      color: 'green',
+      color: 'eden.5',
       loading: true,
     });
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/feedback`, feedbackData);
+      await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/user/feedback`, feedbackData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+          }
+        }
+      );
       updateNotification({
         id,
         title: 'Success! Feedback sent',
         message: 'Thank you for your feedback!',
-        color: 'green',
+        color: 'eden.5',
         loading: false,
-      });
+        autoClose: 3000,
+        onClose: () => {
+          setTimeout(() => {
+            setTriggerFeedbackAnimation(true);
+            setTimeout(() => setTriggerFeedbackAnimation(false), 300);
+          }, 1000);
+        }
+      })
+      if (address && userSignature) {
+        try {
+          if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
+          const recaptchaToken = await executeRecaptcha('feedbackCountAfterSubmittedFeedback');
+          await fetchFeedbackCount(address, userSignature, recaptchaToken);
+        } catch (error) {
+          console.error("Error in fetchFeedbackCount process:", error);
+        }
+      } else {
+        console.log("Conditions not met to fetch feedback count");
+      }
     } catch (error) {
       console.error('Error submitting feedback:', error);
       updateNotification({
@@ -533,11 +593,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
       setFirstQuestionsFetched(true);
     }
 
-
     if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
 
     const token = await executeRecaptcha('questions');
-
 
     const generateQuestionsUserMessage = {
       role: "user",
@@ -545,7 +603,7 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         {
           type: "text",
           text:
-            previousQuestions.toString() + regenerateQuestions
+            previousQuestions.toString() + generateQuestions
         }
       ]
     };
@@ -581,8 +639,6 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
         session_id: sessionId,
         recaptcha_token: token
       });
-      console.log(body);
-
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/v1/transaction/questions`, {
         method: 'POST',
@@ -595,15 +651,9 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
 
       if (response.ok) {
         const data = await response.json();
-
-
         const parsedData = JSON.parse(data[0]);
-
-
         const questionsArray = parsedData.questions ? parsedData.questions.map((item: { question: string }) => item.question) : [];
-        console.log(questionsArray);
         setQuestions(questionsArray);
-
         setPreviousQuestions(questionsArray)
         setQuestionsGenerated(true);
         setIsQuestionsLoading(false);
@@ -643,6 +693,61 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
     setPreviousQuestions([])
   }, [txHash])
 
+  const setSignature = (key: string, value: string) => {
+    localStorage.setItem(key, value);
+  };
+
+  const getSignature = (key: string): string | null => {
+    return localStorage.getItem(key);
+  };
+
+  const initiateSignMessage = useCallback(() => {
+    if (isConnected && address) {
+      const message = `I am the owner of this address and want to sign in to Tx-Explain:${address}`;
+      signMessage({ message });
+    }
+  }, [isConnected, address, signMessage]);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      const storedSignature = getSignature(`tx-explain-signature-${address}`);
+      if (storedSignature) {
+        setUserSignature(storedSignature);
+      } else {
+        setUserSignature(null);
+        setIsSignMessageModalOpen(true);
+        initiateSignMessage();
+      }
+    } else {
+      setUserSignature(null);
+    }
+  }, [isConnected, address, initiateSignMessage]);
+
+  useEffect(() => {
+    if (isSuccess && signature && address) {
+      setSignature(`tx-explain-signature-${address}`, signature);
+      setUserSignature(signature);
+      setIsSignMessageModalOpen(false);
+    }
+  }, [isSuccess, signature, address]);
+
+  useEffect(() => {
+    if (isConnected && address && userSignature) {
+      const fetchData = async () => {
+        if (!executeRecaptcha || typeof executeRecaptcha !== 'function') return;
+        const recaptchaToken = await executeRecaptcha('feedbackCount');
+        await fetchFeedbackCount(address, userSignature, recaptchaToken);
+      };
+      fetchData();
+    }
+  }, [isConnected, address, userSignature, executeRecaptcha]);
+
+  useEffect(() => {
+    if (!isConnected) {
+      setUserSignature(null);
+    }
+  }, [isConnected]);
+
   return (
     <Wrapper>
       <Header
@@ -656,6 +761,18 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           setShowOnboarding(true);
           updateUrlParams({ network: network, txHash: '' });
         }}
+        address={address}
+        isConnected={isConnected}
+        isOnboarding={showOnboarding}
+        feedbackCount={feedbackCount}
+        isFeedbackCountLoading={isFeedbackCountLoading}
+        triggerFeedbackAnimation={triggerFeedbackAnimation}
+      />
+      <SignMessageModal
+        isOpen={isSignMessageModalOpen}
+        onClose={() => setIsSignMessageModalOpen(false)}
+        address={address}
+        isSuccess={isSuccess}
       />
       <SimulateTransaction
         simulateTransaction={simulateTransaction}
@@ -669,6 +786,11 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           loadTx2={() => handleLoadTxHash(examples.txHash2)}
           loadTx3={() => handleLoadTxHash(examples.txHash3)}
           openModal={openModal}
+          handleSubmit={handleSearch}
+          network={network}
+          txHash={txHash}
+          handleTxHashChange={handleTxHashChange}
+          handleNetworkChange={handleNetworkChange}
         />
       ) : (
         <Box>
@@ -693,39 +815,15 @@ const TransactionExplainer: React.FC<{ showOnboarding: boolean; setShowOnboardin
           {isValidTxHash(txHash) && (
             <Center visibleFrom='md'>
               <Flex gap={10} mb={{ md: "20" }}>
-                <Image
-                  alt="navigate-tx"
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => handleNavigateTx('prev')}
-                  src="/previous_tx.svg"
-                  height={30}
-                />
-                <Image
-                  alt="navigate-tx"
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => handleNavigateTx('next')}
-                  src="/next_tx.svg"
-                  height={30}
-                />
+                <Button fw="400" style={{ minWidth: "200px" }} onClick={() => handleNavigateTx('prev')} variant='subtle' leftSection={<Image src="/caret-left.svg" width={20} height={20} />} color='#D7D7D7' bg="dark.6" size='sm'>Previous Transaction</Button>
+                <Button fw="400" style={{ minWidth: "200px" }} onClick={() => handleNavigateTx('next')} variant='subtle' rightSection={<Image src="/caret-right.svg" width={20} height={20} />} bg="dark.6" size='sm' color='#D7D7D7'>Next Transaction</Button>
               </Flex>
             </Center>
           )}
           <Center hiddenFrom='md'>
             <Flex gap={10} mb={{ md: "20" }}>
-              <Image
-                alt="navigate-tx"
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleNavigateTx('prev')}
-                src="/previoustx_mobile.svg"
-                height={30}
-              />
-              <Image
-                alt="navigate-tx"
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleNavigateTx('next')}
-                src="/next_tx_mobile.svg"
-                height={30}
-              />
+              <Button fw="400" style={{ minWidth: "150px" }} onClick={() => handleNavigateTx('prev')} variant='subtle' leftSection={<Image src="/caret-left.svg" width={10} height={10} />} color='#D7D7D7' bg="dark.6" size='xs'>Previous Transaction</Button>
+              <Button fw="400" style={{ minWidth: "150px" }} onClick={() => handleNavigateTx('next')} variant='subtle' rightSection={<Image src="/caret-right.svg" width={10} height={10} />} bg="dark.6" size='xs' color='#D7D7D7'>Next Transaction</Button>
             </Flex>
           </Center>
           {error && (

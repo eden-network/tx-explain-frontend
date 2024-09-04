@@ -34,7 +34,7 @@ const OverviewMobile = React.memo(({
     };
 
     return (
-        <Box hiddenFrom="md" mt={20} pos="relative">
+        <Box hiddenFrom="md" pos="relative">
             <Card style={{ boxShadow: '1px 1px 8px 0px #00000054', minHeight: "100%" }} p="lg" radius="md" withBorder mb="xl">
                 {!explanation && !isExplanationLoading && !isSimulationLoading ? (
                     <Center display="flex" style={{ justifyContent: 'center', alignItems: 'center', gap: "2rem" }}>
@@ -48,23 +48,17 @@ const OverviewMobile = React.memo(({
                         <Box display="flex" style={{ justifyContent: 'center', margin: 'auto', height: '100%' }}>
                             <Loader ml={10} color="eden" size="xl" />
                         </Box>) : (
-                    <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Bw Modelica, sans-serif' }}>
+                    <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Bw Modelica, sans-serif', margin: '0' }}>
                         {categories &&
-                            <Center m={'auto'} mb={20}>
-                                <Box px={20} py={10} style={{ border: '1px solid #bfff38', borderRadius: '10px' }}>
-                                    <Text ta={"center"} fw={600}>Would you like to chat about this transaction?</Text>
-                                    <Center>
-                                        <Button
-                                            my={10}
-                                            w={'fit-content'}
-                                            autoContrast
-                                            bg={"eden.5"}
-                                            onClick={setChatModalOpened}>
-                                            Open Chat
-                                        </Button>
-                                    </Center>
-                                </Box>
-                            </Center>}
+                            <Button
+                                fullWidth
+                                variant="outline"
+                                mb={20}
+                                autoContrast
+                                onClick={setChatModalOpened}>
+                                Open Chat about this transaction
+                            </Button>
+                        }
                         <Box mb={20}>
                             <Text size="sm" mr={10}>Categories:</Text>
                             {isCategoriesLoading ? (
@@ -79,19 +73,20 @@ const OverviewMobile = React.memo(({
                         </Box>
 
                         <Text size="sm">{explanation}</Text>
-
                         {explanation && (
-                            <Button
-                                bg={"eden.5"}
-                                display="flex"
-                                m="auto"
-                                mt={50}
-                                autoContrast
-                                onClick={() => setFeedbackModalOpen(true)}
-                                leftSection={<IconSend size={16} />}
-                            >
-                                Feedback
-                            </Button>
+                            <Box mt={30} style={{ borderTop: '1px solid #878787' }} w={"100%"}>
+                                <Button
+                                    mt={30}
+                                    mr={"auto"}
+                                    bg={"eden.5"}
+                                    display="flex"
+                                    autoContrast
+                                    onClick={() => setFeedbackModalOpen(true)}
+                                    leftSection={<IconSend size={16} />}
+                                >
+                                    Feedback
+                                </Button>
+                            </Box>
                         )}
                     </pre>
                 )
