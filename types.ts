@@ -69,7 +69,7 @@ export interface TransactionDetails {
     nonce: number | undefined;
     gas_used: string | undefined;
     type_hex: `0x${string}` | null | undefined;
-    type: "legacy" | "eip2930" | "eip1559" | "eip4844" | undefined;
+    type: "legacy" | "eip2930" | "eip1559" | "eip4844" | "eip7702" | undefined;
     transaction_fee: string | undefined;
     gas_price: string | undefined;
     base: string | undefined;
