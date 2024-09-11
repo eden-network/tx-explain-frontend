@@ -11,7 +11,7 @@ import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import { config } from '../config'
 import { darkTheme, RainbowKitProvider, Theme } from '@rainbow-me/rainbowkit';
 import { useMediaQuery } from '@mantine/hooks';
-import { Analytics } from "@vercel/analytics/react"
+// import { Analytics } from "@vercel/analytics/react"
 
 const queryClient = new QueryClient();
 
@@ -132,7 +132,7 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
             <ColorSchemeScript forceColorScheme={"dark"} defaultColorScheme='dark' />
             <GoogleReCaptchaProvider
               reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}>
-              <Analytics />
+              {/* <Analytics /> */}
               <Head>
                 <title>Explain | Eden Network</title>
                 <meta name="description" content="Tx Explain is an agent-like open source service that takes a transaction and returns a human-readable description of what happened." />
